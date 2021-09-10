@@ -1,0 +1,11 @@
+[profile fmi-tiuha-util]
+source_profile = fmi-tiuha-user
+role_arn = arn:aws:iam::202796808290:role/OrganizationAccountAccessRole
+
+[profile fmi-tiuha-dev]
+source_profile = fmi-tiuha-user
+role_arn = arn:aws:iam::406559123275:role/OrganizationAccountAccessRole
+
+[profile fmi-tiuha-prod]
+source_profile = fmi-tiuha-user
+role_arn = arn:aws:iam::664539256867:role/OrganizationAccountAccessRole
