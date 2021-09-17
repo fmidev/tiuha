@@ -16,6 +16,8 @@
         <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
+        <kotlin.compiler.jvmTarget>1.8</kotlin.compiler.jvmTarget>
+        <awssdk.version>1.12.64</awssdk.version>
     </properties>
 
     <repositories>
@@ -48,12 +50,17 @@
         <dependency>
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-java-sdk-core</artifactId>
-            <version>1.12.64</version>
+            <version>${awssdk.version}</version>
         </dependency>
         <dependency>
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-java-sdk-sts</artifactId>
-            <version>1.12.64</version>
+            <version>${awssdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk-s3</artifactId>
+            <version>${awssdk.version}</version>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
