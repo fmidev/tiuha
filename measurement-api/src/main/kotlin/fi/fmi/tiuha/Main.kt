@@ -16,19 +16,22 @@ fun main(args: Array<String>) {
             attr -> println(attr.name)
     }
 
-    importMeasurements()
+    if (Config.importMeasurements) {
+        val s3 = ArchiveS3()
+        importMeasurements(s3)
+    }
 }
 
-fun importMeasurements() {
-    val keys = S3.listKeys(Config.measurementArchiveBucket, "2021/")
+fun importMeasurements(s3: S3) {
+    val keys = s3.listKeys(Config.measurementArchiveBucket, "2021/w23/2021_w23_prod_id_4.csv")
     println(keys)
     keys.take(1).forEach { s3key ->
-        val result = fetchAndParseCsv(s3key)
+        val result = fetchAndParseCsv(s3, s3key)
         result.records.forEach { println(it) }
     }
 }
 
-fun fetchAndParseCsv(s3key: String): CSVParser {
-    val inputStream = S3.getObjectStream(Config.measurementArchiveBucket, s3key)
+fun fetchAndParseCsv(s3: S3, s3key: String): CSVParser {
+    val inputStream = s3.getObjectStream(Config.measurementArchiveBucket, s3key)
     return CSVParser.parse(inputStream, Charset.forName("UTF-8"), CSVFormat.DEFAULT)
 }
