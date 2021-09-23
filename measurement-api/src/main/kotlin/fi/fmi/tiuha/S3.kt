@@ -25,7 +25,7 @@ class ArchiveS3 : S3 {
             .build()
 
     private fun fetchCredentialsFromSecretManager(): AWSCredentialsProvider {
-        val json = SecretsManager.getSecertValue("observation-archive-access-keys")
+        val json = SecretsManager.getSecretValue("observation-archive-access-keys")
         val creds = Json.decodeFromString<AwsCredentials>(json)
         return AWSStaticCredentialsProvider(BasicAWSCredentials(creds.accessKeyId, creds.secretAccessKey))
     }

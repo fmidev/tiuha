@@ -8,7 +8,7 @@ object SecretsManager {
             .withRegion(Config.awsRegion)
             .build()
 
-    fun getSecertValue(secretId: String): String {
+    fun getSecretValue(secretId: String): String {
         val response = client.getSecretValue(GetSecretValueRequest().withSecretId(secretId))
         return response.secretString
     }
