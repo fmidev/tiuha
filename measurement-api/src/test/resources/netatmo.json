@@ -1,0 +1,37 @@
+[
+  {
+    "location": [
+      24.9607611,
+      60.2037551
+    ],
+    "_id": "enc:16:testIdDynamicum",
+    "data": {
+      "Humidity": 65,
+      "Temperature": 5.8,
+      "Rain": 0,
+      "time_day_rain": 1632344400,
+      "sum_rain_1": 0,
+      "time_hour_rain": 1632406373,
+      "time_utc": 1632406373
+    },
+    "altitude": 30
+  },
+  {
+    "location": [
+      24.9486983,
+      60.1696741
+    ],
+    "_id": "enc:16:testIdYk4",
+    "data": {
+      "Humidity": 68,
+      "Temperature": 6.5,
+      "Rain": 0,
+      "time_day_rain": 1632344400,
+      "sum_rain_1": 0,
+      "time_hour_rain": 1632406582,
+      "Pressure": 1006.1,
+      "time_utc": 1632406575
+    },
+    "altitude": 5
+  }
+]
