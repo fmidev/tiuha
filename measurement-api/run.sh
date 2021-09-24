@@ -7,7 +7,8 @@ function main {
   mvn clean package
   configure_aws_credentials "$AWS_PROFILE"
   java -jar \
-    "$repo/measurement-api/target/measurement-api-1.0-SNAPSHOT-jar-with-dependencies.jar"
+    "$repo/measurement-api/target/measurement-api-1.0-SNAPSHOT-jar-with-dependencies.jar" \
+    "$@"
 }
 
 main "$@"

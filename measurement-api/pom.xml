@@ -87,6 +87,11 @@
             <artifactId>kotlin-test</artifactId>
             <version>1.5.31</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-csv</artifactId>
+            <version>1.9.0</version>
+        </dependency>
     </dependencies>
 
     <dependencyManagement>

@@ -61,6 +61,11 @@ interface S3 {
         return exec(true, null, emptyList())
     }
 
-    fun getObjectStream(bucket: String, key: String): InputStream =
-            client.getObject(GetObjectRequest(bucket, key)).objectContent
+    fun getObjectStream(bucket: String, key: String, maxBytes: Long? = null): InputStream {
+        val request = GetObjectRequest(bucket, key)
+        if (maxBytes != null) {
+            request.setRange(0, maxBytes)
+        }
+        return client.getObject(request).objectContent
+    }
 }
