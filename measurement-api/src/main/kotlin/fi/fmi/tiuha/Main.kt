@@ -1,19 +1,9 @@
 package fi.fmi.tiuha
 
-import com.google.gson.Gson
-import com.google.gson.stream.JsonReader
 import fi.fmi.tiuha.netatmo.importMeasurementsFromS3Bucket
-import org.apache.commons.csv.CSVFormat
-import org.apache.commons.csv.CSVParser
 import org.geotools.data.DataStore
 import org.geotools.data.DataStoreFinder
 import org.opengis.feature.simple.SimpleFeatureType
-import java.io.File
-import java.io.FileReader
-import java.nio.charset.Charset
-import java.time.Instant
-import java.time.LocalDateTime
-import java.time.ZoneId
 
 fun main(args: Array<String>) {
     if (args.contains("--import")) {
@@ -29,7 +19,7 @@ fun main(args: Array<String>) {
         )
 
         println("Schema name: $FEATURE_NAME")
-        val measurementSchema = getOrCreateSchema(dataStore, FEATURE_NAME, ::createMeasurementFeatureType)
+        val measurementSchema = getOrCreateSchema(dataStore, FEATURE_NAME, MEASUREMENT_FEATURE_TYPE)
         measurementSchema.attributeDescriptors.forEach(::println)
 
         val measurementReader = getMeasurementReader(dataStore)
@@ -42,11 +32,10 @@ fun main(args: Array<String>) {
     }
 }
 
-fun getOrCreateSchema(store: DataStore, name: String, featureTypeCreator: () -> SimpleFeatureType): SimpleFeatureType {
+fun getOrCreateSchema(store: DataStore, name: String, featureType: SimpleFeatureType): SimpleFeatureType {
     val schema = store.getSchema(name)
     if (schema == null) {
         println("Schema $name did not exist, creating")
-        val featureType = featureTypeCreator()
         store.createSchema(featureType)
         return featureType
     }

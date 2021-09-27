@@ -6,6 +6,8 @@ import fi.fmi.tiuha.S3
 import org.apache.commons.csv.CSVFormat
 import org.apache.commons.csv.CSVParser
 import org.apache.commons.csv.CSVRecord
+import org.geotools.geometry.jts.WKBReader
+import org.locationtech.jts.geom.Point
 import java.nio.charset.Charset
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -13,7 +15,8 @@ import java.util.stream.Collectors
 
 data class MeasurandInfo(val code: String, val description: String, val unit: String)
 
-private data class MeasurementRow(val time: LocalDateTime, val measurand: MeasurandInfo, val value: Double)
+private data class MeasurementRow(val time: LocalDateTime, val measurand: MeasurandInfo, val station: StationInfo?, val value: Float)
+private data class StationInfo(val stationCode: String, val location: Point, val altitude: Double?)
 
 private const val NETATMO_PROD_ID = "3"
 private val DATE_TIME_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
@@ -24,18 +27,35 @@ fun importMeasurementsFromS3Bucket(keys: List<String>) {
     val measurandMapping = importMeasurandMappingFromS3Bucket(s3)
     measurandMapping.entries.forEach { println("id: ${it.key}, measurand: ${it.value}") }
 
+    val stationMapping = importStationMappingFromS3Bucket(s3)
+    println("I have ${stationMapping.size} stations")
+    val nullStations = stationMapping.values.count { it == null }
+    val stationsWithoutAltitude = stationMapping.values.count { it?.altitude == null } - nullStations
+    println("null: $nullStations, without alt: $stationsWithoutAltitude")
+
     keys.forEach { s3key ->
         val parser = fetchAndParseCsv(
             s3,
             s3key,
-            10000 /* let's not download the whole file just for testing*/
+            100*1024*1024
         )
+        var i = 0
+        val start = System.currentTimeMillis()
         parser.stream().filter { it.size() > 4 }.forEach {
+            i++
+            if (i % 100000 == 0) {
+                val seconds = (System.currentTimeMillis() - start) / 1000.0
+                println("#$i, $seconds s")
+            }
             val measurand = measurandMapping.getValue(it.get("mid"))
             val value = it.get("data_value")
             val time = LocalDateTime.parse(it.get("data_time"), DATE_TIME_FORMAT)
-            val row = MeasurementRow(time, measurand, value.toDouble())
-            println(row)
+            val stationId = it.get("station_id")
+            val station = stationMapping[stationId]
+            val row = MeasurementRow(time, measurand, station, value.toFloat())
+            if (station == null) {
+                println("missing station $row")
+            }
         }
     }
 }
@@ -49,6 +69,34 @@ private fun importMeasurandMappingFromS3Bucket(s3: S3): Map<String, MeasurandInf
         .collect(Collectors.toMap(
             { it.get("mid") },
             { MeasurandInfo(it.get("mcode"), it.get("description"), it.get("m_unit")) }
+        ))
+}
+
+private fun isNetatmoStation(record: CSVRecord) = record.get("prod_id") == NETATMO_PROD_ID
+private fun hexEWKBToPoint(hexString: String): Point? {
+    val wkbReader = WKBReader()
+    val geom = wkbReader.read(WKBReader.hexToBytes(hexString))
+    if (geom is Point) {
+        return geom
+    }
+    return null
+}
+
+private fun rowToStationInfo(row: CSVRecord): StationInfo? {
+    val geom = hexEWKBToPoint(row.get("geom"))
+    if (geom == null) {
+        return null
+    }
+    return StationInfo(row.get("station_code"), geom, row.get("altitude").toDoubleOrNull())
+}
+
+private fun importStationMappingFromS3Bucket(s3: S3): Map<String, StationInfo?> {
+    val parser = fetchAndParseCsv(s3, "ext_station_v1.csv")
+    return parser.stream()
+        .filter(::isNetatmoStation)
+        .collect(Collectors.toMap(
+            { it.get("station_id") },
+            ::rowToStationInfo
         ))
 }
 
