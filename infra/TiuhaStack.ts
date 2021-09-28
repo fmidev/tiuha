@@ -4,8 +4,10 @@ import * as iam from '@aws-cdk/aws-iam'
 import * as ecr from '@aws-cdk/aws-ecr'
 import * as ecs from '@aws-cdk/aws-ecs'
 import * as logs from '@aws-cdk/aws-logs'
+import * as s3 from '@aws-cdk/aws-s3'
 
 type TiuhaStackProps = cdk.StackProps & {
+  envName: string
   repository: ecr.IRepository
   versionTag: string
 }
@@ -19,6 +21,12 @@ export class TiuhaStack extends cdk.Stack {
     })
 
     measurementsKeyspace.applyRemovalPolicy(cdk.RemovalPolicy.RETAIN)
+
+    const envName = props.envName.toLowerCase()
+    const measurementsBucket = new s3.Bucket(this, 'measurementsBucket', {
+      bucketName: `fmi-tiuha-measurements-${envName}`,
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+    })
 
     const cluster = new ecs.Cluster(this, 'Cluster', {})
     const image = ecs.ContainerImage.fromEcrRepository(props.repository, props.versionTag)

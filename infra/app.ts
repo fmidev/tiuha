@@ -17,6 +17,7 @@ new TiuhaStack(app, 'Tiuha', {
   },
   repository,
   versionTag: requireEnv("VERSION_TAG"),
+  envName: requireEnv("ENV"),
 });
 
 app.synth()
