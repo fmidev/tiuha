@@ -66,14 +66,5 @@ export class TiuhaStack extends cdk.Stack {
       actions: ['secretsmanager:GetSecretValue'],
       resources: ['*']
     }))
-
-    new ecs.FargateService(this, 'MeasurementApiService', {
-      cluster,
-      taskDefinition,
-      desiredCount: 2,
-      minHealthyPercent: 100,
-      maxHealthyPercent: 200,
-      platformVersion: ecs.FargatePlatformVersion.VERSION1_4,
-    })
   }
 }
