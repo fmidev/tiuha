@@ -1,15 +1,15 @@
 package fi.fmi.tiuha.netatmo
 
-import fi.fmi.tiuha.ArchiveS3
-import fi.fmi.tiuha.Config
-import fi.fmi.tiuha.S3
+import fi.fmi.tiuha.*
 import org.apache.commons.csv.CSVFormat
 import org.apache.commons.csv.CSVParser
 import org.apache.commons.csv.CSVRecord
+import org.geotools.data.Transaction
 import org.geotools.geometry.jts.WKBReader
 import org.locationtech.jts.geom.Point
 import java.nio.charset.Charset
 import java.time.LocalDateTime
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.stream.Collectors
 
@@ -23,6 +23,7 @@ private val DATE_TIME_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"
 
 fun importMeasurementsFromS3Bucket(keys: List<String>) {
     val s3 = ArchiveS3()
+    val ds = S3DataStore()
 
     val measurandMapping = importMeasurandMappingFromS3Bucket(s3)
     measurandMapping.entries.forEach { println("id: ${it.key}, measurand: ${it.value}") }
@@ -33,28 +34,44 @@ fun importMeasurementsFromS3Bucket(keys: List<String>) {
     val stationsWithoutAltitude = stationMapping.values.count { it?.altitude == null } - nullStations
     println("null: $nullStations, without alt: $stationsWithoutAltitude")
 
-    keys.forEach { s3key ->
-        val parser = fetchAndParseCsv(
-            s3,
-            s3key,
-            100*1024*1024
-        )
-        var i = 0
-        val start = System.currentTimeMillis()
-        parser.stream().filter { it.size() > 4 }.forEach {
-            i++
-            if (i % 100000 == 0) {
-                val seconds = (System.currentTimeMillis() - start) / 1000.0
-                println("#$i, $seconds s")
-            }
-            val measurand = measurandMapping.getValue(it.get("mid"))
-            val value = it.get("data_value")
-            val time = LocalDateTime.parse(it.get("data_time"), DATE_TIME_FORMAT)
-            val stationId = it.get("station_id")
-            val station = stationMapping[stationId]
-            val row = MeasurementRow(time, measurand, station, value.toFloat())
-            if (station == null) {
-                println("missing station $row")
+    ds.dataStore.getFeatureWriterAppend(FEATURE_NAME, Transaction.AUTO_COMMIT).use { writer ->
+        keys.forEach { s3key ->
+            val parser = fetchAndParseCsv(
+                s3,
+                s3key
+            )
+            var i = 0
+            val start = System.currentTimeMillis()
+            parser.stream().filter { it.size() > 4 }.forEach {
+                i++
+                if (i % 100000 == 0) {
+                    val seconds = (System.currentTimeMillis() - start) / 1000.0
+                    println("#$i, $seconds s")
+                }
+                val measurand = measurandMapping.getValue(it.get("mid"))
+                val value = it.get("data_value").toFloat()
+                val time = LocalDateTime.parse(it.get("data_time"), DATE_TIME_FORMAT)
+                val stationId = it.get("station_id")
+                val station = stationMapping[stationId]
+                val row = MeasurementRow(time, measurand, station, value)
+                if (station == null) {
+                    println("missing station $row")
+                } else {
+                    val feat = writer.next()
+                    val dtg = time.toInstant(ZoneOffset.UTC)
+                    val temp = if (measurand.code == "Temperature") value else null
+                    val rh = if (measurand.code == "Humidity") value else null
+                    val pa = if (measurand.code == "Pressure") value else null
+                    setMeasurementFeatureAttributes(
+                        feat,
+                        station.location,
+                        dtg,
+                        temp,
+                        rh,
+                        pa
+                    )
+                    writer.write()
+                }
             }
         }
     }

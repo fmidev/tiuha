@@ -30,10 +30,10 @@ export class TiuhaStack extends cdk.Stack {
 
     const cluster = new ecs.Cluster(this, 'Cluster', {})
     const image = ecs.ContainerImage.fromEcrRepository(props.repository, props.versionTag)
-    this.createFargateService(cluster, image)
+    this.createFargateService(cluster, image, measurementsBucket)
   }
 
-  createFargateService(cluster: ecs.ICluster, containerImage: ecs.ContainerImage) {
+  createFargateService(cluster: ecs.ICluster, containerImage: ecs.ContainerImage, measurementsBucket: s3.Bucket) {
     const logGroup = new logs.LogGroup(this, 'LogGroup', {
       logGroupName: 'measurement-api',
       retention: logs.RetentionDays.INFINITE,
@@ -58,6 +58,8 @@ export class TiuhaStack extends cdk.Stack {
       actions: ['cassandra:*'],
       resources: ['*'],
     }))
+
+    measurementsBucket.grantReadWrite(taskDefinition.taskRole)
 
     taskDefinition.addToTaskRolePolicy(new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,

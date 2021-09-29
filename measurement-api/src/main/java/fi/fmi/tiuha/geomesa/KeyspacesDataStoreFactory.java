@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.Map;
 
+import org.locationtech.geomesa.security.DefaultAuthorizationsProvider;
 import scala.Option;
 import scala.Tuple3;
 
@@ -80,6 +81,7 @@ public class KeyspacesDataStoreFactory implements DataStoreFactorySpi {
         CassandraDataStoreFactory.CassandraDataStoreConfig config = new CassandraDataStoreFactory.CassandraDataStoreConfig(
                 catalog,
                 generateStats,
+                new DefaultAuthorizationsProvider(),
                 Option.apply(audit),
                 queryConfig,
                 Option.<String>empty()
