@@ -8,6 +8,7 @@ import com.amazonaws.services.s3.AmazonS3ClientBuilder
 import com.amazonaws.services.s3.model.GetObjectRequest
 import com.amazonaws.services.s3.model.ListObjectsRequest
 import fi.fmi.tiuha.Config
+import fi.fmi.tiuha.Log
 import fi.fmi.tiuha.SecretsManager
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
@@ -43,7 +44,7 @@ interface S3 {
     val client: AmazonS3
 
     fun listKeys(bucket: String, prefix: String? = null): List<String> {
-        println("Fetching keys from S3 bucket $bucket with prefix $prefix")
+        Log.info("Fetching keys from S3 bucket $bucket with prefix $prefix")
 
         fun exec(more: Boolean, marker: String?, previousKeys: List<String>): List<String> {
             when (more) {

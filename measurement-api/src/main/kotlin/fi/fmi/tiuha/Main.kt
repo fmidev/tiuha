@@ -16,8 +16,7 @@ fun main(args: Array<String>) {
 }
 
 fun startServer() {
-    println("Server started")
-
+    Log.info("Server started")
     SchemaMigration.runMigrations()
 
     val netatmoImport = NetatmoImport()

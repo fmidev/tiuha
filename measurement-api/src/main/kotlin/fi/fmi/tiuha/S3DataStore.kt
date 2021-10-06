@@ -38,7 +38,7 @@ class S3DataStore {
         try {
             dataStore.getSchema(FEATURE_NAME)
         } catch (e: IOException) {
-            println("Creating schema")
+            Log.info("Creating schema")
             dataStore.createSchema(sft)
         }
     }

@@ -26,13 +26,13 @@ fun importMeasurementsFromS3Bucket(keys: List<String>) {
     val ds = S3DataStore()
 
     val measurandMapping = importMeasurandMappingFromS3Bucket(s3)
-    measurandMapping.entries.forEach { println("id: ${it.key}, measurand: ${it.value}") }
+    measurandMapping.entries.forEach { Log.info("id: ${it.key}, measurand: ${it.value}") }
 
     val stationMapping = importStationMappingFromS3Bucket(s3)
-    println("I have ${stationMapping.size} stations")
+    Log.info("I have ${stationMapping.size} stations")
     val nullStations = stationMapping.values.count { it == null }
     val stationsWithoutAltitude = stationMapping.values.count { it?.altitude == null } - nullStations
-    println("null: $nullStations, without alt: $stationsWithoutAltitude")
+    Log.info("null: $nullStations, without alt: $stationsWithoutAltitude")
 
     ds.dataStore.getFeatureWriterAppend(FEATURE_NAME, Transaction.AUTO_COMMIT).use { writer ->
         keys.forEach { s3key ->
@@ -46,7 +46,7 @@ fun importMeasurementsFromS3Bucket(keys: List<String>) {
                 i++
                 if (i % 100000 == 0) {
                     val seconds = (System.currentTimeMillis() - start) / 1000.0
-                    println("#$i, $seconds s")
+                    Log.info("#$i, $seconds s")
                 }
                 val measurand = measurandMapping.getValue(it.get("mid"))
                 val value = it.get("data_value").toFloat()
@@ -55,7 +55,7 @@ fun importMeasurementsFromS3Bucket(keys: List<String>) {
                 val station = stationMapping[stationId]
                 val row = MeasurementRow(time, measurand, station, value)
                 if (station == null) {
-                    println("missing station $row")
+                    Log.info("missing station $row")
                 } else {
                     val feat = writer.next()
                     val dtg = time.toInstant(ZoneOffset.UTC)

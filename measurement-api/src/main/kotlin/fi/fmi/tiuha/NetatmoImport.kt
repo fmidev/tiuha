@@ -13,8 +13,8 @@ class NetatmoImport : ScheduledJob("netatmoimport") {
 
     override fun exec() {
         val response = netatmo.getCountryWeatherData("FI")
-        println(response.first)
-        println(response.second.length)
+        Log.info("${response.first}")
+        Log.info("${response.second.length}")
     }
 
     override fun nextFireTime(): DateTime {

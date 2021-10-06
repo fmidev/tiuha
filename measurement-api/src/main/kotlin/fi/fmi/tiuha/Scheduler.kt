@@ -28,15 +28,14 @@ abstract class ScheduledJob(val name: String) {
                     val now = DateTime.now()
                     val nextFireTime = db.tryAcquireScheduledJob(tx, name)
                     if (nextFireTime != null && nextFireTime <= now) {
-                        println("Executing scheduled job $name")
+                        Log.info("Executing scheduled job $name")
                         exec()
                         db.updateNextFireTime(tx, name, nextFireTime())
-                        println("Executed $name successfully")
+                        Log.info("Executed $name successfully")
                     }
                 }
             } catch (e: Exception) {
-                println("Scheduler $name execution failed")
-                println(e)
+                Log.info(e, "Scheduler $name execution failed")
             }
         }
 
