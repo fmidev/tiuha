@@ -18,11 +18,11 @@ fun main(args: Array<String>) {
 fun startServer() {
     println("Server started")
 
-    //SchemaMigration.runMigrations()
+    SchemaMigration.runMigrations()
 
-    //val netatmoImport = NetatmoImport()
-    //netatmoImport.start()
-    //netatmoImport.executor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS)
+    val netatmoImport = NetatmoImport()
+    netatmoImport.start()
+    netatmoImport.executor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS)
 
     halt()
 }
