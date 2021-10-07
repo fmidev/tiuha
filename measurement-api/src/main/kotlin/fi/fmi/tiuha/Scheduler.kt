@@ -41,6 +41,8 @@ abstract class ScheduledJob(val name: String) {
         executor.scheduleWithFixedDelay(command, initialDelay, delay, TimeUnit.MILLISECONDS)
     }
 
+    fun await() = executor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS)
+
     abstract fun nextFireTime(): DateTime
 
     abstract fun exec(): Unit

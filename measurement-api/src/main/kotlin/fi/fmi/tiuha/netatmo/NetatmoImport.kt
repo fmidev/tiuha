@@ -11,14 +11,17 @@ import org.apache.http.protocol.BasicHttpContext
 import org.joda.time.DateTime
 import org.joda.time.Duration
 
-class NetatmoImport : ScheduledJob("netatmoimport") {
+class NetatmoImport(val country: String) : ScheduledJob("netatmoimport_${country.lowercase()}") {
+    companion object {
+        val countries = listOf("FI", "NO", "SE", "DK", "EE", "LV", "LT")
+    }
+
     val db = NetatmoImportDb(Config.dataSource)
     val s3 = TiuhaS3()
     val netatmo = NetatmoClient()
 
     override fun exec() {
         val ts = DateTime.now().toString("yyyyMMddHHmmss")
-        val country = "FI"
 
         val (statusCode, content) = netatmo.getCountryWeatherData(country)
         if (statusCode != 200) throw RuntimeException("Failed to fetch Netatmo data")
