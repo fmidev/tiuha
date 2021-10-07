@@ -12,6 +12,7 @@ function main {
   DATABASE_NAME="tiuha" \
   DATABASE_USERNAME="tiuha" \
   DATABASE_PASSWORD="tiuha" \
+  IMPORT_BUCKET="fmi-tiuha-import-local" \
   java -jar \
     "$repo/measurement-api/target/measurement-api-1.0-SNAPSHOT-jar-with-dependencies.jar" \
     "$@"

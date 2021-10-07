@@ -11,26 +11,25 @@ import java.util.concurrent.TimeUnit
 import kotlin.random.Random
 
 abstract class ScheduledJob(val name: String) {
-    val db = SchedulerDb(Config.dataSource)
+    val schedulerDb = SchedulerDb(Config.dataSource)
     val executor = Executors.newSingleThreadScheduledExecutor()
 
     fun start() {
-        db.init(this)
+        schedulerDb.init(this)
 
         // Check if task needs to be run every 10 seconds starting random(0..10) seconds from start
         val delay = Duration.standardSeconds(10).millis
         val initialDelay = Random.nextLong(delay)
 
         val command = Runnable {
-            val db = SchedulerDb(Config.dataSource)
             try {
-                db.inTx { tx ->
+                schedulerDb.inTx { tx ->
                     val now = DateTime.now()
-                    val nextFireTime = db.tryAcquireScheduledJob(tx, name)
+                    val nextFireTime = schedulerDb.tryAcquireScheduledJob(tx, name)
                     if (nextFireTime != null && nextFireTime <= now) {
                         Log.info("Executing scheduled job $name")
                         exec()
-                        db.updateNextFireTime(tx, name, nextFireTime())
+                        schedulerDb.updateNextFireTime(tx, name, nextFireTime())
                         Log.info("Executed $name successfully")
                     }
                 }

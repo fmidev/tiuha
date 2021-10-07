@@ -15,6 +15,8 @@ object Config {
     val dbPassword = requireEnv("DATABASE_PASSWORD")
 
     val dataSource = DataSource(this)
+
+    val importBucket = requireEnv("IMPORT_BUCKET")
 }
 
 fun requireEnv(key: String): String =

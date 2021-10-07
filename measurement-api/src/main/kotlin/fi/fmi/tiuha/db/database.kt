@@ -13,6 +13,8 @@ import java.util.*
 
 open class Db(val ds: DataSource) {
     fun <T> inTx(fn: (Transaction) -> T): T = ds.transaction(fn)
+
+    fun execute(query: String, params: List<Any>) = inTx { tx -> tx.execute(query, params) }
 }
 
 class DataSource(config: Config) {

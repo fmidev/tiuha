@@ -7,6 +7,8 @@ import com.amazonaws.services.s3.AmazonS3
 import com.amazonaws.services.s3.AmazonS3ClientBuilder
 import com.amazonaws.services.s3.model.GetObjectRequest
 import com.amazonaws.services.s3.model.ListObjectsRequest
+import com.amazonaws.services.s3.model.ObjectMetadata
+import com.amazonaws.services.s3.model.PutObjectRequest
 import fi.fmi.tiuha.Config
 import fi.fmi.tiuha.Log
 import fi.fmi.tiuha.SecretsManager
@@ -70,5 +72,13 @@ interface S3 {
             request.setRange(0, maxBytes)
         }
         return client.getObject(request).objectContent
+    }
+
+    fun putObject(bucket: String, key: String, content: ByteArray) {
+        Log.info("Uploading to S3 bucket $bucket object $key")
+        val metadata = ObjectMetadata()
+        metadata.contentLength = content.size.toLong()
+        val request = PutObjectRequest(bucket, key, content.inputStream(), metadata)
+        client.putObject(request)
     }
 }

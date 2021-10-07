@@ -22,12 +22,4 @@ fun startServer() {
     val netatmoImport = NetatmoImport()
     netatmoImport.start()
     netatmoImport.executor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS)
-
-    halt()
-}
-
-fun halt() {
-    while (true) {
-        Thread.sleep(Duration.standardMinutes(1).millis)
-    }
 }

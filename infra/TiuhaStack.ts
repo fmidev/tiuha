@@ -16,6 +16,8 @@ type TiuhaStackProps = cdk.StackProps & {
 }
 
 export class TiuhaStack extends cdk.Stack {
+  importBucket: s3.Bucket
+
   constructor(scope: cdk.Construct, id: string, props: TiuhaStackProps) {
     super(scope, id, props)
 
@@ -33,6 +35,10 @@ export class TiuhaStack extends cdk.Stack {
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
     })
 
+    this.importBucket = new s3.Bucket(this, 'ImportBucket', {
+      bucketName: `fmi-tiuha-import-${envName}`,
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+    })
 
     const dbCredentials = rds.Credentials.fromGeneratedSecret('tiuha', {
       secretName: 'tiuha-database-credentials'
@@ -107,6 +113,9 @@ export class TiuhaStack extends cdk.Stack {
         logGroup,
         streamPrefix: 'measurement-api',
       }),
+      environment: {
+        IMPORT_BUCKET: this.importBucket.bucketName,
+      },
       secrets: {
         DATABASE_NAME: ecs.Secret.fromSecretsManager(db.secret!, 'dbname'),
         DATABASE_HOST: ecs.Secret.fromSecretsManager(db.secret!, 'host'),
@@ -123,6 +132,7 @@ export class TiuhaStack extends cdk.Stack {
     }))
 
     measurementsBucket.grantReadWrite(taskDefinition.taskRole)
+    this.importBucket.grantReadWrite(taskDefinition.taskRole)
 
     taskDefinition.addToTaskRolePolicy(new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
