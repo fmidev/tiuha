@@ -17,13 +17,19 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import java.io.InputStream
 
-class TiuhaS3 : S3 {
+interface S3 {
+    fun listKeys(bucket: String, prefix: String? = null): List<String>
+    fun getObjectStream(bucket: String, key: String, maxBytes: Long? = null): InputStream
+    fun putObject(bucket: String, key: String, content: ByteArray): Unit
+}
+
+class TiuhaS3 : RealS3() {
     override val client = AmazonS3ClientBuilder.standard()
             .withRegion(Config.awsRegion)
             .build()
 }
 
-class ArchiveS3 : S3 {
+class ArchiveS3 : RealS3() {
     override val client = AmazonS3ClientBuilder.standard()
             .withRegion(Config.awsRegion)
             .withCredentials(fetchCredentialsFromSecretManager())
@@ -42,10 +48,10 @@ data class AwsCredentials(
         val secretAccessKey: String
 )
 
-interface S3 {
-    val client: AmazonS3
+abstract class RealS3 : S3 {
+    abstract val client: AmazonS3
 
-    fun listKeys(bucket: String, prefix: String? = null): List<String> {
+    override fun listKeys(bucket: String, prefix: String?): List<String> {
         Log.info("Fetching keys from S3 bucket $bucket with prefix $prefix")
 
         fun exec(more: Boolean, marker: String?, previousKeys: List<String>): List<String> {
@@ -66,7 +72,7 @@ interface S3 {
         return exec(true, null, emptyList())
     }
 
-    fun getObjectStream(bucket: String, key: String, maxBytes: Long? = null): InputStream {
+    override fun getObjectStream(bucket: String, key: String, maxBytes: Long?): InputStream {
         val request = GetObjectRequest(bucket, key)
         if (maxBytes != null) {
             request.setRange(0, maxBytes)
@@ -74,11 +80,30 @@ interface S3 {
         return client.getObject(request).objectContent
     }
 
-    fun putObject(bucket: String, key: String, content: ByteArray) {
+    override fun putObject(bucket: String, key: String, content: ByteArray) {
         Log.info("Uploading to S3 bucket $bucket object $key")
         val metadata = ObjectMetadata()
         metadata.contentLength = content.size.toLong()
         val request = PutObjectRequest(bucket, key, content.inputStream(), metadata)
         client.putObject(request)
     }
+}
+
+class FakeS3 : S3 {
+    private val storage = mutableMapOf<String, ByteArray>()
+
+    override fun listKeys(bucket: String, prefix: String?): List<String> =
+            storage.keys.toList().filter { prefix == null || it.startsWith(prefix) }
+
+    override fun getObjectStream(bucket: String, key: String, maxBytes: Long?): InputStream =
+            when (val obj = storage["$bucket/$key"]) {
+                null -> throw RuntimeException("S3 object $key not found in bucket $bucket")
+                else -> obj.inputStream()
+            }
+
+    override fun putObject(bucket: String, key: String, content: ByteArray) {
+        storage["$bucket/$key"] = content.clone()
+    }
+
+    fun cleanup() = storage.clear()
 }

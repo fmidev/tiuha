@@ -15,6 +15,7 @@ open class Db(val ds: DataSource) {
     fun <T> inTx(fn: (Transaction) -> T): T = ds.transaction(fn)
 
     fun execute(query: String, params: List<Any>) = inTx { tx -> tx.execute(query, params) }
+    fun <T> select(query: String, params: List<Any>, fn: (ResultSet) -> T) = inTx { tx -> tx.select(query, params, fn) }
 }
 
 class DataSource(config: Config) {
