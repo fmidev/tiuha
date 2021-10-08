@@ -5,9 +5,10 @@ import fi.fmi.tiuha.NetatmoClient
 import fi.fmi.tiuha.NetatmoImport
 import fi.fmi.tiuha.NetatmoImportDb
 import fi.fmi.tiuha.db.SchemaMigration
-import org.junit.After
+import org.apache.commons.io.IOUtils
 import org.junit.Before
 import org.junit.Test
+import java.io.ByteArrayInputStream
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
@@ -44,7 +45,12 @@ class NetatmoImportTest {
 
 class FakeNetatmoClient : NetatmoClient() {
     var responseStatus = 200
-    var responseContent = ByteArray(0)
+    var responseContent = readFile("world_data_FI.tar.gz")
+
+    fun readFile(file: String): ByteArray {
+        val stream = ClassLoader.getSystemClassLoader().getResourceAsStream(file)!!
+        return IOUtils.toByteArray(stream)
+    }
 
     override fun getCountryWeatherData(country: String): Pair<Int, ByteArray> {
         return Pair(responseStatus, responseContent)
