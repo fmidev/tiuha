@@ -6,7 +6,7 @@ import { RepositoryStack } from './RepositoryStack'
 
 
 const app = new cdk.App();
-const { repository } = new RepositoryStack(app, 'Repository', {
+const { measurementApiRepository, titanQCRepository } = new RepositoryStack(app, 'Repository', {
   env: {
     region: 'eu-west-1',
   }
@@ -15,7 +15,8 @@ new TiuhaStack(app, 'Tiuha', {
   env: {
     region: 'eu-west-1',
   },
-  repository,
+  measurementApiRepository,
+  titanQCRepository,
   versionTag: requireEnv("VERSION_TAG"),
   envName: requireEnv("ENV"),
 });

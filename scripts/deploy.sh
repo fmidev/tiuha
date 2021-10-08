@@ -19,22 +19,37 @@ function main {
 	#export VERSION_TAG="ci-$( git rev-parse HEAD )"
 
 	deploy_cdk_app Repository
-	build_and_upload_container_image "$VERSION_TAG"
+	build_and_upload_measurement_api "$VERSION_TAG"
+	build_and_upload_titan_container "$VERSION_TAG"
 	deploy_cdk_app Tiuha
+}
+
+function build_and_upload_measurement_api {
+	local -r tag="$1"
+
+	pushd "$repo/measurement-api"
+	mvn clean package
+	build_and_upload_container_image "$tag" "measurement-api"
+	popd
+}
+
+function build_and_upload_titan_container {
+	local -r tag="$1"
+
+	pushd "$repo/qc"
+	build_and_upload_container_image "$tag" "titan-qc"
+	popd
 }
 
 function build_and_upload_container_image {
 	local -r tag="$1"
-	local -r repository_uri="$( get_repository_uri "measurement-api" )"
-
-	pushd "$repo/measurement-api"
-	mvn clean package
+	local -r repository_name="$2"
+	local -r repository_uri="$( get_repository_uri "$repository_name" )"
 
 	docker build --tag "${repository_uri}:${tag}" .
 	aws ecr get-login-password --region "$AWS_REGION" \
 		| docker login --username AWS --password-stdin "$repository_uri"
 	docker push "${repository_uri}:${tag}"
-	popd
 }
 
 function get_repository_uri {

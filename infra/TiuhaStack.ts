@@ -11,7 +11,8 @@ import * as rds from '@aws-cdk/aws-rds'
 
 type TiuhaStackProps = cdk.StackProps & {
   envName: string
-  repository: ecr.IRepository
+  measurementApiRepository: ecr.IRepository
+  titanQCRepository: ecr.IRepository
   versionTag: string
 }
 
@@ -47,8 +48,11 @@ export class TiuhaStack extends cdk.Stack {
     const [db, dbSG] = this.createDatabase(vpc, dbCredentials)
 
     const cluster = new ecs.Cluster(this, 'Cluster', { vpc })
-    const image = ecs.ContainerImage.fromEcrRepository(props.repository, props.versionTag)
-    const [service, serviceSG] = this.createFargateService(cluster, image, db, measurementsBucket)
+    const apiImage = ecs.ContainerImage.fromEcrRepository(props.measurementApiRepository, props.versionTag)
+    const [service, serviceSG] = this.createFargateService(cluster, apiImage, db, measurementsBucket)
+
+    const titanImage = ecs.ContainerImage.fromEcrRepository(props.titanQCRepository, props.versionTag)
+    this.createTitanlibTask(titanImage)
 
     dbSG.addIngressRule(serviceSG, ec2.Port.tcp(5432))
   }
@@ -88,6 +92,28 @@ export class TiuhaStack extends cdk.Stack {
 
 
     return [cluster, securtiyGroup]
+  }
+
+  createTitanlibTask(image: ecs.ContainerImage) {
+    const logGroup = new logs.LogGroup(this, 'QCLogGroup', {
+      logGroupName: 'qc',
+      retention: logs.RetentionDays.INFINITE,
+      removalPolicy: cdk.RemovalPolicy.RETAIN,
+    })
+
+    const taskDefinition = new ecs.FargateTaskDefinition(this, 'TitanlibTask', {
+      cpu: 256,
+      memoryLimitMiB: 512,
+    })
+    taskDefinition.addContainer('TitanlibContainer', {
+      image,
+      logging: new ecs.AwsLogDriver({
+        logGroup,
+        streamPrefix: 'titan'
+      })
+    })
+
+    this.importBucket.grantRead(taskDefinition.taskRole)
   }
 
   createFargateService(
