@@ -1,8 +1,7 @@
 package fi.fmi.tiuha
 
-import fi.fmi.tiuha.db.DataSource
-import fi.fmi.tiuha.db.Db
-import fi.fmi.tiuha.db.getDateTime
+import fi.fmi.tiuha.netatmo.NetatmoGeoJsonTransform
+import fi.fmi.tiuha.netatmo.NetatmoImportDb
 import fi.fmi.tiuha.netatmo.S3
 import org.apache.commons.io.IOUtils
 import org.apache.http.client.methods.HttpGet
@@ -12,7 +11,12 @@ import org.apache.http.protocol.BasicHttpContext
 import org.joda.time.DateTime
 import org.joda.time.Duration
 
-class NetatmoImport(val country: String, val s3: S3, val netatmo: NetatmoClient) : ScheduledJob("netatmoimport_${country.lowercase()}") {
+class NetatmoImport(
+        val country: String,
+        val s3: S3,
+        val netatmo: NetatmoClient,
+        val transformTask: NetatmoGeoJsonTransform?,
+) : ScheduledJob("netatmoimport_${country.lowercase()}") {
     companion object {
         val countries = listOf("FI", "NO", "SE", "DK", "EE", "LV", "LT")
     }
@@ -30,7 +34,9 @@ class NetatmoImport(val country: String, val s3: S3, val netatmo: NetatmoClient)
         val s3Key = "netatmo/${ts}/countryweatherdata-${country}.tar.gz"
         Log.info("Storing Netatmo response as $s3Key")
         s3.putObject(Config.importBucket, s3Key, content)
-        db.insertImport(Config.importBucket, s3Key)
+        val importId = db.insertImport(Config.importBucket, s3Key)
+
+        transformTask?.attemptProcess(importId)
     }
 
     override fun nextFireTime(): DateTime {
@@ -41,29 +47,6 @@ class NetatmoImport(val country: String, val s3: S3, val netatmo: NetatmoClient)
                 .withMillisOfSecond(0)
                 .withDurationAdded(Duration.standardMinutes(10), 1)
     }
-}
-
-data class NetatmoImportData(
-        val id: Long,
-        val s3bucket: String,
-        val s3key: String,
-        val created: DateTime,
-)
-
-class NetatmoImportDb(ds: DataSource) : Db(ds) {
-    fun insertImport(s3bucket: String, s3key: String) {
-        execute("insert into netatmoimport (s3bucket, s3key) values (? ,?)", listOf(s3bucket, s3key))
-    }
-
-    fun getNetatmoImportData(): List<NetatmoImportData> =
-            select("select netatmoimport_id, s3bucket, s3key, created from netatmoimport", emptyList()) {
-                NetatmoImportData(
-                        it.getLong("netatmoimport_id"),
-                        it.getString("s3bucket"),
-                        it.getString("s3key"),
-                        it.getDateTime("created"),
-                )
-            }
 }
 
 open class NetatmoClient {

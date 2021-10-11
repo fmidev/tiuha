@@ -7,7 +7,7 @@ import kotlin.collections.ArrayList
 
 data class MeasurementData(val Temperature: Double?, val Humidity: Double?, val Pressure: Double?, val time_utc: Long)
 
-data class Measurement(val location: Array<Double>, val altitude: Int, val data: MeasurementData) {
+data class Measurement(val _id: String, val location: Array<Double>, val altitude: Int, val data: MeasurementData) {
     override fun equals(other: Any?): Boolean {
 
         if (this === other) return true

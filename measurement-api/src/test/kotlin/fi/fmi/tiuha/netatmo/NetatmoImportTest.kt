@@ -3,28 +3,15 @@ package fi.fmi.tiuha.netatmo
 import fi.fmi.tiuha.Config
 import fi.fmi.tiuha.NetatmoClient
 import fi.fmi.tiuha.NetatmoImport
-import fi.fmi.tiuha.NetatmoImportDb
-import fi.fmi.tiuha.db.SchemaMigration
 import org.apache.commons.io.IOUtils
-import org.junit.Before
 import org.junit.Test
-import java.io.ByteArrayInputStream
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
-class NetatmoImportTest {
-    val db = NetatmoImportDb(Config.dataSource)
+class NetatmoImportTest : TiuhaTest() {
     val fakeNetatmoClient = FakeNetatmoClient()
-    val fakeS3 = FakeS3()
-    val job = NetatmoImport("FI", fakeS3, fakeNetatmoClient)
+    val job = NetatmoImport("FI", fakeS3, fakeNetatmoClient, null)
     fun exec() = job.exec()
-
-    @Before
-    fun before() {
-        SchemaMigration.runMigrations()
-        fakeS3.cleanup()
-        db.execute("TRUNCATE netatmoimport", emptyList())
-    }
 
     @Test
     fun `Netatmo import adds the key to S3 and records it in database`() {

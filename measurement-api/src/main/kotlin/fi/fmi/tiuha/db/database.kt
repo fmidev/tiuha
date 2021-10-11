@@ -16,6 +16,7 @@ open class Db(val ds: DataSource) {
 
     fun execute(query: String, params: List<Any>) = inTx { tx -> tx.execute(query, params) }
     fun <T> select(query: String, params: List<Any>, fn: (ResultSet) -> T) = inTx { tx -> tx.select(query, params, fn) }
+    fun <T> selectOne(query: String, params: List<Any>, fn: (ResultSet) -> T) = inTx { tx -> tx.selectOne(query, params, fn) }
 }
 
 class DataSource(config: Config) {
@@ -102,6 +103,11 @@ class Transaction(val c: Connection) {
 }
 
 val defaultTimeZone = TimeZone.getTimeZone("UTC")
+
+fun ResultSet.optLong(columnLabel: String): Long? {
+    val value = this.getLong(columnLabel)
+    return if (this.wasNull()) null else value
+}
 
 fun ResultSet.getDateTime(columnLabel: String): DateTime {
     val ts = this.getTimestamp(columnLabel)

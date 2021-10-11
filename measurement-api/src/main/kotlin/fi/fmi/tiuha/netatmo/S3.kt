@@ -15,6 +15,7 @@ import fi.fmi.tiuha.SecretsManager
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
+import org.apache.commons.io.IOUtils
 import java.io.InputStream
 
 interface S3 {
@@ -103,6 +104,11 @@ class FakeS3 : S3 {
 
     override fun putObject(bucket: String, key: String, content: ByteArray) {
         storage["$bucket/$key"] = content.clone()
+    }
+
+    fun putObjectFromResources(bucket: String, key: String, resource: String) {
+        val stream = ClassLoader.getSystemClassLoader().getResourceAsStream(resource)!!
+        return putObject(bucket, key, IOUtils.toByteArray(stream))
     }
 
     fun cleanup() = storage.clear()
