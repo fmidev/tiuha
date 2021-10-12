@@ -1,5 +1,6 @@
 package fi.fmi.tiuha.netatmo
 
+import com.amazonaws.ClientConfiguration
 import com.amazonaws.auth.AWSCredentialsProvider
 import com.amazonaws.auth.AWSStaticCredentialsProvider
 import com.amazonaws.auth.BasicAWSCredentials
@@ -26,12 +27,14 @@ interface S3 {
 
 class TiuhaS3 : RealS3() {
     override val client = AmazonS3ClientBuilder.standard()
+            .withClientConfiguration(s3ClientConfig)
             .withRegion(Config.awsRegion)
             .build()
 }
 
 class ArchiveS3 : RealS3() {
     override val client = AmazonS3ClientBuilder.standard()
+            .withClientConfiguration(s3ClientConfig)
             .withRegion(Config.awsRegion)
             .withCredentials(fetchCredentialsFromSecretManager())
             .build()
@@ -50,6 +53,7 @@ data class AwsCredentials(
 )
 
 abstract class RealS3 : S3 {
+    val s3ClientConfig = ClientConfiguration().apply { maxConnections = 50 }
     abstract val client: AmazonS3
 
     override fun listKeys(bucket: String, prefix: String?): List<String> {
