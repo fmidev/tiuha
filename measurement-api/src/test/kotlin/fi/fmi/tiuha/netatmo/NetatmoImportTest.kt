@@ -6,7 +6,6 @@ import fi.fmi.tiuha.NetatmoImport
 import org.apache.commons.io.IOUtils
 import org.junit.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
 
 class NetatmoImportTest : TiuhaTest() {
     val fakeNetatmoClient = FakeNetatmoClient()
@@ -25,8 +24,7 @@ class NetatmoImportTest : TiuhaTest() {
         val imports = db.getNetatmoImportData()
         assertEquals(imports.size, 1)
 
-        val import = imports[0]
-        assertNotNull(fakeS3.getObjectStream(import.s3bucket, import.s3key))
+        assertEquals(keys[0], imports[0].s3key)
     }
 }
 

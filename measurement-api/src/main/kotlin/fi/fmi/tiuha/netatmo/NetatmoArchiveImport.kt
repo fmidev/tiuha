@@ -119,6 +119,7 @@ private fun importStationMappingFromS3Bucket(s3: S3): Map<String, StationInfo?> 
 
 private fun fetchAndParseCsv(s3: S3, s3key: String, maxBytes: Long? = null): CSVParser {
     val format = CSVFormat.DEFAULT.builder().setHeader().setSkipHeaderRecord(true).build()
-    val inputStream = s3.getObjectStream(Config.measurementArchiveBucket, s3key, maxBytes)
-    return CSVParser.parse(inputStream, Charset.forName("UTF-8"), format)
+    s3.getObjectStream(Config.measurementArchiveBucket, s3key, maxBytes).use { inputStream ->
+        return CSVParser.parse(inputStream, Charset.forName("UTF-8"), format)
+    }
 }

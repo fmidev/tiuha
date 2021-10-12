@@ -123,8 +123,9 @@ class NetatmoGeoJsonTransformTest : TiuhaTest() {
     }
 
     fun readGeoJSON(import: NetatmoImportData): GeoJson {
-        val stream = fakeS3.getObjectStream(import.s3bucket, import.geojsonkey!!)
-        val json = IOUtils.toString(GZIPInputStream(stream))
+        val json = fakeS3.getObjectStream(import.s3bucket, import.geojsonkey!!).use { stream ->
+            IOUtils.toString(GZIPInputStream(stream))
+        }
         return Json.decodeFromString(json)
     }
 

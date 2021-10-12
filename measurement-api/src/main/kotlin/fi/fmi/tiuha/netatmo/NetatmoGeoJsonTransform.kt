@@ -47,8 +47,9 @@ class NetatmoGeoJsonTransform(val s3: S3) : ScheduledJob("netatmogeojsontransfor
             if (import.geojsonkey != null) {
                 Log.info("Import ${import.id} (${import.s3key} already processed")
             } else {
-                val stream = s3.getObjectStream(import.s3bucket, import.s3key)
-                val geojson = convert(parseNetatmoData(stream))
+                val geojson = s3.getObjectStream(import.s3bucket, import.s3key).use { stream ->
+                    convert(parseNetatmoData(stream))
+                }
 
                 val bucket = Config.importBucket
                 val key = import.s3key.replace(".tar.gz", ".geojson.gz")

@@ -95,19 +95,22 @@ abstract class RealS3 : S3 {
 }
 
 class FakeS3 : S3 {
-    private val storage = mutableMapOf<String, ByteArray>()
+    private val storage = mutableMapOf<Pair<String, String>, ByteArray>()
 
     override fun listKeys(bucket: String, prefix: String?): List<String> =
-            storage.keys.toList().filter { prefix == null || it.startsWith(prefix) }
+            storage.keys.toList()
+                    .filter { it.first == bucket }
+                    .filter { prefix == null || it.second.startsWith(prefix) }
+                    .map { it.second }
 
     override fun getObjectStream(bucket: String, key: String, maxBytes: Long?): InputStream =
-            when (val obj = storage["$bucket/$key"]) {
+            when (val obj = storage[Pair(bucket, key)]) {
                 null -> throw RuntimeException("S3 object $key not found in bucket $bucket")
                 else -> obj.inputStream()
             }
 
     override fun putObject(bucket: String, key: String, content: ByteArray) {
-        storage["$bucket/$key"] = content.clone()
+        storage[Pair(bucket, key)] = content.clone()
     }
 
     fun putObjectFromResources(bucket: String, key: String, resource: String) {
