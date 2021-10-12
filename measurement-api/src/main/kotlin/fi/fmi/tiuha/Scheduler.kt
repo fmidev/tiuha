@@ -15,6 +15,7 @@ abstract class ScheduledJob(val name: String) {
     val executor = Executors.newSingleThreadScheduledExecutor()
 
     fun start() {
+        Log.info("Starting scheduled job $name")
         schedulerDb.init(this)
 
         // Check if task needs to be run every 10 seconds starting random(0..10) seconds from start
@@ -34,7 +35,7 @@ abstract class ScheduledJob(val name: String) {
                     }
                 }
             } catch (e: Exception) {
-                Log.info(e, "Scheduler $name execution failed")
+                Log.error(e, "Scheduler $name execution failed")
             }
         }
 

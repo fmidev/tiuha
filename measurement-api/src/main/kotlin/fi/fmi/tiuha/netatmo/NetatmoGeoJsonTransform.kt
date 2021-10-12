@@ -33,7 +33,7 @@ class NetatmoGeoJsonTransform(val s3: S3) : ScheduledJob("netatmogeojsontransfor
             try {
                 it.get()
             } catch (e: ExecutionException) {
-                Log.info("Failed to transform netatmo data to GeoJSON")
+                Log.error("Failed to transform netatmo data to GeoJSON")
             }
         }
     }
