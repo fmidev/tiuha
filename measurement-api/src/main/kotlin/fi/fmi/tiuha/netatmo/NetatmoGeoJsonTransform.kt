@@ -28,7 +28,7 @@ class NetatmoGeoJsonTransform(val s3: S3) : ScheduledJob("netatmogeojsontransfor
     override fun exec() {
         val datas = db.getDataForGeoJSONTransform()
         datas.map {
-            attemptProcess(it.id)
+            attemptTransform(it.id)
         }.forEach {
             try {
                 it.get()
@@ -38,7 +38,7 @@ class NetatmoGeoJsonTransform(val s3: S3) : ScheduledJob("netatmogeojsontransfor
         }
     }
 
-    fun attemptProcess(importId: Long) =
+    fun attemptTransform(importId: Long) =
             transformExecutor.submit(Callable { process(importId) })
 
     fun process(id: Long) {

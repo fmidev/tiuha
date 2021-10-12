@@ -36,7 +36,7 @@ class NetatmoImport(
         s3.putObject(Config.importBucket, s3Key, content)
         val importId = db.insertImport(Config.importBucket, s3Key)
 
-        transformTask?.attemptProcess(importId)
+        transformTask?.attemptTransform(importId)
     }
 
     override fun nextFireTime(): DateTime {
