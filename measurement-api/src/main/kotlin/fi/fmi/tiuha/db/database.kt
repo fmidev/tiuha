@@ -7,7 +7,7 @@ import java.sql.Connection
 import java.sql.PreparedStatement
 import java.sql.ResultSet
 import java.sql.Timestamp
-import java.time.Instant
+import java.time.ZonedDateTime
 import java.util.*
 
 open class Db(val ds: DataSource) {
@@ -96,24 +96,25 @@ class Transaction(val c: Connection) {
                 is Long -> statement.setLong(index, param)
                 is Int -> statement.setInt(index, param)
                 is Boolean -> statement.setBoolean(index, param)
-                is Instant -> statement.setTimestamp(index, Timestamp(param.toEpochMilli()), Calendar.getInstance(defaultTimeZone))
+                is ZonedDateTime -> statement.setTimestamp(index, Timestamp((param.nano / 1000).toLong()), defaultCalendar)
                 else -> throw RuntimeException("Unknown SQL parameter type")
             }
 }
 
 val defaultTimeZone = TimeZone.getTimeZone("UTC")
+val defaultCalendar = Calendar.getInstance(defaultTimeZone)
 
 fun ResultSet.optLong(columnLabel: String): Long? {
     val value = this.getLong(columnLabel)
     return if (this.wasNull()) null else value
 }
 
-fun ResultSet.getInstant(columnLabel: String): Instant {
-    val ts = this.getTimestamp(columnLabel)
-    return Instant.ofEpochMilli(ts.time)
+fun ResultSet.getDateTime(columnLabel: String): ZonedDateTime {
+    val ts = this.getTimestamp(columnLabel, defaultCalendar)
+    return ZonedDateTime.ofInstant(ts.toInstant(), defaultTimeZone.toZoneId())
 }
 
-fun ResultSet.getInstant(columnIndex: Int): Instant {
-    val ts = this.getTimestamp(columnIndex)
-    return Instant.ofEpochMilli(ts.time)
+fun ResultSet.getDateTime(columnIndex: Int): ZonedDateTime {
+    val ts = this.getTimestamp(columnIndex, defaultCalendar)
+    return ZonedDateTime.ofInstant(ts.toInstant(), defaultTimeZone.toZoneId())
 }

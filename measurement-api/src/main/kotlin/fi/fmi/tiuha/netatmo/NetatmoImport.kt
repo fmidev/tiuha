@@ -44,8 +44,8 @@ class NetatmoImport(
         transformTask?.attemptTransform(importId)
     }
 
-    override fun nextFireTime(): Instant {
-        val now = Instant.now()
+    override fun nextFireTime(): ZonedDateTime {
+        val now = ZonedDateTime.now()
         val minute = now.get(ChronoField.MINUTE_OF_HOUR)
         return now.with(ChronoField.MINUTE_OF_HOUR, (minute - (minute % 10)).toLong())
                 .with(ChronoField.SECOND_OF_MINUTE, 0)

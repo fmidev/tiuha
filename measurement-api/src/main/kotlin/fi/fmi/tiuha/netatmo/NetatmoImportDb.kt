@@ -2,7 +2,7 @@ package fi.fmi.tiuha.netatmo
 
 import fi.fmi.tiuha.db.*
 import java.sql.ResultSet
-import java.time.Instant
+import java.time.ZonedDateTime
 
 class NetatmoImportDb(ds: DataSource) : Db(ds) {
     fun insertImport(s3bucket: String, s3key: String): Long {
@@ -47,8 +47,8 @@ data class NetatmoImportData(
         val s3bucket: String,
         val s3key: String,
         val geojsonkey: String?,
-        val created: Instant,
-        val updated: Instant,
+        val created: ZonedDateTime,
+        val updated: ZonedDateTime,
 ) {
     companion object {
         fun from(rs: ResultSet): NetatmoImportData = NetatmoImportData(
@@ -56,8 +56,8 @@ data class NetatmoImportData(
                 s3bucket = rs.getString("s3bucket"),
                 s3key = rs.getString("s3key"),
                 geojsonkey = rs.getString("geojsonkey"),
-                created = rs.getInstant("created"),
-                updated = rs.getInstant("updated"),
+                created = rs.getDateTime("created"),
+                updated = rs.getDateTime("updated"),
         )
     }
 }

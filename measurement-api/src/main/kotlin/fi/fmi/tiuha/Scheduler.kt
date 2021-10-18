@@ -3,9 +3,9 @@ package fi.fmi.tiuha
 import fi.fmi.tiuha.db.DataSource
 import fi.fmi.tiuha.db.Db
 import fi.fmi.tiuha.db.Transaction
-import fi.fmi.tiuha.db.getInstant
+import fi.fmi.tiuha.db.getDateTime
 import java.time.Duration
-import java.time.Instant
+import java.time.ZonedDateTime
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import kotlin.random.Random
@@ -25,7 +25,7 @@ abstract class ScheduledJob(val name: String) {
         val command = Runnable {
             try {
                 schedulerDb.inTx { tx ->
-                    val now = Instant.now()
+                    val now = ZonedDateTime.now()
                     val nextFireTime = schedulerDb.tryAcquireScheduledJob(tx, name)
                     if (nextFireTime != null && nextFireTime <= now) {
                         Log.info("Executing scheduled job $name")
@@ -44,7 +44,7 @@ abstract class ScheduledJob(val name: String) {
 
     fun await() = executor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS)
 
-    abstract fun nextFireTime(): Instant
+    abstract fun nextFireTime(): ZonedDateTime
 
     abstract fun exec(): Unit
 }
@@ -59,15 +59,15 @@ class SchedulerDb(ds: DataSource) : Db(ds) {
         }
     }
 
-    fun updateNextFireTime(tx: Transaction, name: String, nextFireTime: Instant) {
+    fun updateNextFireTime(tx: Transaction, name: String, nextFireTime: ZonedDateTime) {
         tx.execute("update scheduledjob set nextfiretime = ? where name = ?", listOf(nextFireTime, name))
     }
 
-    fun tryAcquireScheduledJob(tx: Transaction, jobName: String): Instant? {
+    fun tryAcquireScheduledJob(tx: Transaction, jobName: String): ZonedDateTime? {
         return tx.selectOneOrNone("""
             SELECT nextfiretime FROM scheduledjob
             WHERE name = ? FOR UPDATE SKIP LOCKED
-        """, listOf(jobName)) { it.getInstant(1) }
+        """, listOf(jobName)) { it.getDateTime(1) }
     }
 
     fun tryLock(tx: Transaction, key: Long): Boolean {

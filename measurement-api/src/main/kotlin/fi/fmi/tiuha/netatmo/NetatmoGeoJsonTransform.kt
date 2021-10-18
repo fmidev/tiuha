@@ -23,8 +23,8 @@ class NetatmoGeoJsonTransform(val s3: S3) : ScheduledJob("netatmogeojsontransfor
 
     val db = NetatmoImportDb(Config.dataSource)
 
-    override fun nextFireTime(): Instant =
-            Instant.now().plus(10, ChronoUnit.MINUTES)
+    override fun nextFireTime(): ZonedDateTime =
+            ZonedDateTime.now().plus(10, ChronoUnit.MINUTES)
 
     override fun exec() = Log.time("NetatmoGeoJsonTransform") {
         val datas = db.getDataForGeoJSONTransform()
