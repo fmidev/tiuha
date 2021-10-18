@@ -22,24 +22,28 @@ abstract class ScheduledJob(val name: String) {
         val delay = Duration.ofSeconds(10).toMillis()
         val initialDelay = Random.nextLong(delay)
 
-        val command = Runnable {
-            try {
-                schedulerDb.inTx { tx ->
-                    val now = ZonedDateTime.now()
-                    val nextFireTime = schedulerDb.tryAcquireScheduledJob(tx, name)
-                    if (nextFireTime != null && nextFireTime <= now) {
-                        Log.info("Executing scheduled job $name")
-                        exec()
-                        schedulerDb.updateNextFireTime(tx, name, nextFireTime())
-                        Log.info("Executed $name successfully")
-                    }
-                }
-            } catch (e: Exception) {
-                Log.error(e, "Scheduler $name execution failed")
-            }
-        }
+        executor.scheduleWithFixedDelay(::tryExec, initialDelay, delay, TimeUnit.MILLISECONDS)
+    }
 
-        executor.scheduleWithFixedDelay(command, initialDelay, delay, TimeUnit.MILLISECONDS)
+    fun tryExec(): Boolean {
+        try {
+            return schedulerDb.inTx { tx ->
+                val now = ZonedDateTime.now()
+                val nextFireTime = schedulerDb.tryAcquireScheduledJob(tx, name)
+                if (nextFireTime != null && nextFireTime <= now) {
+                    Log.info("Executing scheduled job $name")
+                    exec()
+                    schedulerDb.updateNextFireTime(tx, name, nextFireTime())
+                    Log.info("Executed $name successfully")
+                    true
+                } else {
+                    false
+                }
+            }
+        } catch (e: Exception) {
+            Log.error(e, "Scheduler $name execution failed")
+        }
+        return false
     }
 
     fun await() = executor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS)

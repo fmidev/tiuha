@@ -96,7 +96,7 @@ class Transaction(val c: Connection) {
                 is Long -> statement.setLong(index, param)
                 is Int -> statement.setInt(index, param)
                 is Boolean -> statement.setBoolean(index, param)
-                is ZonedDateTime -> statement.setTimestamp(index, Timestamp((param.nano / 1000).toLong()), defaultCalendar)
+                is ZonedDateTime -> statement.setTimestamp(index, Timestamp(param.toInstant().toEpochMilli()), defaultCalendar)
                 else -> throw RuntimeException("Unknown SQL parameter type")
             }
 }

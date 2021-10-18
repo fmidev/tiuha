@@ -16,11 +16,8 @@ abstract class TiuhaTest {
 
     fun clearDb() {
         listOf(
-                "netatmoprocessing",
-                "netatmoprocessingstatus",
-                "netatmoprocessingstep",
+                "scheduledjob",
                 "netatmoimport",
-                "geojsonimport",
                 "schemaversion",
         ).forEach { db.execute("DROP TABLE IF EXISTS $it", emptyList()) }
         SchemaMigration.runMigrations()
