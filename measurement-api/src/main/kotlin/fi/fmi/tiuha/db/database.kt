@@ -3,12 +3,11 @@ package fi.fmi.tiuha.db
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import fi.fmi.tiuha.Config
-import org.joda.time.DateTime
-import org.joda.time.DateTimeZone
 import java.sql.Connection
 import java.sql.PreparedStatement
 import java.sql.ResultSet
 import java.sql.Timestamp
+import java.time.Instant
 import java.util.*
 
 open class Db(val ds: DataSource) {
@@ -97,7 +96,7 @@ class Transaction(val c: Connection) {
                 is Long -> statement.setLong(index, param)
                 is Int -> statement.setInt(index, param)
                 is Boolean -> statement.setBoolean(index, param)
-                is DateTime -> statement.setTimestamp(index, Timestamp(param.millis), Calendar.getInstance(defaultTimeZone))
+                is Instant -> statement.setTimestamp(index, Timestamp(param.toEpochMilli()), Calendar.getInstance(defaultTimeZone))
                 else -> throw RuntimeException("Unknown SQL parameter type")
             }
 }
@@ -109,12 +108,12 @@ fun ResultSet.optLong(columnLabel: String): Long? {
     return if (this.wasNull()) null else value
 }
 
-fun ResultSet.getDateTime(columnLabel: String): DateTime {
+fun ResultSet.getInstant(columnLabel: String): Instant {
     val ts = this.getTimestamp(columnLabel)
-    return DateTime(ts.time, DateTimeZone.forTimeZone(defaultTimeZone))
+    return Instant.ofEpochMilli(ts.time)
 }
 
-fun ResultSet.getDateTime(columnIndex: Int): DateTime {
+fun ResultSet.getInstant(columnIndex: Int): Instant {
     val ts = this.getTimestamp(columnIndex)
-    return DateTime(ts.time, DateTimeZone.forTimeZone(defaultTimeZone))
+    return Instant.ofEpochMilli(ts.time)
 }

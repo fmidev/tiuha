@@ -52,7 +52,7 @@ class NetatmoGeoJsonTransformTest : TiuhaTest() {
                                 properties = FeatureProperties(
                                         _id = "enc:16:testIdDynamicum",
                                         featureType = "MeasureObservation",
-                                        resultTime = "2021266T171253+0300",
+                                        resultTime = "2021-09-23T14:12:53Z",
                                         observedPropertyTitle = "Air temperature",
                                         observedProperty = "http://vocab.nerc.ac.uk/collection/P07/current/CFSN0023/",
                                         unitOfMeasureTitle = "C",
@@ -66,7 +66,7 @@ class NetatmoGeoJsonTransformTest : TiuhaTest() {
                                 properties = FeatureProperties(
                                         _id = "enc:16:testIdDynamicum",
                                         featureType = "MeasureObservation",
-                                        resultTime = "2021266T171253+0300",
+                                        resultTime = "2021-09-23T14:12:53Z",
                                         observedPropertyTitle = "Relative Humidity",
                                         observedProperty = "http://vocab.nerc.ac.uk/collection/P07/current/CFSN0413/",
                                         unitOfMeasureTitle = "%",
@@ -81,7 +81,7 @@ class NetatmoGeoJsonTransformTest : TiuhaTest() {
                                 properties = FeatureProperties(
                                         _id = "enc:16:testIdYk4",
                                         featureType = "MeasureObservation",
-                                        resultTime = "2021266T171615+0300",
+                                        resultTime = "2021-09-23T14:16:15Z",
                                         observedPropertyTitle = "Air temperature",
                                         observedProperty = "http://vocab.nerc.ac.uk/collection/P07/current/CFSN0023/",
                                         unitOfMeasureTitle = "C",
@@ -95,7 +95,7 @@ class NetatmoGeoJsonTransformTest : TiuhaTest() {
                                 properties = FeatureProperties(
                                         _id = "enc:16:testIdYk4",
                                         featureType = "MeasureObservation",
-                                        resultTime = "2021266T171615+0300",
+                                        resultTime = "2021-09-23T14:16:15Z",
                                         observedPropertyTitle = "Relative Humidity",
                                         observedProperty = "http://vocab.nerc.ac.uk/collection/P07/current/CFSN0413/",
                                         unitOfMeasureTitle = "%",
@@ -109,7 +109,7 @@ class NetatmoGeoJsonTransformTest : TiuhaTest() {
                                 properties = FeatureProperties(
                                         _id = "enc:16:testIdYk4",
                                         featureType = "MeasureObservation",
-                                        resultTime = "2021266T171615+0300",
+                                        resultTime = "2021-09-23T14:16:15Z",
                                         observedPropertyTitle = "Air Pressure",
                                         observedProperty = "http://vocab.nerc.ac.uk/collection/P07/current/CFSN0015/",
                                         unitOfMeasureTitle = "mbar",

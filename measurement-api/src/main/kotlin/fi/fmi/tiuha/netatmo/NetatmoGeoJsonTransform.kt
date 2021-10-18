@@ -4,12 +4,13 @@ import com.google.gson.Gson
 import fi.fmi.tiuha.*
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
 import org.apache.commons.io.IOUtils
-import org.joda.time.DateTime
-import org.joda.time.Duration
-import org.joda.time.format.ISODateTimeFormat
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.io.StringReader
+import java.time.Instant
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 import java.util.concurrent.Callable
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executors
@@ -22,8 +23,8 @@ class NetatmoGeoJsonTransform(val s3: S3) : ScheduledJob("netatmogeojsontransfor
 
     val db = NetatmoImportDb(Config.dataSource)
 
-    override fun nextFireTime(): DateTime =
-            DateTime.now().withDurationAdded(Duration.standardMinutes(10), 1)
+    override fun nextFireTime(): Instant =
+            Instant.now().plus(10, ChronoUnit.MINUTES)
 
     override fun exec() {
         val datas = db.getDataForGeoJSONTransform()
@@ -74,11 +75,12 @@ class NetatmoGeoJsonTransform(val s3: S3) : ScheduledJob("netatmogeojsontransfor
     }
 
     fun convert(ms: List<Measurement>): GeoJson {
-        val formatter = ISODateTimeFormat.basicOrdinalDateTimeNoMillis()
+        val formatter = DateTimeFormatter.ISO_INSTANT
 
         val features = ms.flatMap { m ->
             val fs = mutableListOf<GeoJsonFeature>()
-            val time = formatter.print(DateTime(m.data.time_utc * 1000))
+            val inst = Instant.ofEpochSecond(m.data.time_utc)
+            val time = formatter.format(inst)
             val geometry = Geometry(type = "Point", coordinates = listOf(m.location[0], m.location[1], m.altitude.toDouble()))
 
             m.data.Temperature?.let { temp -> fs.add(mkTemperatureFeature(m._id, geometry, time, temp)) }

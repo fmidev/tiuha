@@ -8,8 +8,11 @@ import org.apache.http.client.methods.HttpGet
 import org.apache.http.client.utils.URIBuilder
 import org.apache.http.impl.client.HttpClients
 import org.apache.http.protocol.BasicHttpContext
-import org.joda.time.DateTime
-import org.joda.time.Duration
+import java.time.Instant
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoField
+import java.time.temporal.ChronoUnit
 
 class NetatmoImport(
         val country: String,
@@ -23,8 +26,10 @@ class NetatmoImport(
 
     val db = NetatmoImportDb(Config.dataSource)
 
+    val formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
+
     override fun exec() {
-        val ts = DateTime.now().toString("yyyyMMddHHmmss")
+        val ts = ZonedDateTime.now().format(formatter)
 
         Log.info("Fetching data for country $country from Netatmo")
         val (statusCode, content) = netatmo.getCountryWeatherData(country)
@@ -39,13 +44,13 @@ class NetatmoImport(
         transformTask?.attemptTransform(importId)
     }
 
-    override fun nextFireTime(): DateTime {
-        val now = DateTime.now()
-        val minute = now.minuteOfHour().get()
-        return now.withMinuteOfHour(minute - (minute % 10))
-                .withSecondOfMinute(0)
-                .withMillisOfSecond(0)
-                .withDurationAdded(Duration.standardMinutes(10), 1)
+    override fun nextFireTime(): Instant {
+        val now = Instant.now()
+        val minute = now.get(ChronoField.MINUTE_OF_HOUR)
+        return now.with(ChronoField.MINUTE_OF_HOUR, (minute - (minute % 10)).toLong())
+                .with(ChronoField.SECOND_OF_MINUTE, 0)
+                .with(ChronoField.NANO_OF_SECOND, 0)
+                .plus(10, ChronoUnit.MINUTES)
     }
 }
 
