@@ -26,7 +26,7 @@ class NetatmoGeoJsonTransform(val s3: S3) : ScheduledJob("netatmogeojsontransfor
     override fun nextFireTime(): Instant =
             Instant.now().plus(10, ChronoUnit.MINUTES)
 
-    override fun exec() {
+    override fun exec() = Log.time("NetatmoGeoJsonTransform") {
         val datas = db.getDataForGeoJSONTransform()
         datas.map {
             attemptTransform(it.id)

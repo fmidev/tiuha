@@ -21,7 +21,7 @@ private data class StationInfo(val stationCode: String, val location: Point, val
 private const val NETATMO_PROD_ID = "3"
 private val DATE_TIME_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
 
-fun importMeasurementsFromS3Bucket(keys: List<String>) {
+fun importMeasurementsFromS3Bucket(keys: List<String>) = Log.time("NetatmoArchiveImport") {
     val s3 = ArchiveS3()
     val ds = S3DataStore()
 

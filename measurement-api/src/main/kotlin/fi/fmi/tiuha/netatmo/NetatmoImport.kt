@@ -28,7 +28,7 @@ class NetatmoImport(
 
     val formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
 
-    override fun exec() {
+    override fun exec(): Unit = Log.time("NetatmoImport $country") {
         val ts = ZonedDateTime.now().format(formatter)
 
         Log.info("Fetching data for country $country from Netatmo")
