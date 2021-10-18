@@ -15,6 +15,8 @@ function main {
 	configure_aws_credentials "fmi-tiuha-$ENV"
 	use_correct_node_version
 
+	"$repo/run-tests.sh"
+
 	export VERSION_TAG="local-$( timestamp )-$( git rev-parse HEAD )"
 	#export VERSION_TAG="ci-$( git rev-parse HEAD )"
 
@@ -28,7 +30,7 @@ function build_and_upload_measurement_api {
 	local -r tag="$1"
 
 	pushd "$repo/measurement-api"
-	mvn clean package
+	mvn package -DskipTests
 	build_and_upload_container_image "$tag" "measurement-api"
 	popd
 }
