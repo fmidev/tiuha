@@ -3,6 +3,7 @@ import boto3
 import json
 import numbers
 import titanlib
+import gzip
 
 radius = [50000]
 num_min = [2]
@@ -19,9 +20,9 @@ def main():
     args = parser.parse_args()
 
     s3 = boto3.client('s3')
-    s3.download_file(args.bucket, args.key, 'temp.geojson')
+    s3.download_file(args.bucket, args.key, 'temp.geojson.gz')
 
-    with open("temp.geojson") as file:
+    with gzip.open("temp.geojson.gz", mode="rt") as file:
         featureCollection = json.JSONDecoder().decode(file.read())
         features = featureCollection["features"]
 
