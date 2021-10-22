@@ -66,7 +66,7 @@ def main():
     parser.add_argument('--outputKey')
     args = parser.parse_args()
 
-    if args.inputKey == args.outputKey:
+    if args.bucket and (args.inputKey == args.outputKey):
         print('Input and output key are the same, input would get overwritten', file=sys.stderr)
         return 1
     
