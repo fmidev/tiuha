@@ -71,7 +71,7 @@ def main():
         return 1
     
     bucket_missing = (args.inputKey or args.outputKey) and not args.bucket
-    input_or_output_missing = args.bucket and (not args.inputKey or not args.outputKey)
+    input_or_output_missing = args.bucket and not (args.inputKey or args.outputKey)
     if bucket_missing or input_or_output_missing:
         print('To read/write from/to S3, please specify --bucket and --inputKey, --outputKey or both', file=sys.stderr)
         return 2
