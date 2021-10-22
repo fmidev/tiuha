@@ -6,10 +6,6 @@ function main {
   cd "$repo/qc"
   require_command docker
 
-  local bucket="$1"
-  local input_key="$2"
-  local output_key="$3"
-
   docker build . --tag qc:local
   docker run \
     --env AWS_PROFILE \
@@ -23,7 +19,7 @@ function main {
     --volume "$repo/aws_config:/aws_config" \
     --volume "${HOME}/.aws:/root/.aws" \
     --volume "$( pwd ):/aws" \
-    --rm -it qc:local --bucket=$bucket --inputKey=$input_key --outputKey=$output_key
+    --rm -it qc:local "$@"
 }
 
 main "$@"
