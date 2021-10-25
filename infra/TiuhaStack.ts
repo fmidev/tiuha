@@ -6,7 +6,6 @@ import * as ecr from '@aws-cdk/aws-ecr'
 import * as ecs from '@aws-cdk/aws-ecs'
 import * as logs from '@aws-cdk/aws-logs'
 import * as s3 from '@aws-cdk/aws-s3'
-import * as secretsmanager from '@aws-cdk/aws-secretsmanager'
 import * as rds from '@aws-cdk/aws-rds'
 
 type TiuhaStackProps = cdk.StackProps & {
@@ -54,7 +53,11 @@ export class TiuhaStack extends cdk.Stack {
     const titanImage = ecs.ContainerImage.fromEcrRepository(props.titanQCRepository, props.versionTag)
     this.createTitanlibTask(titanImage)
 
-    dbSG.addIngressRule(serviceSG, ec2.Port.tcp(5432))
+    const bastionSecurityGroup = this.createBastionHost(vpc)
+
+    const postgresPort = ec2.Port.tcp(5432)
+    dbSG.addIngressRule(bastionSecurityGroup, postgresPort)
+    dbSG.addIngressRule(serviceSG, postgresPort)
   }
 
   createVpc(): ec2.IVpc {
@@ -64,8 +67,6 @@ export class TiuhaStack extends cdk.Stack {
   createDatabase(vpc: ec2.IVpc, credentials: rds.Credentials): [rds.DatabaseCluster, ec2.SecurityGroup] {
 
     const securtiyGroup = new ec2.SecurityGroup(this, 'DatabaseClusterSecurityGroup', { vpc })
-
-    securtiyGroup.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(5432))
 
     const engine = rds.DatabaseClusterEngine.auroraPostgres({
       version: rds.AuroraPostgresEngineVersion.VER_12_6,
@@ -180,5 +181,17 @@ export class TiuhaStack extends cdk.Stack {
     })
 
     return [service, securityGroup]
+  }
+
+  createBastionHost(vpc: ec2.IVpc): ec2.ISecurityGroup {
+    const bastionSecurityGroup = new ec2.SecurityGroup(this, 'BastionSecurityGroup', {
+      vpc,
+      description: 'Security group for accessing services using bastion host',
+    })
+    const bastionHost = new ec2.BastionHostLinux(this, 'bastion', {
+      vpc,
+    })
+
+    return bastionSecurityGroup
   }
 }
