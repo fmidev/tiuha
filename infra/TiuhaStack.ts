@@ -190,6 +190,7 @@ export class TiuhaStack extends cdk.Stack {
     })
     const bastionHost = new ec2.BastionHostLinux(this, 'bastion', {
       vpc,
+      securityGroup: bastionSecurityGroup,
     })
 
     return bastionSecurityGroup
