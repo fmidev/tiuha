@@ -6,7 +6,7 @@ function main {
   cd "$repo/local-env"
 
   docker-compose down --remove-orphans || true
-  docker-compose up --force-recreate
+  docker-compose up --build --force-recreate
 }
 
 main "$@"
