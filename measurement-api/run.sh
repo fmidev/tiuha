@@ -4,8 +4,8 @@ source "$( dirname "${BASH_SOURCE[0]}" )/../scripts/common-functions.sh"
 
 function main {
   cd "$repo/measurement-api"
-  mvn clean package
   configure_aws_credentials "$AWS_PROFILE"
+  mvn clean package -DskipTests
 
   DATABASE_HOST="localhost" \
   DATABASE_PORT="5444" \
