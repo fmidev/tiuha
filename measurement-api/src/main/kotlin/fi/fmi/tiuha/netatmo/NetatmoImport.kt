@@ -1,5 +1,6 @@
 package fi.fmi.tiuha
 
+import fi.fmi.tiuha.netatmo.NetatmoConfig
 import fi.fmi.tiuha.netatmo.NetatmoGeoJsonTransform
 import fi.fmi.tiuha.netatmo.NetatmoImportDb
 import fi.fmi.tiuha.netatmo.S3
@@ -8,7 +9,6 @@ import org.apache.http.client.methods.HttpGet
 import org.apache.http.client.utils.URIBuilder
 import org.apache.http.impl.client.HttpClients
 import org.apache.http.protocol.BasicHttpContext
-import java.time.Instant
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoField
@@ -56,12 +56,11 @@ class NetatmoImport(
 
 open class NetatmoClient {
     val client = HttpClients.createDefault()
-    val apiKey: String by lazy { SecretsManager.getSecretValue("netatmo-api-key") }
 
     open fun getCountryWeatherData(country: String): Pair<Int, ByteArray> {
-        val builder = URIBuilder("https://api.netatmo.com/apiexport/getcountryweatherdata")
+        val builder = URIBuilder(NetatmoConfig.importUrl)
         builder.addParameter("country", country)
-        builder.addParameter("key", apiKey)
+        builder.addParameter("key", NetatmoConfig.apiKey)
         val request = HttpGet(builder.build())
         val response = client.execute(request, BasicHttpContext())
         val content = IOUtils.toByteArray(response.entity.content)

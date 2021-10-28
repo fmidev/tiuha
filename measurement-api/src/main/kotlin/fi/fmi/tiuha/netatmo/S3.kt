@@ -4,6 +4,7 @@ import com.amazonaws.ClientConfiguration
 import com.amazonaws.auth.AWSCredentialsProvider
 import com.amazonaws.auth.AWSStaticCredentialsProvider
 import com.amazonaws.auth.BasicAWSCredentials
+import com.amazonaws.client.builder.AwsClientBuilder
 import com.amazonaws.services.s3.AmazonS3
 import com.amazonaws.services.s3.AmazonS3ClientBuilder
 import com.amazonaws.services.s3.model.GetObjectRequest
@@ -11,6 +12,7 @@ import com.amazonaws.services.s3.model.ListObjectsRequest
 import com.amazonaws.services.s3.model.ObjectMetadata
 import com.amazonaws.services.s3.model.PutObjectRequest
 import fi.fmi.tiuha.Config
+import fi.fmi.tiuha.Environment
 import fi.fmi.tiuha.Log
 import fi.fmi.tiuha.SecretsManager
 import kotlinx.serialization.Serializable
@@ -25,11 +27,22 @@ interface S3 {
     fun putObject(bucket: String, key: String, content: ByteArray): Unit
 }
 
+private fun buildLocalstackS3Client(s3ClientConfig: ClientConfiguration) = AmazonS3ClientBuilder.standard()
+        .withClientConfiguration(s3ClientConfig)
+        .withEndpointConfiguration(AwsClientBuilder.EndpointConfiguration("http://localhost:4566", "eu-west-1"))
+        .withPathStyleAccessEnabled(true)
+        .build()
+
+private fun buildRealS3Client(s3ClientConfig: ClientConfiguration) = AmazonS3ClientBuilder.standard()
+        .withClientConfiguration(s3ClientConfig)
+        .withRegion(Config.awsRegion)
+        .build()
+
 class TiuhaS3 : RealS3() {
-    override val client = AmazonS3ClientBuilder.standard()
-            .withClientConfiguration(s3ClientConfig)
-            .withRegion(Config.awsRegion)
-            .build()
+    override val client = when(Config.environment) {
+        Environment.PROD, Environment.DEV -> buildRealS3Client(s3ClientConfig)
+        Environment.LOCAL -> buildLocalstackS3Client(s3ClientConfig)
+    }
 }
 
 class ArchiveS3 : RealS3() {

@@ -19,7 +19,7 @@ object Log {
         logger.error(msg)
     }
 
-    fun error(ex: Exception, msg: String) {
+    fun error(ex: Throwable, msg: String) {
         logger.error(msg, ex)
     }
 
