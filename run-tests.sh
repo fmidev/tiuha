@@ -11,6 +11,7 @@ function main {
   DATABASE_USERNAME="tiuha" \
   DATABASE_PASSWORD="tiuha" \
   IMPORT_BUCKET="fmi-tiuha-import-local" \
+  ENV=local \
   mvn clean test
 }
 

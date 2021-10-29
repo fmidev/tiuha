@@ -1,16 +1,5 @@
 package fi.fmi.tiuha.netatmo
 
-import com.amazonaws.ClientConfiguration
-import com.amazonaws.auth.AWSCredentialsProvider
-import com.amazonaws.auth.AWSStaticCredentialsProvider
-import com.amazonaws.auth.BasicAWSCredentials
-import com.amazonaws.client.builder.AwsClientBuilder
-import com.amazonaws.services.s3.AmazonS3
-import com.amazonaws.services.s3.AmazonS3ClientBuilder
-import com.amazonaws.services.s3.model.GetObjectRequest
-import com.amazonaws.services.s3.model.ListObjectsRequest
-import com.amazonaws.services.s3.model.ObjectMetadata
-import com.amazonaws.services.s3.model.PutObjectRequest
 import fi.fmi.tiuha.Config
 import fi.fmi.tiuha.Environment
 import fi.fmi.tiuha.Log
@@ -19,98 +8,88 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import org.apache.commons.io.IOUtils
+import software.amazon.awssdk.auth.credentials.AwsCredentials
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
+import software.amazon.awssdk.core.sync.RequestBody
+import software.amazon.awssdk.http.SdkHttpClient
+import software.amazon.awssdk.http.apache.ApacheHttpClient
+import software.amazon.awssdk.regions.Region
+import software.amazon.awssdk.services.s3.S3Client
 import java.io.InputStream
 
 interface S3 {
-    fun listKeys(bucket: String, prefix: String? = null): List<String>
     fun getObjectStream(bucket: String, key: String, maxBytes: Long? = null): InputStream
     fun putObject(bucket: String, key: String, content: ByteArray): Unit
 }
 
-private fun buildLocalstackS3Client(s3ClientConfig: ClientConfiguration) = AmazonS3ClientBuilder.standard()
-        .withClientConfiguration(s3ClientConfig)
-        .withEndpointConfiguration(AwsClientBuilder.EndpointConfiguration("http://localhost:4566", "eu-west-1"))
-        .withPathStyleAccessEnabled(true)
+private fun buildLocalstackS3Client(httpClient: SdkHttpClient): S3Client = S3Client.builder()
+        .httpClient(httpClient)
+        .endpointOverride(java.net.URI("http://localhost:4566"))
+        .serviceConfiguration { it.pathStyleAccessEnabled(true) }
+        .region(Config.awsRegion)
         .build()
 
-private fun buildRealS3Client(s3ClientConfig: ClientConfiguration) = AmazonS3ClientBuilder.standard()
-        .withClientConfiguration(s3ClientConfig)
-        .withRegion(Config.awsRegion)
+private fun buildRealS3Client(httpClient: SdkHttpClient): S3Client = S3Client.builder()
+        .httpClient(httpClient)
+        .region(Config.awsRegion)
         .build()
 
 class TiuhaS3 : RealS3() {
     override val client = when(Config.environment) {
-        Environment.PROD, Environment.DEV -> buildRealS3Client(s3ClientConfig)
-        Environment.LOCAL -> buildLocalstackS3Client(s3ClientConfig)
+        Environment.PROD, Environment.DEV -> buildRealS3Client(httpClient)
+        Environment.LOCAL -> buildLocalstackS3Client(httpClient)
     }
 }
 
 class ArchiveS3 : RealS3() {
-    override val client = AmazonS3ClientBuilder.standard()
-            .withClientConfiguration(s3ClientConfig)
-            .withRegion(Config.awsRegion)
-            .withCredentials(fetchCredentialsFromSecretManager())
-            .build()
+    override val client: S3Client = S3Client.builder()
+        .httpClient(httpClient)
+        .region(Region.EU_WEST_1)
+        .credentialsProvider(
+            StaticCredentialsProvider.create(fetchCredentialsFromSecretManager())
+        )
+        .build()
 
-    private fun fetchCredentialsFromSecretManager(): AWSCredentialsProvider {
+    private fun fetchCredentialsFromSecretManager(): AwsCredentials {
         val json = SecretsManager.getSecretValue("observation-archive-access-keys")
-        val creds = Json.decodeFromString<AwsCredentials>(json)
-        return AWSStaticCredentialsProvider(BasicAWSCredentials(creds.accessKeyId, creds.secretAccessKey))
+        val creds = Json.decodeFromString<AwsCredentialsJson>(json)
+        return object : AwsCredentials {
+            override fun accessKeyId() = creds.accessKeyId
+            override fun secretAccessKey() = creds.secretAccessKey
+        }
     }
 }
 
 @Serializable
-data class AwsCredentials(
+data class AwsCredentialsJson(
         val accessKeyId: String,
         val secretAccessKey: String
 )
 
 abstract class RealS3 : S3 {
-    val s3ClientConfig = ClientConfiguration().apply { maxConnections = 50 }
-    abstract val client: AmazonS3
-
-    override fun listKeys(bucket: String, prefix: String?): List<String> {
-        Log.info("Fetching keys from S3 bucket $bucket with prefix $prefix")
-
-        fun exec(more: Boolean, marker: String?, previousKeys: List<String>): List<String> {
-            when (more) {
-                false -> return previousKeys
-                true -> {
-                    val req = ListObjectsRequest()
-                            .withBucketName(bucket)
-                            .withPrefix(prefix)
-                            .withMarker(marker)
-                    val response = client.listObjects(req)
-                    val keys = response.objectSummaries.map { it.key }
-                    return exec(response.isTruncated, response.nextMarker, previousKeys + keys)
-                }
-            }
-        }
-
-        return exec(true, null, emptyList())
-    }
+    val httpClient: SdkHttpClient = ApacheHttpClient.builder().maxConnections(50).build()
+    abstract val client: S3Client
 
     override fun getObjectStream(bucket: String, key: String, maxBytes: Long?): InputStream {
-        val request = GetObjectRequest(bucket, key)
-        if (maxBytes != null) {
-            request.setRange(0, maxBytes)
+        return client.getObject {
+            it.bucket(bucket)
+            it.key(key)
+            if (maxBytes != null) {
+                it.range("bytes=0-$maxBytes")
+            }
         }
-        return client.getObject(request).objectContent
     }
 
     override fun putObject(bucket: String, key: String, content: ByteArray) {
         Log.info("Uploading to S3 bucket $bucket object $key")
-        val metadata = ObjectMetadata()
-        metadata.contentLength = content.size.toLong()
-        val request = PutObjectRequest(bucket, key, content.inputStream(), metadata)
-        client.putObject(request)
+        client.putObject({ it.bucket(bucket).key(key) }, RequestBody.fromBytes(content))
     }
 }
 
 class FakeS3 : S3 {
     private val storage = mutableMapOf<Pair<String, String>, ByteArray>()
 
-    override fun listKeys(bucket: String, prefix: String?): List<String> =
+    fun listKeys(bucket: String, prefix: String? = null): List<String> =
             storage.keys.toList()
                     .filter { it.first == bucket }
                     .filter { prefix == null || it.second.startsWith(prefix) }

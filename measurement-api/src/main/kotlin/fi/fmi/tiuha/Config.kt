@@ -1,7 +1,7 @@
 package fi.fmi.tiuha
 
-import com.amazonaws.regions.Regions
 import fi.fmi.tiuha.db.DataSource
+import software.amazon.awssdk.regions.Region
 
 
 enum class Environment {
@@ -11,7 +11,7 @@ enum class Environment {
 
 object Config {
     val environment = Environment.valueOf(requireEnv("ENV").uppercase())
-    val awsRegion = Regions.EU_WEST_1
+    val awsRegion = Region.EU_WEST_1
     val measurementArchiveBucket = "fmi-iot-obs-arch"
 
     val dbHostname = requireEnv("DATABASE_HOST")
