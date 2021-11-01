@@ -3,7 +3,7 @@ set -o nounset -o errexit -o pipefail
 
 function main {
   local instance_id="$(aws ec2 describe-instances --output text \
-    --filter Name=tag:Name,Values=BastionHost \
+    --filter Name=tag:Name,Values=BastionHost --filter Name=instance-state-name,Values=running \
     --query 'Reservations[0].Instances[0].InstanceId')"
 
   local availability_zone="$(aws ec2 describe-instances --output text \
