@@ -6,7 +6,6 @@ RUN yum install -y openssh-clients
 RUN yum install -y nc
 
 COPY session-manager-forward-psql.sh .
-COPY known_hosts /root/.ssh/
 
 EXPOSE 1111
 HEALTHCHECK --interval=1s --start-period=30s \
