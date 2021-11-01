@@ -40,18 +40,16 @@ export class TiuhaStack extends cdk.Stack {
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
     })
 
+    const { taskDefinition: titanTaskDefinition } = this.createTitanlibTask(props.titanQCRepository, props.versionTag)
+
     const dbCredentials = rds.Credentials.fromGeneratedSecret('tiuha', {
       secretName: 'tiuha-database-credentials'
     })
-
     const [db, dbSG] = this.createDatabase(vpc, dbCredentials)
 
-    const cluster = new ecs.Cluster(this, 'Cluster', { vpc })
-    const apiImage = ecs.ContainerImage.fromEcrRepository(props.measurementApiRepository, props.versionTag)
-    const [service, serviceSG] = this.createFargateService(cluster, apiImage, db, measurementsBucket)
-
-    const titanImage = ecs.ContainerImage.fromEcrRepository(props.titanQCRepository, props.versionTag)
-    this.createTitanlibTask(titanImage)
+    const [service, serviceSG] = this.createFargateService(
+      envName, vpc, props.measurementApiRepository, props.versionTag, db, measurementsBucket, titanTaskDefinition
+    )
 
     const bastionSecurityGroup = this.createBastionHost(vpc)
 
@@ -95,7 +93,9 @@ export class TiuhaStack extends cdk.Stack {
     return [cluster, securtiyGroup]
   }
 
-  createTitanlibTask(image: ecs.ContainerImage) {
+  createTitanlibTask(titanQCRepository: ecr.IRepository, versionTag: string): { taskDefinition: ecs.ITaskDefinition } {
+    const image = ecs.ContainerImage.fromEcrRepository(titanQCRepository, versionTag)
+
     const logGroup = new logs.LogGroup(this, 'QCLogGroup', {
       logGroupName: 'qc',
       retention: logs.RetentionDays.INFINITE,
@@ -115,14 +115,22 @@ export class TiuhaStack extends cdk.Stack {
     })
 
     this.importBucket.grantRead(taskDefinition.taskRole)
+
+    return { taskDefinition }
   }
 
   createFargateService(
-    cluster: ecs.ICluster,
-    containerImage: ecs.ContainerImage,
+    envName: string,
+    vpc: ec2.IVpc,
+    measurementApiRepository: ecr.IRepository,
+    versionTag: string,
     db: rds.DatabaseCluster,
-    measurementsBucket: s3.Bucket
+    measurementsBucket: s3.Bucket,
+    titanTaskDefinition: ecs.ITaskDefinition,
   ): [ecs.FargateService, ec2.SecurityGroup] {
+    const cluster = new ecs.Cluster(this, 'Cluster', { vpc })
+    const apiImage = ecs.ContainerImage.fromEcrRepository(measurementApiRepository, versionTag)
+    
     const logGroup = new logs.LogGroup(this, 'LogGroup', {
       logGroupName: 'measurement-api',
       retention: logs.RetentionDays.INFINITE,
@@ -135,13 +143,17 @@ export class TiuhaStack extends cdk.Stack {
     })
 
     taskDefinition.addContainer('MeasurementApiContainer', {
-      image: containerImage,
+      image: apiImage,
       logging: new ecs.AwsLogDriver({
         logGroup,
         streamPrefix: 'measurement-api',
       }),
       environment: {
+        ENV: envName,
         IMPORT_BUCKET: this.importBucket.bucketName,
+        TITAN_TASK_DEFINITION_ARN: titanTaskDefinition.taskDefinitionArn,
+        TITAN_CLUSTER_ARN: cluster.clusterArn, // QC tasks run in the same cluster as the API for now, but it could have its own cluster
+        TITAN_TASK_SUBNET: vpc.privateSubnets[0].subnetId,
       },
       secrets: {
         DATABASE_NAME: ecs.Secret.fromSecretsManager(db.secret!, 'dbname'),
@@ -157,6 +169,15 @@ export class TiuhaStack extends cdk.Stack {
       actions: ['cassandra:*'],
       resources: ['*'],
     }))
+
+    taskDefinition.addToTaskRolePolicy(new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: ['ecs:RunTask'],
+      resources: [titanTaskDefinition.taskDefinitionArn]
+    }))
+
+    titanTaskDefinition.executionRole?.grantPassRole(taskDefinition.taskRole)
+    titanTaskDefinition.taskRole?.grantPassRole(taskDefinition.taskRole)
 
     measurementsBucket.grantReadWrite(taskDefinition.taskRole)
     this.importBucket.grantReadWrite(taskDefinition.taskRole)

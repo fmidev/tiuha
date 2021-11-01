@@ -19,6 +19,7 @@ abstract class TiuhaTest {
                 "scheduledjob",
                 "netatmoimport",
                 "schemaversion",
+                "qc_task",
         ).forEach { db.execute("DROP TABLE IF EXISTS $it", emptyList()) }
         SchemaMigration.runMigrations()
     }

@@ -4,6 +4,7 @@ import fi.fmi.tiuha.db.SchemaMigration
 import fi.fmi.tiuha.netatmo.NetatmoGeoJsonTransform
 import fi.fmi.tiuha.netatmo.TiuhaS3
 import fi.fmi.tiuha.netatmo.importMeasurementsFromS3Bucket
+import fi.fmi.tiuha.qc.QCTask
 
 fun main(args: Array<String>) {
     if (args.contains("--import")) {
@@ -27,6 +28,7 @@ fun startServer() {
     scheduledJobs.addAll(NetatmoImport.countries.map {
         NetatmoImport(it, s3, netatmo, transformTask)
     })
+    scheduledJobs.add(QCTask())
 
     scheduledJobs.forEach { it.start() }
     scheduledJobs.forEach { it.await() }
