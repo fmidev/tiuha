@@ -10,7 +10,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
 class NetatmoGeoJsonTransformTest : TiuhaTest() {
-    val job = NetatmoGeoJsonTransform(fakeS3)
+    val job = NetatmoGeoJsonTransform(s3)
 
     @Test
     fun `can be executed without imports`() {
@@ -123,14 +123,16 @@ class NetatmoGeoJsonTransformTest : TiuhaTest() {
     }
 
     fun readGeoJSON(import: NetatmoImportData): GeoJson {
-        val json = fakeS3.getObjectStream(import.s3bucket, import.geojsonkey!!).use { stream ->
+        val json = s3.getObjectStream(import.s3bucket, import.geojsonkey!!).use { stream ->
             IOUtils.toString(GZIPInputStream(stream))
         }
         return Json.decodeFromString(json)
     }
 
     fun insertImport(s3key: String, resourceFile: String): Long {
-        fakeS3.putObjectFromResources(Config.importBucket, s3key, resourceFile)
+        val stream = ClassLoader.getSystemClassLoader().getResourceAsStream(resourceFile)!!
+        val content = IOUtils.toByteArray(stream)
+        s3.putObject(Config.importBucket, s3key, content)
         return db.insertImport(Config.importBucket, s3key)
     }
 

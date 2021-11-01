@@ -6,22 +6,48 @@ import org.locationtech.geomesa.fs.storage.common.interop.ConfigurationUtils
 import java.io.IOException
 
 
-const val HADOOP_CONFIG = """
-<configuration>
-    <property>
-        <name>fs.s3a.aws.credentials.provider</name>
-        <value>
-            com.amazonaws.auth.ContainerCredentialsProvider,
-            com.amazonaws.auth.profile.ProfileCredentialsProvider
-        </value>
-    </property>
-</configuration>
-"""
+val HADOOP_CONFIG = when(Config.environment) {
+    Environment.PROD, Environment.DEV -> """
+        <configuration>
+            <property>
+                <name>fs.s3a.aws.credentials.provider</name>
+                <value>
+                    com.amazonaws.auth.ContainerCredentialsProvider,
+                    com.amazonaws.auth.profile.ProfileCredentialsProvider
+                </value>
+            </property>
+        </configuration>
+    """
+    Environment.LOCAL -> """
+        <configuration>
+            <property>
+                <name>fs.s3a.endpoint</name>
+                <value>http://localhost:4566</value>
+            </property>
+            <property>
+                <name>fs.s3a.connection.ssl.enabled</name>
+                <value>false</value>
+            </property>
+            <property>
+                <name>fs.s3a.path.style.access</name>
+                <value>true</value>
+            </property>
+            <property>
+                <name>fs.s3a.access.key</name>
+                <value>access_key</value>
+            </property>
+            <property>
+                <name>fs.s3a.secret.key</name>
+                <value>secret_key</value>
+            </property>
+        </configuration>
+    """
+}
 
 class S3DataStore {
     val dataStore: DataStore = DataStoreFinder.getDataStore(
         mapOf(
-            "fs.path" to "s3a://fmi-tiuha-measurements-dev/",
+            "fs.path" to "s3a://${Config.measurementsBucket}/",
             "fs.config.xml" to HADOOP_CONFIG
         )
     )

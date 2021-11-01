@@ -24,6 +24,7 @@ object Config {
     val dataSource = DataSource(this)
 
     val importBucket = requireEnv("IMPORT_BUCKET")
+    val measurementsBucket = "fmi-tiuha-measurements-" + requireEnv("ENV")
 }
 
 fun requireEnv(key: String): String =

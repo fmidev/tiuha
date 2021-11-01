@@ -7,7 +7,6 @@ import fi.fmi.tiuha.SecretsManager
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
-import org.apache.commons.io.IOUtils
 import software.amazon.awssdk.auth.credentials.AwsCredentials
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
 import software.amazon.awssdk.core.sync.RequestBody
@@ -20,12 +19,23 @@ import java.io.InputStream
 interface S3 {
     fun getObjectStream(bucket: String, key: String, maxBytes: Long? = null): InputStream
     fun putObject(bucket: String, key: String, content: ByteArray): Unit
+    fun deleteObject(bucket: String, key: String): Unit
+    fun listKeys(bucket: String, prefix: String? = null): List<String>
 }
+
+val localStackCredentialsProvider =
+        StaticCredentialsProvider.create(
+                object : AwsCredentials {
+                    override fun accessKeyId() = "access_key"
+                    override fun secretAccessKey() = "secret_key"
+                }
+        )
 
 private fun buildLocalstackS3Client(httpClient: SdkHttpClient): S3Client = S3Client.builder()
         .httpClient(httpClient)
         .endpointOverride(java.net.URI("http://localhost:4566"))
         .serviceConfiguration { it.pathStyleAccessEnabled(true) }
+        .credentialsProvider(localStackCredentialsProvider)
         .region(Config.awsRegion)
         .build()
 
@@ -33,6 +43,10 @@ private fun buildRealS3Client(httpClient: SdkHttpClient): S3Client = S3Client.bu
         .httpClient(httpClient)
         .region(Config.awsRegion)
         .build()
+
+class LocalStackS3 : RealS3() {
+    override val client = buildLocalstackS3Client(httpClient)
+}
 
 class TiuhaS3 : RealS3() {
     override val client = when(Config.environment) {
@@ -84,31 +98,20 @@ abstract class RealS3 : S3 {
         Log.info("Uploading to S3 bucket $bucket object $key")
         client.putObject({ it.bucket(bucket).key(key) }, RequestBody.fromBytes(content))
     }
-}
 
-class FakeS3 : S3 {
-    private val storage = mutableMapOf<Pair<String, String>, ByteArray>()
-
-    fun listKeys(bucket: String, prefix: String? = null): List<String> =
-            storage.keys.toList()
-                    .filter { it.first == bucket }
-                    .filter { prefix == null || it.second.startsWith(prefix) }
-                    .map { it.second }
-
-    override fun getObjectStream(bucket: String, key: String, maxBytes: Long?): InputStream =
-            when (val obj = storage[Pair(bucket, key)]) {
-                null -> throw RuntimeException("S3 object $key not found in bucket $bucket")
-                else -> obj.inputStream()
-            }
-
-    override fun putObject(bucket: String, key: String, content: ByteArray) {
-        storage[Pair(bucket, key)] = content.clone()
+    override fun deleteObject(bucket: String, key: String) {
+        Log.info("Deleting S3 object $key from bucket $bucket")
+        client.deleteObject({ it.bucket(bucket).key(key) })
     }
 
-    fun putObjectFromResources(bucket: String, key: String, resource: String) {
-        val stream = ClassLoader.getSystemClassLoader().getResourceAsStream(resource)!!
-        return putObject(bucket, key, IOUtils.toByteArray(stream))
-    }
+    override fun listKeys(bucket: String, prefix: String?): List<String> {
+        fun exec(fetchMore: Boolean, marker: String?, keys: List<String>): List<String> =
+                if (!fetchMore) keys else {
+                    val response = client.listObjects({ it.bucket(bucket).prefix(prefix).marker(marker) })
+                    val moreKeys = response.contents().map { it.key() }
+                    exec(response.isTruncated, response.nextMarker(), keys + moreKeys)
+                }
 
-    fun cleanup() = storage.clear()
+        return exec(true, null, emptyList())
+    }
 }

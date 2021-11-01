@@ -1,19 +1,17 @@
 package fi.fmi.tiuha.netatmo
 
 import fi.fmi.tiuha.Geomesa
-import org.junit.Ignore
+import org.junit.Before
 import org.junit.Test
-import kotlin.test.assertNotEquals
+import kotlin.test.assertEquals
 
-class GeomesaTest {
-    // Requires access to S3 and the test doesn't control the
-    // data in there so this test isn't really useful
-    @Ignore
+class GeomesaTest : TiuhaTest() {
     @Test
     fun `does an actual query`() {
-        val features = Geomesa.query("dtg BETWEEN 2021-07-17T07:00:00Z AND 2021-07-17T08:00:00Z")
-        assertNotEmpty(features)
+        fun query() = Geomesa.query("dtg BETWEEN 2021-01-01T00:00:00Z AND 2022-01-01T00:00:00Z")
+
+        assertEquals(0, query().size)
+        insertTestData()
+        assertEquals(5, query().size)
     }
 }
-
-fun <T> assertNotEmpty(xs: List<T>) = assertNotEquals(0, xs.size)

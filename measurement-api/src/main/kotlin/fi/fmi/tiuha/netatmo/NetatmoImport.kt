@@ -29,12 +29,15 @@ class NetatmoImport(
     val formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd/HHmmss")
 
     override fun exec(): Unit = Log.time("NetatmoImport $country") {
-        val ts = ZonedDateTime.now().format(formatter)
 
         Log.info("Fetching data for country $country from Netatmo")
         val (statusCode, content) = netatmo.getCountryWeatherData(country)
         if (statusCode != 200) throw RuntimeException("Failed to fetch Netatmo data")
+        processContent(content)
+    }
 
+    fun processContent(content: ByteArray) {
+        val ts = ZonedDateTime.now().format(formatter)
         Log.info("Received ${content.size} bytes of data")
         val s3Key = "netatmo/${ts}/countryweatherdata-${country}.tar.gz"
         Log.info("Storing Netatmo response as $s3Key")
