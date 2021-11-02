@@ -2,9 +2,11 @@ import argparse
 import boto3
 import gzip
 import json
-import numbers
 import sys
+import os
 import temperature
+
+VERSION = os.environ.get("VERSION", None)
 
 class FeatureCollection:
     def __init__(self, collection):
@@ -27,11 +29,19 @@ class FeatureCollection:
 
 
 def check_features(input_str):
+    print("Parsing input GeoJSON")
     featureCollection = FeatureCollection(json.JSONDecoder().decode(input_str))
-    flags = temperature.check(featureCollection.lats, featureCollection.lons, featureCollection.elevs, featureCollection.values)
+    print(f"Checking {len(featureCollection.features)} features")
+    check_results = temperature.check(featureCollection.lats, featureCollection.lons, featureCollection.elevs, featureCollection.values)
 
-    for feature, flag in zip(featureCollection.features, flags):
-        feature["properties"]["qcFlag"] = flag.item()
+    for feature, flags in zip(featureCollection.features, check_results):
+        all_checks_passed = all(f["passed"] for f in flags)
+        feature["properties"]["qcPassed"] = all_checks_passed
+        feature["properties"]["qcDetails"] = {
+            "method": "titanlib-temperature",
+            "version": VERSION,
+            "flags": flags,
+        }
 
     return json.JSONEncoder().encode(featureCollection.collection)
 
@@ -44,8 +54,7 @@ def read_input_from_s3(bucket, input_key):
     return content.decode('utf-8')
 
 def read_input_from_stdin():
-    with sys.stdin as input_file:
-        return input_file.read()
+    return sys.stdin.buffer.read()
 
 def write_output_to_s3(output_str, bucket, output_key):
     s3 = boto3.resource('s3')
@@ -65,6 +74,7 @@ def main():
     parser.add_argument('--inputKey')
     parser.add_argument('--outputKey')
     args = parser.parse_args()
+    print("Running with args", args)
 
     if args.bucket and (args.inputKey == args.outputKey):
         print('Input and output key are the same, input would get overwritten', file=sys.stderr)
@@ -80,6 +90,11 @@ def main():
         input_str = read_input_from_s3(args.bucket, args.inputKey)
     else:
         input_str = read_input_from_stdin()
+        # Try to decompress e.g. if piping from S3
+        try:
+            input_str = gzip.decompress(input_str).decode("utf-8")
+        except Exception as e:
+            print(e)
 
     output_str = check_features(input_str)
 
