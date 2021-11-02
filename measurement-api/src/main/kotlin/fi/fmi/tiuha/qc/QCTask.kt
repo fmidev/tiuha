@@ -22,7 +22,7 @@ class QCTask : ScheduledJob("qc_task") {
     private val ecsClient: EcsAsyncClient = EcsAsyncClient.builder().region(Config.awsRegion).build()
 
     override fun nextFireTime(): ZonedDateTime =
-        ZonedDateTime.now().plus(10, ChronoUnit.MINUTES)
+        ZonedDateTime.now().plus(2, ChronoUnit.MINUTES)
 
     private fun runQCTask(id: Long) = db.inTx { tx ->
         val task = db.getAndLockQCTask(tx, id)

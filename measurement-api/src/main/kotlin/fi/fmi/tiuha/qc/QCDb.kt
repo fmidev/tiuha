@@ -12,7 +12,7 @@ class QCDb(ds: DataSource) : Db(ds) {
         select("""
             select qc_task_id from qc_task
             where output_s3key is null
-            limit 2
+            limit 10
         """.trimIndent(), emptyList()) { it.getLong("qc_task_id") }
 
     fun markQCTaskAsStarted(tx: Transaction, id: Long, taskArn: String, outputKey: String) {
