@@ -20,7 +20,21 @@ class NetatmoJsonParserTest {
                 5.8,
                 65.0,
                 null,
-                1632406373
+                1632406373,
+                0.0,
+                1632344400,
+                1632406373,
+                0.0,
+                mapOf(
+                    Pair("1633605701", listOf(1, 225)),
+                    Pair("1633606003", listOf(1, 225)),
+                    Pair("1633606304", listOf(1, 225)),
+                ),
+                mapOf(
+                    Pair("1633605701", listOf(2, 233)),
+                    Pair("1633606003", listOf(3, 237)),
+                    Pair("1633606304", listOf(2, 251)),
+                )
             )
         )
         assertEquals(expectedDynamicum, dynamicum)
