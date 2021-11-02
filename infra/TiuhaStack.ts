@@ -114,7 +114,7 @@ export class TiuhaStack extends cdk.Stack {
       })
     })
 
-    this.importBucket.grantRead(taskDefinition.taskRole)
+    this.importBucket.grantReadWrite(taskDefinition.taskRole)
 
     return { taskDefinition }
   }
