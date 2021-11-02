@@ -7,6 +7,7 @@ import * as ecs from '@aws-cdk/aws-ecs'
 import * as logs from '@aws-cdk/aws-logs'
 import * as s3 from '@aws-cdk/aws-s3'
 import * as rds from '@aws-cdk/aws-rds'
+import { Tags } from '@aws-cdk/core'
 
 type TiuhaStackProps = cdk.StackProps & {
   envName: string
@@ -115,9 +116,11 @@ export class TiuhaStack extends cdk.Stack {
     })
 
     this.importBucket.grantReadWrite(taskDefinition.taskRole)
+    Tags.of(taskDefinition).add('qc_process', 'titan')
 
     return { taskDefinition }
   }
+
 
   createFargateService(
     envName: string,

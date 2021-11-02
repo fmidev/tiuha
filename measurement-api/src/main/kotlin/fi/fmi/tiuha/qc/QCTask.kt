@@ -6,6 +6,7 @@ import fi.fmi.tiuha.Log
 import fi.fmi.tiuha.ScheduledJob
 import software.amazon.awssdk.services.ecs.model.AssignPublicIp
 import software.amazon.awssdk.services.ecs.model.LaunchType
+import software.amazon.awssdk.services.ecs.model.PropagateTags
 import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
 
@@ -41,6 +42,7 @@ class QCTask : ScheduledJob("qc_task") {
                         vpcConfig.subnets(QCConfig.titanTaskSubnet).assignPublicIp(AssignPublicIp.DISABLED)
                     }
                 }
+                .propagateTags(PropagateTags.TASK_DEFINITION)
                 .taskDefinition(QCConfig.titanTaskDefinitionArn)
                 .overrides { overrideBuilder ->
                     overrideBuilder.containerOverrides({ containerOverrideBuilder ->
