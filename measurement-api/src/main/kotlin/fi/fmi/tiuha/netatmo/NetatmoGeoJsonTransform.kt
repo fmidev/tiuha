@@ -82,7 +82,10 @@ class NetatmoGeoJsonTransform(val s3: S3) : ScheduledJob("netatmogeojsontransfor
             val fs = mutableListOf<GeoJsonFeature>()
             val inst = Instant.ofEpochSecond(m.data.time_utc)
             val time = formatter.format(inst)
-            val geometry = Geometry(type = "Point", coordinates = listOf(m.location[0], m.location[1], m.altitude.toDouble()))
+            val geometry = Geometry(type = "Point", coordinates = when (m.altitude) {
+                null -> listOf(m.location[0], m.location[1])
+                else -> listOf(m.location[0], m.location[1], m.altitude.toDouble())
+            })
 
             m.data.Temperature?.let { temp -> fs.add(mkTemperatureFeature(m._id, geometry, time, temp)) }
             m.data.Humidity?.let { hum -> fs.add(mkHumidityFeature(m._id, geometry, time, hum)) }
