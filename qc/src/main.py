@@ -1,49 +1,68 @@
+from itertools import groupby
 import argparse
 import boto3
 import gzip
 import json
-import sys
 import os
-import temperature
+import sys
+
+import netatmo_qc
 
 VERSION = os.environ.get("VERSION", None)
+
 
 class FeatureCollection:
     def __init__(self, collection):
         self.collection = collection
         self.features = collection["features"]
-        self.init_data_vectors()
+        self.grouped = self.group_by_property(self.features)
 
-    def init_data_vectors(self):
-        self.lats = []
-        self.lons = []
-        self.elevs = []
-        self.values = []
-
-        for feature in self.features:
-            lon, lat, elev = feature["geometry"]["coordinates"]
-            self.lats.append(lat)
-            self.lons.append(lon)
-            self.elevs.append(elev)
-            self.values.append(feature["properties"]["result"])
+    def group_by_property(self, features):
+        with_index = enumerate(features)
+        keyfunc = lambda x: x[1]["properties"]["observedPropertyTitle"]
+        sorted_by_property = sorted(with_index, key=keyfunc)
+        result = {}
+        for key, group in groupby(sorted_by_property, key=keyfunc):
+            result[key] = list(group)
+        return result
 
 
 def check_features(input_str):
     print("Parsing input GeoJSON")
     featureCollection = FeatureCollection(json.JSONDecoder().decode(input_str))
     print(f"Checking {len(featureCollection.features)} features")
-    check_results = temperature.check(featureCollection.lats, featureCollection.lons, featureCollection.elevs, featureCollection.values)
+    for prop, features_with_index in featureCollection.grouped.items():
+        print(f"Processing {len(features_with_index)} features with property {prop}")
+        indexes = list(map(lambda x: x[0], features_with_index))
+        features = list(map(lambda x: x[1], features_with_index))
 
-    for feature, flags in zip(featureCollection.features, check_results):
+        if prop == "Air temperature":
+            print(f"Running QC for Netatmo {prop}")
+            check_results = netatmo_qc.temperature(features)
+            assign_qc_results("titanlib-temperature", featureCollection, indexes, check_results)
+        elif prop == "Relative Humidity":
+            print(f"Running QC for Netatmo {prop}")
+            check_results = netatmo_qc.humidity(features)
+            assign_qc_results("titanlib-humidity", featureCollection, indexes, check_results)
+        elif prop == "Air Pressure":
+            print(f"Running QC for Netatmo {prop}")
+            check_results = netatmo_qc.airpressure(features)
+            assign_qc_results("titanlib-airpressure", featureCollection, indexes, check_results)
+        else:
+            print(f"No QC available for (Netatmo {prop}")
+
+    return json.JSONEncoder().encode(featureCollection.collection)
+
+def assign_qc_results(method, featureCollection, indexes, check_results):
+    for idx, flags in zip(indexes, check_results):
+        feature = featureCollection.features[idx]
         all_checks_passed = all(f["passed"] for f in flags)
         feature["properties"]["qcPassed"] = all_checks_passed
         feature["properties"]["qcDetails"] = {
-            "method": "titanlib-temperature",
+            "method": method,
             "version": VERSION,
             "flags": flags,
         }
-
-    return json.JSONEncoder().encode(featureCollection.collection)
 
 def read_input_from_s3(bucket, input_key):
     s3 = boto3.resource('s3')
@@ -92,9 +111,10 @@ def main():
         input_str = read_input_from_stdin()
         # Try to decompress e.g. if piping from S3
         try:
-            input_str = gzip.decompress(input_str).decode("utf-8")
+            input_str = gzip.decompress(input_str)
         except Exception as e:
-            print(e)
+            pass
+        input_str = input_str.decode("utf-8")
 
     output_str = check_features(input_str)
 

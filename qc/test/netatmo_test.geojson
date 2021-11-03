@@ -27,6 +27,27 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
+          24.9607611,
+          60.2037551,
+          30
+        ]
+      },
+      "properties": {
+        "_id": "enc:16:testIdDynamicum",
+        "featureType": "MeasureObservation",
+        "resultTime": "2021-09-23T14:12:53Z",
+        "observedPropertyTitle": "Relative Humidity",
+        "observedProperty": "http://vocab.nerc.ac.uk/collection/P07/current/CFSN0413/",
+        "unitOfMeasureTitle": "%",
+        "unitOfMeasure": "",
+        "result": 65.8
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
           24.9486983,
           60.1696741,
           5
