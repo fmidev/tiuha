@@ -90,6 +90,16 @@ class NetatmoGeoJsonTransform(val s3: S3) : ScheduledJob("netatmogeojsontransfor
             m.data.Temperature?.let { temp -> fs.add(mkTemperatureFeature(m._id, geometry, time, temp)) }
             m.data.Humidity?.let { hum -> fs.add(mkHumidityFeature(m._id, geometry, time, hum)) }
             m.data.Pressure?.let { press -> fs.add(mkPressureFeature(m._id, geometry, time, press)) }
+            if (m.data.Rain != null && m.data.time_day_rain != null) {
+                val ts = formatter.format(Instant.ofEpochSecond(m.data.time_day_rain))
+                fs.add(mkDayRainfallFeature(m._id, geometry, ts, m.data.Rain))
+            }
+            if (m.data.sum_rain_1 != null && m.data.time_hour_rain != null) {
+                val ts = formatter.format(Instant.ofEpochSecond(m.data.time_hour_rain))
+                fs.add(mkHourRainfallFeature(m._id, geometry, ts, m.data.sum_rain_1))
+            }
+            m.data.wind?.let { fs.addAll(mkWindFeature(m._id, geometry, it)) }
+            m.data.wind_gust?.let { fs.addAll(mkWindGustFeature(m._id, geometry, it)) }
             fs
         }
         return GeoJson(type = "FeatureCollection", features = features)

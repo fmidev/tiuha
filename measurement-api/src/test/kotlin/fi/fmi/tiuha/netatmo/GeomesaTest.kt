@@ -12,6 +12,6 @@ class GeomesaTest : TiuhaTest() {
 
         assertEquals(0, query().size)
         insertTestData()
-        assertEquals(5, query().size)
+        assertEquals(9, query().size)
     }
 }
