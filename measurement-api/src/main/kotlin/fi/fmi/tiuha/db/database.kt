@@ -50,6 +50,8 @@ class DataSource(config: Config) {
             connection.close()
         }
     }
+
+    fun close() = hikariDataSource.close()
 }
 
 class Transaction(val c: Connection) {

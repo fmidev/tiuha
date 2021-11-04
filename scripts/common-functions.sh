@@ -43,6 +43,11 @@ function use_correct_node_version {
   nvm use "$NODE_VERSION" || nvm install "$NODE_VERSION"
 }
 
+function get_secret_value {
+  local -r secret_id="$1"
+  aws secretsmanager get-secret-value --secret-id "$secret_id" --query 'SecretString' --output text
+}
+
 function npm_ci_if_package_lock_has_changed {
   info "Checking if npm ci needs to be run"
   require_command shasum
