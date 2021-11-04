@@ -4,6 +4,7 @@ import software.amazon.awssdk.services.ecs.EcsAsyncClient
 import fi.fmi.tiuha.Config
 import fi.fmi.tiuha.Log
 import fi.fmi.tiuha.ScheduledJob
+import software.amazon.awssdk.services.ecs.EcsClient
 import software.amazon.awssdk.services.ecs.model.AssignPublicIp
 import software.amazon.awssdk.services.ecs.model.LaunchType
 import software.amazon.awssdk.services.ecs.model.PropagateTags
@@ -18,14 +19,14 @@ fun generateOutputKey(inputKey: String): String {
     return "$outputPrefix/$outputFileName"
 }
 
-class QCTask : ScheduledJob("qc_task") {
-    private val db = QCDb(Config.dataSource)
-    private val ecsClient: EcsAsyncClient = EcsAsyncClient.builder().region(Config.awsRegion).build()
-
+class QCTask(
+    private val db: QCDb,
+    private val ecsClient: EcsAsyncClient,
+) : ScheduledJob("qc_task") {
     override fun nextFireTime(): ZonedDateTime =
         ZonedDateTime.now().plus(2, ChronoUnit.MINUTES)
 
-    private fun runQCTask(id: Long) = db.inTx { tx ->
+    fun runQCTask(id: Long) = db.inTx { tx ->
         val task = db.getAndLockQCTask(tx, id)
         if (task.taskArn != null) {
             Log.info("QC task $id already started")

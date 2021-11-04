@@ -11,6 +11,7 @@ import kotlin.test.assertNull
 
 class NetatmoGeoJsonTransformTest : TiuhaTest() {
     val job = NetatmoGeoJsonTransform(s3)
+    override val db = NetatmoImportDb(Config.dataSource)
 
     @Test
     fun `can be executed without imports`() {

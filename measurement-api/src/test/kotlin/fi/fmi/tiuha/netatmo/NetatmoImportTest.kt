@@ -10,6 +10,7 @@ import kotlin.test.assertEquals
 class NetatmoImportTest : TiuhaTest() {
     private val fakeNetatmoClient = FakeNetatmoClient()
     private val job = NetatmoImport("FI", s3, fakeNetatmoClient, null)
+    override val db = NetatmoImportDb(Config.dataSource)
 
     @Test
     fun `Netatmo import adds the key to S3 and records it in database`() {

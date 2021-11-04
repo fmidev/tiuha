@@ -14,7 +14,7 @@ import java.time.ZonedDateTime
 import java.util.zip.GZIPInputStream
 
 abstract class TiuhaTest {
-    val db = NetatmoImportDb(Config.dataSource)
+    open val db: Db = Db(Config.dataSource)
     val s3 = LocalStackS3()
 
     @Before
