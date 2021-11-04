@@ -21,7 +21,7 @@ fun generateOutputKey(inputKey: String): String {
 
 class QCTask(
     private val db: QCDb,
-    private val ecsClient: EcsAsyncClient,
+    private val ecsClient: EcsClient,
 ) : ScheduledJob("qc_task") {
     override fun nextFireTime(): ZonedDateTime =
         ZonedDateTime.now().plus(2, ChronoUnit.MINUTES)
@@ -57,9 +57,10 @@ class QCTask(
                         ).name("TitanlibContainer")
                     })
                 }
-        }.join()
+        }
 
-        assert(runTaskResponse.tasks().size == 1)
+        println(runTaskResponse)
+        println(runTaskResponse.tasks())
         val taskArn: String = runTaskResponse.tasks().first().taskArn()
 
         db.markQCTaskAsStarted(tx, id, taskArn, outputKey)

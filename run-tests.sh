@@ -11,8 +11,11 @@ function main {
   DATABASE_USERNAME="tiuha" \
   DATABASE_PASSWORD="tiuha" \
   IMPORT_BUCKET="fmi-tiuha-import-local" \
+  TITAN_TASK_SUBNET="titan-subnet" \
+  TITAN_TASK_DEFINITION_ARN="arn:titantask" \
+  TITAN_CLUSTER_ARN="arn:titancluster" \
   ENV=local \
-  mvn clean test
+  mvn clean test "$@"
 }
 
 main "$@"
