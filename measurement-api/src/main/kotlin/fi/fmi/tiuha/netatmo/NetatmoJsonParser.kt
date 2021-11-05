@@ -2,6 +2,8 @@ package fi.fmi.tiuha.netatmo
 
 import com.google.gson.Gson
 import com.google.gson.stream.JsonReader
+import fi.fmi.tiuha.Geometry
+import java.time.Instant
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -55,3 +57,10 @@ fun parseJsonMeasurements(reader: java.io.Reader): List<Measurement> {
     return measurements
 }
 
+fun geometry(m: Measurement) = Geometry(type = "Point", coordinates = when (m.altitude) {
+    null -> listOf(m.location[0], m.location[1])
+    else -> listOf(m.location[0], m.location[1], m.altitude.toDouble())
+})
+
+fun parseNetatmoTimestamp(n: Long) = Instant.ofEpochSecond(n)
+fun parseNetatmoTimestamp(s: String) = parseNetatmoTimestamp(s.toLong())

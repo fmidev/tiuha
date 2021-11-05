@@ -7,7 +7,6 @@ import org.apache.commons.io.IOUtils
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.io.StringReader
-import java.time.Instant
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
@@ -20,6 +19,7 @@ import java.util.zip.GZIPOutputStream
 class NetatmoGeoJsonTransform(val s3: S3) : ScheduledJob("netatmogeojsontransform") {
     val gson = Gson()
     val transformExecutor = Executors.newFixedThreadPool(1)
+    val timeFormatter = DateTimeFormatter.ISO_INSTANT
 
     val db = NetatmoImportDb(Config.dataSource)
 
@@ -76,35 +76,151 @@ class NetatmoGeoJsonTransform(val s3: S3) : ScheduledJob("netatmogeojsontransfor
     }
 
     fun convert(ms: List<Measurement>): GeoJson {
-        val formatter = DateTimeFormatter.ISO_INSTANT
-
         val features = ms.flatMap { m ->
-            val fs = mutableListOf<GeoJsonFeature>()
-            val inst = Instant.ofEpochSecond(m.data.time_utc)
-            val time = formatter.format(inst)
-            val geometry = Geometry(type = "Point", coordinates = when (m.altitude) {
-                null -> listOf(m.location[0], m.location[1])
-                else -> listOf(m.location[0], m.location[1], m.altitude.toDouble())
-            })
-
-            m.data.Temperature?.let { temp -> fs.add(mkTemperatureFeature(m._id, geometry, time, temp)) }
-            m.data.Humidity?.let { hum -> fs.add(mkHumidityFeature(m._id, geometry, time, hum)) }
-            m.data.Pressure?.let { press -> fs.add(mkPressureFeature(m._id, geometry, time, press)) }
-            if (m.data.Rain != null && m.data.time_day_rain != null) {
-                val ts = formatter.format(Instant.ofEpochSecond(m.data.time_day_rain))
-                fs.add(mkDayRainfallFeature(m._id, geometry, ts, m.data.Rain))
-            }
-            if (m.data.sum_rain_1 != null && m.data.time_hour_rain != null) {
-                val ts = formatter.format(Instant.ofEpochSecond(m.data.time_hour_rain))
-                fs.add(mkHourRainfallFeature(m._id, geometry, ts, m.data.sum_rain_1))
-            }
-            m.data.wind?.let { fs.addAll(mkWindFeature(m._id, geometry, it)) }
-            m.data.wind_gust?.let { fs.addAll(mkWindGustFeature(m._id, geometry, it)) }
-            fs
+            listOf(
+                    extractTemperature(m),
+                    extractHumidity(m),
+                    extractPressure(m),
+                    extractRain(m),
+                    extractWind(m),
+            ).flatten()
         }
         return GeoJson(type = "FeatureCollection", features = features)
     }
 
+    fun extractTemperature(m: Measurement) =
+            m.data.Temperature?.let {
+                listOf(GeoJsonFeature(
+                        type = "Feature",
+                        geometry = geometry(m),
+                        properties = FeatureProperties(
+                                _id = m._id,
+                                featureType = "MeasureObservation",
+                                resultTime = timeFormatter.format(parseNetatmoTimestamp(m.data.time_utc)),
+                                observedPropertyTitle = "Air temperature",
+                                observedProperty = "http://vocab.nerc.ac.uk/collection/P07/current/CFSN0023/",
+                                unitOfMeasureTitle = NetatmoUnit.temperature,
+                                unitOfMeasure = "http://www.opengis.net/def/uom/UCUM/degC",
+                                result = it,
+                        )
+                ))
+            }.orEmpty()
+
+    fun extractHumidity(m: Measurement) =
+            m.data.Humidity?.let {
+                listOf(GeoJsonFeature(
+                        type = "Feature",
+                        geometry = geometry(m),
+                        properties = FeatureProperties(
+                                _id = m._id,
+                                featureType = "MeasureObservation",
+                                resultTime = timeFormatter.format(parseNetatmoTimestamp(m.data.time_utc)),
+                                observedPropertyTitle = "Relative Humidity",
+                                observedProperty = "http://vocab.nerc.ac.uk/collection/P07/current/CFSN0413/",
+                                unitOfMeasureTitle = NetatmoUnit.humidity,
+                                unitOfMeasure = "",
+                                result = it,
+                        )
+                ))
+            }.orEmpty()
+
+    fun extractPressure(m: Measurement) =
+            m.data.Pressure?.let {
+                listOf(GeoJsonFeature(
+                        type = "Feature",
+                        geometry = geometry(m),
+                        properties = FeatureProperties(
+                                _id = m._id,
+                                featureType = "MeasureObservation",
+                                resultTime = timeFormatter.format(parseNetatmoTimestamp(m.data.time_utc)),
+                                observedPropertyTitle = "Air Pressure",
+                                observedProperty = "http://vocab.nerc.ac.uk/collection/P07/current/CFSN0015/",
+                                unitOfMeasureTitle = NetatmoUnit.pressure,
+                                unitOfMeasure = "",
+                                result = it,
+                        )
+                ))
+            }.orEmpty()
+
+    fun extractRain(m: Measurement): List<GeoJsonFeature> {
+        val fs = mutableListOf<GeoJsonFeature>()
+        if (m.data.Rain != null && m.data.time_day_rain != null) {
+            fs.add(GeoJsonFeature(
+                    type = "Feature",
+                    geometry = geometry(m),
+                    properties = FeatureProperties(
+                            _id = m._id,
+                            featureType = "MeasureObservation",
+                            resultTime = timeFormatter.format(parseNetatmoTimestamp(m.data.time_day_rain)),
+                            observedPropertyTitle = "Daily rain accumulation",
+                            observedProperty = "",
+                            unitOfMeasureTitle = NetatmoUnit.rainfall,
+                            unitOfMeasure = "",
+                            result = m.data.Rain,
+                    )
+            ))
+        }
+        if (m.data.sum_rain_1 != null && m.data.time_hour_rain != null) {
+            fs.add(GeoJsonFeature(
+                    type = "Feature",
+                    geometry = geometry(m),
+                    properties = FeatureProperties(
+                            _id = m._id,
+                            featureType = "MeasureObservation",
+                            resultTime = timeFormatter.format(parseNetatmoTimestamp(m.data.time_hour_rain)),
+                            observedPropertyTitle = "Hourly rain accumulation",
+                            observedProperty = "",
+                            unitOfMeasureTitle = NetatmoUnit.rainfall,
+                            unitOfMeasure = "",
+                            result = m.data.sum_rain_1,
+                    )
+            ))
+        }
+        return fs
+    }
+
+    fun extractWind(m: Measurement): List<GeoJsonFeature> {
+        val fs = mutableListOf<GeoJsonFeature>()
+        m.data.wind?.let { wind ->
+            fs.addAll(wind.map {
+                GeoJsonFeature(
+                        type = "Feature",
+                        geometry = geometry(m),
+                        properties = FeatureProperties(
+                                _id = m._id,
+                                featureType = "MeasureObservation",
+                                resultTime = timeFormatter.format(parseNetatmoTimestamp(it.key)),
+                                observedPropertyTitle = "Wind",
+                                observedProperty = "",
+                                unitOfMeasureTitle = NetatmoUnit.wind,
+                                unitOfMeasure = "",
+                                result = it.value[0].toDouble(),
+                                windAngle = it.value[1].toDouble()
+                        )
+                )
+            })
+        }
+        m.data.wind_gust?.let { gust ->
+            fs.addAll(gust.map {
+                GeoJsonFeature(
+                        type = "Feature",
+                        geometry = geometry(m),
+                        properties = FeatureProperties(
+                                _id = m._id,
+                                featureType = "MeasureObservation",
+                                resultTime = timeFormatter.format(parseNetatmoTimestamp(it.key)),
+                                observedPropertyTitle = "Wind gust",
+                                observedProperty = "",
+                                unitOfMeasureTitle = NetatmoUnit.wind,
+                                unitOfMeasure = "",
+                                result = it.value[0].toDouble(),
+                                windAngle = it.value[1].toDouble()
+                        )
+                )
+            })
+        }
+        return fs
+    }
 
     fun parseNetatmoData(targz: InputStream): List<Measurement> {
         val fileEntries = readFilesFromTar(targz)
@@ -131,4 +247,12 @@ class NetatmoGeoJsonTransform(val s3: S3) : ScheduledJob("netatmogeojsontransfor
         }
         return files
     }
+}
+
+object NetatmoUnit {
+    val rainfall = "mm"
+    val wind = "kph"
+    val pressure = "mbar"
+    val temperature = "C"
+    val humidity = "%"
 }
