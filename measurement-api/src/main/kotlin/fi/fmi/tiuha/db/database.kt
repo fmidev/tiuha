@@ -3,10 +3,7 @@ package fi.fmi.tiuha.db
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import fi.fmi.tiuha.Config
-import java.sql.Connection
-import java.sql.PreparedStatement
-import java.sql.ResultSet
-import java.sql.Timestamp
+import java.sql.*
 import java.time.ZonedDateTime
 import java.util.*
 
@@ -92,16 +89,32 @@ class Transaction(val c: Connection) {
         }
     }
 
-    private fun bind(statement: PreparedStatement, param: Any, index: Int): Unit =
-            when (param) {
-                is String -> statement.setString(index, param)
-                is Long -> statement.setLong(index, param)
-                is Int -> statement.setInt(index, param)
-                is Boolean -> statement.setBoolean(index, param)
-                is ZonedDateTime -> statement.setTimestamp(index, Timestamp(param.toInstant().toEpochMilli()), defaultCalendar)
-                else -> throw RuntimeException("Unknown SQL parameter type")
+    class Batcher(val statement: PreparedStatement) {
+        fun addBatch(params: List<Any>) {
+            params.withIndex().forEach {
+                bind(statement, it.value, it.index + 1)
             }
+            statement.addBatch()
+        }
+    }
+
+    fun <T> batch(query: String, f: (Batcher) -> T) {
+        val statement = c.prepareStatement(query)
+        f(Batcher(statement))
+        statement.executeBatch()
+    }
+
 }
+
+private fun bind(statement: PreparedStatement, param: Any, index: Int): Unit =
+        when (param) {
+            is String -> statement.setString(index, param)
+            is Long -> statement.setLong(index, param)
+            is Int -> statement.setInt(index, param)
+            is Boolean -> statement.setBoolean(index, param)
+            is ZonedDateTime -> statement.setTimestamp(index, Timestamp(param.toInstant().toEpochMilli()), defaultCalendar)
+            else -> throw RuntimeException("Unknown SQL parameter type")
+        }
 
 val defaultTimeZone = TimeZone.getTimeZone("UTC")
 val defaultCalendar = Calendar.getInstance(defaultTimeZone)
