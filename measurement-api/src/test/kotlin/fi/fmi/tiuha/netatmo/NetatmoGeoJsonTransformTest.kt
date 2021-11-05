@@ -49,6 +49,7 @@ class NetatmoGeoJsonTransformTest : TiuhaTest() {
                 type = "Feature",
                 geometry = Geometry(type = "Point", coordinates = listOf(24.9607611, 60.2037551, 30.0)),
                 properties = FeatureProperties(
+                        sourceId = "netatmo",
                         _id = "enc:16:testIdDynamicum",
                         featureType = "MeasureObservation",
                         resultTime = "2021-09-23T14:12:53Z",
@@ -63,6 +64,7 @@ class NetatmoGeoJsonTransformTest : TiuhaTest() {
                 type = "Feature",
                 geometry = Geometry(type = "Point", coordinates = listOf(24.9607611, 60.2037551, 30.0)),
                 properties = FeatureProperties(
+                        sourceId = "netatmo",
                         _id = "enc:16:testIdDynamicum",
                         featureType = "MeasureObservation",
                         resultTime = "2021-09-23T14:12:53Z",
@@ -77,6 +79,7 @@ class NetatmoGeoJsonTransformTest : TiuhaTest() {
                 type = "Feature",
                 geometry = Geometry(type = "Point", coordinates = listOf(24.9607611, 60.2037551, 30.0)),
                 properties = FeatureProperties(
+                        sourceId = "netatmo",
                         _id = "enc:16:testIdDynamicum",
                         featureType = "MeasureObservation",
                         resultTime = "2021-09-22T21:00:00Z",
@@ -91,6 +94,7 @@ class NetatmoGeoJsonTransformTest : TiuhaTest() {
                 type = "Feature",
                 geometry = Geometry(type = "Point", coordinates = listOf(24.9607611, 60.2037551, 30.0)),
                 properties = FeatureProperties(
+                        sourceId = "netatmo",
                         _id = "enc:16:testIdDynamicum",
                         featureType = "MeasureObservation",
                         resultTime = "2021-09-23T14:12:53Z",
@@ -105,6 +109,7 @@ class NetatmoGeoJsonTransformTest : TiuhaTest() {
                 type = "Feature",
                 geometry = Geometry(type = "Point", coordinates = listOf(24.9486983, 60.1696741, 5.0)),
                 properties = FeatureProperties(
+                        sourceId = "netatmo",
                         _id = "enc:16:testIdYk4",
                         featureType = "MeasureObservation",
                         resultTime = "2021-09-23T14:16:15Z",
@@ -119,6 +124,7 @@ class NetatmoGeoJsonTransformTest : TiuhaTest() {
                 type = "Feature",
                 geometry = Geometry(type = "Point", coordinates = listOf(24.9486983, 60.1696741, 5.0)),
                 properties = FeatureProperties(
+                        sourceId = "netatmo",
                         _id = "enc:16:testIdYk4",
                         featureType = "MeasureObservation",
                         resultTime = "2021-09-23T14:16:15Z",
@@ -133,6 +139,7 @@ class NetatmoGeoJsonTransformTest : TiuhaTest() {
                 type = "Feature",
                 geometry = Geometry(type = "Point", coordinates = listOf(24.9486983, 60.1696741, 5.0)),
                 properties = FeatureProperties(
+                        sourceId = "netatmo",
                         _id = "enc:16:testIdYk4",
                         featureType = "MeasureObservation",
                         resultTime = "2021-09-23T14:16:15Z",
@@ -149,6 +156,7 @@ class NetatmoGeoJsonTransformTest : TiuhaTest() {
                 type = "Feature",
                 geometry = Geometry(type = "Point", coordinates = listOf(24.9486983, 60.1696741, 5.0)),
                 properties = FeatureProperties(
+                        sourceId = "netatmo",
                         _id = "enc:16:testIdYk4",
                         featureType = "MeasureObservation",
                         resultTime = "2021-09-22T21:00:00Z",
@@ -163,6 +171,7 @@ class NetatmoGeoJsonTransformTest : TiuhaTest() {
                 type = "Feature",
                 geometry = Geometry(type = "Point", coordinates = listOf(24.9486983, 60.1696741, 5.0)),
                 properties = FeatureProperties(
+                        sourceId = "netatmo",
                         _id = "enc:16:testIdYk4",
                         featureType = "MeasureObservation",
                         resultTime = "2021-09-23T14:16:22Z",

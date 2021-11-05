@@ -12,6 +12,7 @@
         ]
       },
       "properties": {
+        "sourceId": "netatmo",
         "_id": "enc:16:testIdDynamicum",
         "featureType": "MeasureObservation",
         "resultTime": "2021-09-23T14:12:53Z",
@@ -33,6 +34,7 @@
         ]
       },
       "properties": {
+        "sourceId": "netatmo",
         "_id": "enc:16:testIdDynamicum",
         "featureType": "MeasureObservation",
         "resultTime": "2021-09-23T14:12:53Z",
@@ -54,6 +56,7 @@
         ]
       },
       "properties": {
+        "sourceId": "netatmo",
         "_id": "enc:16:testIdYk4",
         "featureType": "MeasureObservation",
         "resultTime": "2021-09-23T14:13:33Z",

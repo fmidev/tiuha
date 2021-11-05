@@ -94,6 +94,7 @@ class NetatmoGeoJsonTransform(val s3: S3) : ScheduledJob("netatmogeojsontransfor
                         type = "Feature",
                         geometry = geometry(m),
                         properties = FeatureProperties(
+                                sourceId = "netatmo",
                                 _id = m._id,
                                 featureType = "MeasureObservation",
                                 resultTime = timeFormatter.format(parseNetatmoTimestamp(m.data.time_utc)),
@@ -112,6 +113,7 @@ class NetatmoGeoJsonTransform(val s3: S3) : ScheduledJob("netatmogeojsontransfor
                         type = "Feature",
                         geometry = geometry(m),
                         properties = FeatureProperties(
+                                sourceId = "netatmo",
                                 _id = m._id,
                                 featureType = "MeasureObservation",
                                 resultTime = timeFormatter.format(parseNetatmoTimestamp(m.data.time_utc)),
@@ -130,6 +132,7 @@ class NetatmoGeoJsonTransform(val s3: S3) : ScheduledJob("netatmogeojsontransfor
                         type = "Feature",
                         geometry = geometry(m),
                         properties = FeatureProperties(
+                                sourceId = "netatmo",
                                 _id = m._id,
                                 featureType = "MeasureObservation",
                                 resultTime = timeFormatter.format(parseNetatmoTimestamp(m.data.time_utc)),
@@ -149,6 +152,7 @@ class NetatmoGeoJsonTransform(val s3: S3) : ScheduledJob("netatmogeojsontransfor
                     type = "Feature",
                     geometry = geometry(m),
                     properties = FeatureProperties(
+                            sourceId = "netatmo",
                             _id = m._id,
                             featureType = "MeasureObservation",
                             resultTime = timeFormatter.format(parseNetatmoTimestamp(m.data.time_day_rain)),
@@ -165,6 +169,7 @@ class NetatmoGeoJsonTransform(val s3: S3) : ScheduledJob("netatmogeojsontransfor
                     type = "Feature",
                     geometry = geometry(m),
                     properties = FeatureProperties(
+                            sourceId = "netatmo",
                             _id = m._id,
                             featureType = "MeasureObservation",
                             resultTime = timeFormatter.format(parseNetatmoTimestamp(m.data.time_hour_rain)),
@@ -187,6 +192,7 @@ class NetatmoGeoJsonTransform(val s3: S3) : ScheduledJob("netatmogeojsontransfor
                         type = "Feature",
                         geometry = geometry(m),
                         properties = FeatureProperties(
+                                sourceId = "netatmo",
                                 _id = m._id,
                                 featureType = "MeasureObservation",
                                 resultTime = timeFormatter.format(parseNetatmoTimestamp(it.key)),
@@ -206,6 +212,7 @@ class NetatmoGeoJsonTransform(val s3: S3) : ScheduledJob("netatmogeojsontransfor
                         type = "Feature",
                         geometry = geometry(m),
                         properties = FeatureProperties(
+                                sourceId = "netatmo",
                                 _id = m._id,
                                 featureType = "MeasureObservation",
                                 resultTime = timeFormatter.format(parseNetatmoTimestamp(it.key)),

@@ -15,41 +15,45 @@ class FeatureCollection:
     def __init__(self, collection):
         self.collection = collection
         self.features = collection["features"]
-        self.grouped = self.group_by_property(self.features)
+        self.grouped = self.group_by_source_and_property(self.features)
 
-    def group_by_property(self, features):
-        with_index = enumerate(features)
-        keyfunc = lambda x: x[1]["properties"]["observedPropertyTitle"]
-        sorted_by_property = sorted(with_index, key=keyfunc)
+    def group_by_source_and_property(self, features):
+        def keyfunc(x):
+            source = x[1]["properties"].get("sourceId", "netatmo")
+            property = x[1]["properties"]["observedPropertyTitle"]
+            return (source, property)
+
+        sorted_by_property = sorted(enumerate(features), key=keyfunc)
         result = {}
         for key, group in groupby(sorted_by_property, key=keyfunc):
             result[key] = list(group)
         return result
 
 
+
 def check_features(input_str):
     print("Parsing input GeoJSON")
     featureCollection = FeatureCollection(json.JSONDecoder().decode(input_str))
     print(f"Checking {len(featureCollection.features)} features")
-    for prop, features_with_index in featureCollection.grouped.items():
-        print(f"Processing {len(features_with_index)} features with property {prop}")
+    for key, features_with_index in featureCollection.grouped.items():
+        print(f"Processing {len(features_with_index)} features with property {key}")
         indexes = list(map(lambda x: x[0], features_with_index))
         features = list(map(lambda x: x[1], features_with_index))
 
-        if prop == "Air temperature":
-            print(f"Running QC for Netatmo {prop}")
+        if key == ("netatmo", "Air temperature"):
+            print(f"Running QC for {key}")
             check_results = netatmo_qc.temperature(features)
             assign_qc_results("titanlib-temperature", featureCollection, indexes, check_results)
-        elif prop == "Relative Humidity":
-            print(f"Running QC for Netatmo {prop}")
+        elif key == ("netatmo", "Relative Humidity"):
+            print(f"Running QC for {key}")
             check_results = netatmo_qc.humidity(features)
             assign_qc_results("titanlib-humidity", featureCollection, indexes, check_results)
-        elif prop == "Air Pressure":
-            print(f"Running QC for Netatmo {prop}")
+        elif key == ("netatmo", "Air Pressure"):
+            print(f"Running QC for {key}")
             check_results = netatmo_qc.airpressure(features)
             assign_qc_results("titanlib-airpressure", featureCollection, indexes, check_results)
         else:
-            print(f"No QC available for (Netatmo {prop}")
+            print(f"No QC available for {key}")
 
     return json.JSONEncoder().encode(featureCollection.collection)
 

@@ -23,6 +23,7 @@ data class Geometry(
 
 @Serializable
 data class FeatureProperties(
+        val sourceId: String,
         val _id: String,
         val featureType: String,
         val resultTime: String,
