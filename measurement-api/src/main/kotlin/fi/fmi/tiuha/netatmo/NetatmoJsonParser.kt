@@ -4,8 +4,6 @@ import com.google.gson.Gson
 import com.google.gson.stream.JsonReader
 import fi.fmi.tiuha.Geometry
 import java.time.Instant
-import java.util.*
-import kotlin.collections.ArrayList
 
 data class MeasurementData(
         val Temperature: Double?,
@@ -22,29 +20,13 @@ data class MeasurementData(
 
 data class Measurement(
         val _id: String,
-        val location: Array<Double>,
+        val location: List<Double>,
         val altitude: Int?,
         val data: MeasurementData
-) {
-    override fun equals(other: Any?): Boolean {
-
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as Measurement
-
-        if (!location.contentEquals(other.location)) return false
-        if (altitude != other.altitude) return false
-        if (data != other.data) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int = Objects.hash(location.contentHashCode(), altitude, data.hashCode())
-}
+)
 
 fun parseJsonMeasurements(reader: java.io.Reader): List<Measurement> {
-    val measurements: MutableList<Measurement> = ArrayList()
+    val measurements = mutableListOf<Measurement>()
     val gson = Gson()
     JsonReader(reader).use { reader ->
         reader.beginArray()

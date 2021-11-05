@@ -14,7 +14,7 @@ class NetatmoJsonParserTest {
         val dynamicum = actualMeasurements[0]
         val expectedDynamicum = Measurement(
             "enc:16:testIdDynamicum",
-            arrayOf(24.9607611, 60.2037551),
+            listOf(24.9607611, 60.2037551),
             null,
             MeasurementData(
                 5.8,
