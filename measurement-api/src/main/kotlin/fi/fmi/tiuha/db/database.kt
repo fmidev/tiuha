@@ -111,6 +111,11 @@ fun ResultSet.optLong(columnLabel: String): Long? {
     return if (this.wasNull()) null else value
 }
 
+fun ResultSet.optString(columnLabel: String): String? {
+    val value = this.getString(columnLabel)
+    return if (this.wasNull()) null else value
+}
+
 fun ResultSet.getDateTime(columnLabel: String): ZonedDateTime {
     val ts = this.getTimestamp(columnLabel, defaultCalendar)
     return ZonedDateTime.ofInstant(ts.toInstant(), defaultTimeZone.toZoneId())

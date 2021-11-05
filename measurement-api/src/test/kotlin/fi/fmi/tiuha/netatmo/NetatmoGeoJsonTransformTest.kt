@@ -195,7 +195,7 @@ class NetatmoGeoJsonTransformTest : TiuhaTest() {
         val stream = ClassLoader.getSystemClassLoader().getResourceAsStream(resourceFile)!!
         val content = IOUtils.toByteArray(stream)
         s3.putObject(Config.importBucket, s3key, content)
-        return db.insertImport(Config.importBucket, s3key)
+        return db.insertImport("FI", Config.importBucket, s3key)
     }
 
     fun getImport(id: Long) = db.inTx { tx -> db.selectImportForProcessing(tx, id) }

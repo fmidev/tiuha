@@ -25,6 +25,7 @@ class NetatmoImportTest : TiuhaTest() {
         assertEquals(imports.size, 1)
 
         assertEquals(keys[0], imports[0].s3key)
+        assertEquals("FI", imports[0].country)
     }
 }
 

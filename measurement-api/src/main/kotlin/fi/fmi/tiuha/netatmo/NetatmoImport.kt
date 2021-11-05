@@ -42,7 +42,7 @@ class NetatmoImport(
         val s3Key = "netatmo/${ts}/countryweatherdata-${country}.tar.gz"
         Log.info("Storing Netatmo response as $s3Key")
         s3.putObject(Config.importBucket, s3Key, content)
-        val importId = db.insertImport(Config.importBucket, s3Key)
+        val importId = db.insertImport(country, Config.importBucket, s3Key)
 
         transformTask?.attemptTransform(importId)
     }
