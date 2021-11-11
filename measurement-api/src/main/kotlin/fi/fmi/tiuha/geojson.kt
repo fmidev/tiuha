@@ -32,5 +32,4 @@ data class FeatureProperties(
         val unitOfMeasureTitle: String,
         val unitOfMeasure: String,
         val result: Double,
-        val windAngle: Double? = null,
 )

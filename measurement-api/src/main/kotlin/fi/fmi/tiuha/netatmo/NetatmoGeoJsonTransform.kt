@@ -187,8 +187,26 @@ class NetatmoGeoJsonTransform(val s3: S3) : ScheduledJob("netatmogeojsontransfor
     fun extractWind(m: Measurement): List<GeoJsonFeature> {
         val fs = mutableListOf<GeoJsonFeature>()
         m.data.wind?.let { wind ->
-            fs.addAll(wind.map {
-                GeoJsonFeature(
+            fs.addAll(wind.flatMap {
+                val windSpeed = it.value[0].toDouble()
+                val windAngle = it.value[1].toDouble()
+                listOf(
+                    GeoJsonFeature(
+                            type = "Feature",
+                            geometry = geometry(m),
+                            properties = FeatureProperties(
+                                    sourceId = "netatmo",
+                                    _id = m._id,
+                                    featureType = "MeasureObservation",
+                                    resultTime = timeFormatter.format(parseNetatmoTimestamp(it.key)),
+                                    observedPropertyTitle = "Wind",
+                                    observedProperty = "",
+                                    unitOfMeasureTitle = NetatmoUnit.windSpeed,
+                                    unitOfMeasure = "",
+                                    result = windSpeed,
+                            )
+                    ),
+                    GeoJsonFeature(
                         type = "Feature",
                         geometry = geometry(m),
                         properties = FeatureProperties(
@@ -196,33 +214,50 @@ class NetatmoGeoJsonTransform(val s3: S3) : ScheduledJob("netatmogeojsontransfor
                                 _id = m._id,
                                 featureType = "MeasureObservation",
                                 resultTime = timeFormatter.format(parseNetatmoTimestamp(it.key)),
-                                observedPropertyTitle = "Wind",
+                                observedPropertyTitle = "Wind angle",
                                 observedProperty = "",
-                                unitOfMeasureTitle = NetatmoUnit.wind,
+                                unitOfMeasureTitle = NetatmoUnit.windAngle,
                                 unitOfMeasure = "",
-                                result = it.value[0].toDouble(),
-                                windAngle = it.value[1].toDouble()
+                                result = windAngle,
                         )
-                )
-            })
+                    )
+                )})
         }
         m.data.wind_gust?.let { gust ->
-            fs.addAll(gust.map {
-                GeoJsonFeature(
-                        type = "Feature",
-                        geometry = geometry(m),
-                        properties = FeatureProperties(
-                                sourceId = "netatmo",
-                                _id = m._id,
-                                featureType = "MeasureObservation",
-                                resultTime = timeFormatter.format(parseNetatmoTimestamp(it.key)),
-                                observedPropertyTitle = "Wind gust",
-                                observedProperty = "",
-                                unitOfMeasureTitle = NetatmoUnit.wind,
-                                unitOfMeasure = "",
-                                result = it.value[0].toDouble(),
-                                windAngle = it.value[1].toDouble()
-                        )
+            fs.addAll(gust.flatMap {
+                val windGustSpeed = it.value[0].toDouble()
+                val windGustAngle = it.value[1].toDouble()
+                listOf(
+                    GeoJsonFeature(
+                            type = "Feature",
+                            geometry = geometry(m),
+                            properties = FeatureProperties(
+                                    sourceId = "netatmo",
+                                    _id = m._id,
+                                    featureType = "MeasureObservation",
+                                    resultTime = timeFormatter.format(parseNetatmoTimestamp(it.key)),
+                                    observedPropertyTitle = "Wind gust",
+                                    observedProperty = "",
+                                    unitOfMeasureTitle = NetatmoUnit.windSpeed,
+                                    unitOfMeasure = "",
+                                    result = windGustSpeed,
+                            )
+                    ),
+                    GeoJsonFeature(
+                            type = "Feature",
+                            geometry = geometry(m),
+                            properties = FeatureProperties(
+                                    sourceId = "netatmo",
+                                    _id = m._id,
+                                    featureType = "MeasureObservation",
+                                    resultTime = timeFormatter.format(parseNetatmoTimestamp(it.key)),
+                                    observedPropertyTitle = "Wind gust angle",
+                                    observedProperty = "",
+                                    unitOfMeasureTitle = NetatmoUnit.windAngle,
+                                    unitOfMeasure = "",
+                                    result = windGustAngle,
+                            )
+                    ),
                 )
             })
         }
@@ -258,7 +293,8 @@ class NetatmoGeoJsonTransform(val s3: S3) : ScheduledJob("netatmogeojsontransfor
 
 object NetatmoUnit {
     val rainfall = "mm"
-    val wind = "kph"
+    val windSpeed = "kph"
+    val windAngle = "deg"
     val pressure = "mbar"
     val temperature = "C"
     val humidity = "%"
