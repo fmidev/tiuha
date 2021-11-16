@@ -1,9 +1,8 @@
-package fi.fmi.tiuha
+package fi.fmi.tiuha.netatmo
 
-import fi.fmi.tiuha.netatmo.NetatmoConfig
-import fi.fmi.tiuha.netatmo.NetatmoGeoJsonTransform
-import fi.fmi.tiuha.netatmo.NetatmoImportDb
-import fi.fmi.tiuha.netatmo.S3
+import fi.fmi.tiuha.Config
+import fi.fmi.tiuha.Log
+import fi.fmi.tiuha.ScheduledJob
 import org.apache.commons.io.IOUtils
 import org.apache.http.client.methods.HttpGet
 import org.apache.http.client.utils.URIBuilder
@@ -15,10 +14,10 @@ import java.time.temporal.ChronoField
 import java.time.temporal.ChronoUnit
 
 class NetatmoImport(
-        val country: String,
-        val s3: S3,
-        val netatmo: NetatmoClient,
-        val transformTask: NetatmoGeoJsonTransform?,
+    val country: String,
+    val s3: S3,
+    val netatmo: NetatmoClient,
+    val transformTask: NetatmoGeoJsonTransform?,
 ) : ScheduledJob("netatmoimport_${country.lowercase()}") {
     companion object {
         val countries = listOf("FI", "NO", "SE", "DK", "EE", "LV", "LT")

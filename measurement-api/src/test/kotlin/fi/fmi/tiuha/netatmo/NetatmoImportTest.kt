@@ -1,8 +1,6 @@
 package fi.fmi.tiuha.netatmo
 
 import fi.fmi.tiuha.Config
-import fi.fmi.tiuha.NetatmoClient
-import fi.fmi.tiuha.NetatmoImport
 import org.apache.commons.io.IOUtils
 import org.junit.Test
 import kotlin.test.assertEquals
