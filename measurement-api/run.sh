@@ -16,7 +16,7 @@ function main {
   AWS_ACCESS_KEY_ID="access_key" \
   AWS_SECRET_ACCESS_KEY="secret_key" \
   java -jar \
-    "$repo/measurement-api/target/measurement-api-1.0-SNAPSHOT-jar-with-dependencies.jar" \
+    "$repo/measurement-api/target/measurement-api-1.0-SNAPSHOT-shaded.jar" \
     "$@"
 }
 
