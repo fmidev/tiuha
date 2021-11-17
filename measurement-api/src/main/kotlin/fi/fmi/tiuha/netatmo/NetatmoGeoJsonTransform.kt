@@ -16,6 +16,8 @@ import java.util.concurrent.Executors
 import java.util.zip.GZIPInputStream
 import java.util.zip.GZIPOutputStream
 
+private const val SOURCE_ID = "netatmo"
+
 class NetatmoGeoJsonTransform(val s3: S3) : ScheduledJob("netatmogeojsontransform") {
     val gson = Gson()
     val transformExecutor = Executors.newFixedThreadPool(1)
@@ -99,7 +101,7 @@ class NetatmoGeoJsonTransform(val s3: S3) : ScheduledJob("netatmogeojsontransfor
                                 featureType = "MeasureObservation",
                                 resultTime = timeFormatter.format(parseNetatmoTimestamp(m.data.time_utc)),
                                 observedPropertyTitle = "Air temperature",
-                                observedProperty = "http://vocab.nerc.ac.uk/collection/P07/current/CFSN0023/",
+                                observedProperty = generatePropertyURI(SOURCE_ID, "air_temperature"),
                                 unitOfMeasureTitle = NetatmoUnit.temperature,
                                 unitOfMeasure = "http://www.opengis.net/def/uom/UCUM/degC",
                                 result = it,
@@ -118,7 +120,7 @@ class NetatmoGeoJsonTransform(val s3: S3) : ScheduledJob("netatmogeojsontransfor
                                 featureType = "MeasureObservation",
                                 resultTime = timeFormatter.format(parseNetatmoTimestamp(m.data.time_utc)),
                                 observedPropertyTitle = "Relative Humidity",
-                                observedProperty = "http://vocab.nerc.ac.uk/collection/P07/current/CFSN0413/",
+                                observedProperty = generatePropertyURI(SOURCE_ID, "relative_humidity"),
                                 unitOfMeasureTitle = NetatmoUnit.humidity,
                                 unitOfMeasure = "",
                                 result = it,
@@ -137,7 +139,7 @@ class NetatmoGeoJsonTransform(val s3: S3) : ScheduledJob("netatmogeojsontransfor
                                 featureType = "MeasureObservation",
                                 resultTime = timeFormatter.format(parseNetatmoTimestamp(m.data.time_utc)),
                                 observedPropertyTitle = "Air Pressure",
-                                observedProperty = "http://vocab.nerc.ac.uk/collection/P07/current/CFSN0015/",
+                                observedProperty = generatePropertyURI(SOURCE_ID, "air_pressure"),
                                 unitOfMeasureTitle = NetatmoUnit.pressure,
                                 unitOfMeasure = "",
                                 result = it,
@@ -157,7 +159,7 @@ class NetatmoGeoJsonTransform(val s3: S3) : ScheduledJob("netatmogeojsontransfor
                             featureType = "MeasureObservation",
                             resultTime = timeFormatter.format(parseNetatmoTimestamp(m.data.time_day_rain)),
                             observedPropertyTitle = "Daily rain accumulation",
-                            observedProperty = "",
+                            observedProperty = generatePropertyURI(SOURCE_ID, "daily_rain_accumulation"),
                             unitOfMeasureTitle = NetatmoUnit.rainfall,
                             unitOfMeasure = "",
                             result = m.data.Rain,
@@ -174,7 +176,7 @@ class NetatmoGeoJsonTransform(val s3: S3) : ScheduledJob("netatmogeojsontransfor
                             featureType = "MeasureObservation",
                             resultTime = timeFormatter.format(parseNetatmoTimestamp(m.data.time_hour_rain)),
                             observedPropertyTitle = "Hourly rain accumulation",
-                            observedProperty = "",
+                            observedProperty = generatePropertyURI(SOURCE_ID, "hourly_rain_accumulation"),
                             unitOfMeasureTitle = NetatmoUnit.rainfall,
                             unitOfMeasure = "",
                             result = m.data.sum_rain_1,
@@ -200,7 +202,7 @@ class NetatmoGeoJsonTransform(val s3: S3) : ScheduledJob("netatmogeojsontransfor
                                     featureType = "MeasureObservation",
                                     resultTime = timeFormatter.format(parseNetatmoTimestamp(it.key)),
                                     observedPropertyTitle = "Wind",
-                                    observedProperty = "",
+                                    observedProperty = generatePropertyURI(SOURCE_ID, "wind_speed"),
                                     unitOfMeasureTitle = NetatmoUnit.windSpeed,
                                     unitOfMeasure = "",
                                     result = windSpeed,
@@ -215,7 +217,7 @@ class NetatmoGeoJsonTransform(val s3: S3) : ScheduledJob("netatmogeojsontransfor
                                 featureType = "MeasureObservation",
                                 resultTime = timeFormatter.format(parseNetatmoTimestamp(it.key)),
                                 observedPropertyTitle = "Wind angle",
-                                observedProperty = "",
+                                observedProperty = generatePropertyURI(SOURCE_ID, "wind_angle"),
                                 unitOfMeasureTitle = NetatmoUnit.windAngle,
                                 unitOfMeasure = "",
                                 result = windAngle,
@@ -237,7 +239,7 @@ class NetatmoGeoJsonTransform(val s3: S3) : ScheduledJob("netatmogeojsontransfor
                                     featureType = "MeasureObservation",
                                     resultTime = timeFormatter.format(parseNetatmoTimestamp(it.key)),
                                     observedPropertyTitle = "Wind gust",
-                                    observedProperty = "",
+                                    observedProperty = generatePropertyURI(SOURCE_ID, "wind_gust"),
                                     unitOfMeasureTitle = NetatmoUnit.windSpeed,
                                     unitOfMeasure = "",
                                     result = windGustSpeed,
@@ -252,7 +254,7 @@ class NetatmoGeoJsonTransform(val s3: S3) : ScheduledJob("netatmogeojsontransfor
                                     featureType = "MeasureObservation",
                                     resultTime = timeFormatter.format(parseNetatmoTimestamp(it.key)),
                                     observedPropertyTitle = "Wind gust angle",
-                                    observedProperty = "",
+                                    observedProperty = generatePropertyURI(SOURCE_ID, "wind_gust_angle"),
                                     unitOfMeasureTitle = NetatmoUnit.windAngle,
                                     unitOfMeasure = "",
                                     result = windGustAngle,
