@@ -48,7 +48,7 @@ class NetatmoGeoJsonTransformTest : TiuhaTest() {
         assertEquals(GeoJsonFeature(
                 type = "Feature",
                 geometry = Geometry(type = "Point", coordinates = listOf(24.9607611, 60.2037551, 30.0)),
-                properties = FeatureProperties(
+                properties = MeasurementProperties(
                         sourceId = "netatmo",
                         _id = "enc:16:testIdDynamicum",
                         featureType = "MeasureObservation",
@@ -63,7 +63,7 @@ class NetatmoGeoJsonTransformTest : TiuhaTest() {
         assertEquals(GeoJsonFeature(
                 type = "Feature",
                 geometry = Geometry(type = "Point", coordinates = listOf(24.9607611, 60.2037551, 30.0)),
-                properties = FeatureProperties(
+                properties = MeasurementProperties(
                         sourceId = "netatmo",
                         _id = "enc:16:testIdDynamicum",
                         featureType = "MeasureObservation",
@@ -78,7 +78,7 @@ class NetatmoGeoJsonTransformTest : TiuhaTest() {
         assertEquals(GeoJsonFeature(
                 type = "Feature",
                 geometry = Geometry(type = "Point", coordinates = listOf(24.9607611, 60.2037551, 30.0)),
-                properties = FeatureProperties(
+                properties = MeasurementProperties(
                         sourceId = "netatmo",
                         _id = "enc:16:testIdDynamicum",
                         featureType = "MeasureObservation",
@@ -93,7 +93,7 @@ class NetatmoGeoJsonTransformTest : TiuhaTest() {
         assertEquals(GeoJsonFeature(
                 type = "Feature",
                 geometry = Geometry(type = "Point", coordinates = listOf(24.9607611, 60.2037551, 30.0)),
-                properties = FeatureProperties(
+                properties = MeasurementProperties(
                         sourceId = "netatmo",
                         _id = "enc:16:testIdDynamicum",
                         featureType = "MeasureObservation",
@@ -108,7 +108,7 @@ class NetatmoGeoJsonTransformTest : TiuhaTest() {
         assertEquals(GeoJsonFeature(
                 type = "Feature",
                 geometry = Geometry(type = "Point", coordinates = listOf(24.9486983, 60.1696741, 5.0)),
-                properties = FeatureProperties(
+                properties = MeasurementProperties(
                         sourceId = "netatmo",
                         _id = "enc:16:testIdYk4",
                         featureType = "MeasureObservation",
@@ -123,7 +123,7 @@ class NetatmoGeoJsonTransformTest : TiuhaTest() {
         assertEquals(GeoJsonFeature(
                 type = "Feature",
                 geometry = Geometry(type = "Point", coordinates = listOf(24.9486983, 60.1696741, 5.0)),
-                properties = FeatureProperties(
+                properties = MeasurementProperties(
                         sourceId = "netatmo",
                         _id = "enc:16:testIdYk4",
                         featureType = "MeasureObservation",
@@ -138,7 +138,7 @@ class NetatmoGeoJsonTransformTest : TiuhaTest() {
         assertEquals(GeoJsonFeature(
                 type = "Feature",
                 geometry = Geometry(type = "Point", coordinates = listOf(24.9486983, 60.1696741, 5.0)),
-                properties = FeatureProperties(
+                properties = MeasurementProperties(
                         sourceId = "netatmo",
                         _id = "enc:16:testIdYk4",
                         featureType = "MeasureObservation",
@@ -155,7 +155,7 @@ class NetatmoGeoJsonTransformTest : TiuhaTest() {
         assertEquals(GeoJsonFeature(
                 type = "Feature",
                 geometry = Geometry(type = "Point", coordinates = listOf(24.9486983, 60.1696741, 5.0)),
-                properties = FeatureProperties(
+                properties = MeasurementProperties(
                         sourceId = "netatmo",
                         _id = "enc:16:testIdYk4",
                         featureType = "MeasureObservation",
@@ -170,7 +170,7 @@ class NetatmoGeoJsonTransformTest : TiuhaTest() {
         assertEquals(GeoJsonFeature(
                 type = "Feature",
                 geometry = Geometry(type = "Point", coordinates = listOf(24.9486983, 60.1696741, 5.0)),
-                properties = FeatureProperties(
+                properties = MeasurementProperties(
                         sourceId = "netatmo",
                         _id = "enc:16:testIdYk4",
                         featureType = "MeasureObservation",
@@ -184,7 +184,7 @@ class NetatmoGeoJsonTransformTest : TiuhaTest() {
         ), result.features[8])
     }
 
-    fun readGeoJSON(import: NetatmoImportData): GeoJson {
+    fun readGeoJSON(import: NetatmoImportData): GeoJson<MeasurementProperties> {
         val json = s3.getObjectStream(import.s3bucket, import.geojsonkey!!).use { stream ->
             IOUtils.toString(GZIPInputStream(stream))
         }

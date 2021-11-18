@@ -55,8 +55,9 @@ class S3DataStore {
     private val sft = MEASUREMENT_FEATURE_TYPE
 
     init {
-        ConfigurationUtils.setScheme(sft, "hourly,z2-8bits", mapOf(
+        ConfigurationUtils.setScheme(sft, "attribute,daily,z2-8bits", mapOf(
             "dtg-attribute" to "dtg",
+            "partitioned-attribute" to "property_id",
         ))
         ConfigurationUtils.setEncoding(sft, "parquet")
         ConfigurationUtils.setLeafStorage(sft, true)
@@ -64,7 +65,7 @@ class S3DataStore {
         try {
             dataStore.getSchema(FEATURE_NAME)
         } catch (e: IOException) {
-            Log.info("Creating schema")
+            Log.info(e, "Creating schema")
             dataStore.createSchema(sft)
         }
     }

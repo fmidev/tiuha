@@ -9,3 +9,7 @@ fun generatePropertyURI(source: String, propertyName: String): String {
     assert(propertyName.matches(identifierRegex))
     return "$propertyPrefix/$source/$propertyName"
 }
+
+fun getPropertyId(propertyURI: String): String {
+    return propertyURI.removePrefix("$propertyPrefix/")
+}

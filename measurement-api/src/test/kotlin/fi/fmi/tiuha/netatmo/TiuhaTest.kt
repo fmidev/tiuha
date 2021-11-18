@@ -8,9 +8,7 @@ import kotlinx.serialization.json.Json
 import org.apache.commons.io.IOUtils
 import org.geotools.data.Transaction
 import org.junit.Before
-import org.locationtech.jts.geom.Coordinate
 import org.locationtech.jts.geom.GeometryFactory
-import java.time.ZonedDateTime
 import java.util.zip.GZIPInputStream
 
 abstract class TiuhaTest {
@@ -60,30 +58,34 @@ abstract class TiuhaTest {
 private fun clearBucket(s3: S3, bucket: String) =
         s3.listKeys(bucket).forEach { s3.deleteObject(bucket, it) }
 
-private fun readGeoJSON(s3: S3, key: String): GeoJson {
+private fun readGeoJSON(s3: S3, key: String): GeoJson<MeasurementProperties> {
     val json = s3.getObjectStream(Config.importBucket, key).use { stream ->
         IOUtils.toString(GZIPInputStream(stream))
     }
     return Json.decodeFromString(json)
 }
 
+private fun addQCFields(input: GeoJson<MeasurementProperties>): GeoJson<QCMeasurementProperties> {
+    return GeoJson(
+        type = input.type,
+        features = input.features.map { GeoJsonFeature(
+            it.type,
+            it.geometry,
+            QCMeasurementProperties.from(it.properties, true, QCDetails("titan", "v1", emptyList()))
+        ) }
+    )
+}
+
 private fun importGeoJsonBatch(s3: S3, keys: List<String>) = Log.time("ImportGeoJsonBatch") {
     val geometryFactory = GeometryFactory()
     val ds = S3DataStore()
 
-    val geojsons = keys.map { key -> readGeoJSON(s3, key) }
+    val geojsons = keys.map { key -> readGeoJSON(s3, key) }.map(::addQCFields)
 
     ds.dataStore.getFeatureWriterAppend(FEATURE_NAME, Transaction.AUTO_COMMIT).use { writer ->
         geojsons.flatMap { it.features }.forEach { f ->
-            val p = f.properties
             val feat = writer.next()
-            val dtg = ZonedDateTime.parse(p.resultTime).toInstant()
-            val temp = if (p.observedPropertyTitle == "Air temperature") p.result else null
-            val rh = if (p.observedPropertyTitle == "Relative Humidity") p.result else null
-            val pa = if (p.observedPropertyTitle == "Air Pressure") p.result else null
-            val (x, y, z) = f.geometry.coordinates
-            val point = geometryFactory.createPoint(Coordinate(x, y, z))
-            setMeasurementFeatureAttributes(feat, point, dtg, temp?.toFloat(), rh?.toFloat(), pa?.toFloat())
+            setMeasurementFeatureAttributes(feat, geometryFactory, f)
             writer.write()
         }
     }

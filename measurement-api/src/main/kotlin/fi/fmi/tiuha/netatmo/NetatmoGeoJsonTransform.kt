@@ -63,7 +63,7 @@ class NetatmoGeoJsonTransform(val s3: S3) : ScheduledJob("netatmogeojsontransfor
         }
     }
 
-    fun gzipGeoJSON(xs: GeoJson): ByteArray {
+    fun gzipGeoJSON(xs: GeoJson<MeasurementProperties>): ByteArray {
         val json = gson.toJson(xs)
         val bytes = ByteArrayOutputStream()
         val gzip = GZIPOutputStream(bytes)
@@ -77,7 +77,7 @@ class NetatmoGeoJsonTransform(val s3: S3) : ScheduledJob("netatmogeojsontransfor
         }
     }
 
-    fun convert(ms: List<Measurement>): GeoJson {
+    fun convert(ms: List<Measurement>): GeoJson<MeasurementProperties> {
         val features = ms.flatMap { m ->
             listOf(
                     extractTemperature(m),
@@ -95,7 +95,7 @@ class NetatmoGeoJsonTransform(val s3: S3) : ScheduledJob("netatmogeojsontransfor
                 listOf(GeoJsonFeature(
                         type = "Feature",
                         geometry = geometry(m),
-                        properties = FeatureProperties(
+                        properties = MeasurementProperties(
                                 sourceId = "netatmo",
                                 _id = m._id,
                                 featureType = "MeasureObservation",
@@ -114,7 +114,7 @@ class NetatmoGeoJsonTransform(val s3: S3) : ScheduledJob("netatmogeojsontransfor
                 listOf(GeoJsonFeature(
                         type = "Feature",
                         geometry = geometry(m),
-                        properties = FeatureProperties(
+                        properties = MeasurementProperties(
                                 sourceId = "netatmo",
                                 _id = m._id,
                                 featureType = "MeasureObservation",
@@ -133,7 +133,7 @@ class NetatmoGeoJsonTransform(val s3: S3) : ScheduledJob("netatmogeojsontransfor
                 listOf(GeoJsonFeature(
                         type = "Feature",
                         geometry = geometry(m),
-                        properties = FeatureProperties(
+                        properties = MeasurementProperties(
                                 sourceId = "netatmo",
                                 _id = m._id,
                                 featureType = "MeasureObservation",
@@ -147,13 +147,13 @@ class NetatmoGeoJsonTransform(val s3: S3) : ScheduledJob("netatmogeojsontransfor
                 ))
             }.orEmpty()
 
-    fun extractRain(m: Measurement): List<GeoJsonFeature> {
-        val fs = mutableListOf<GeoJsonFeature>()
+    fun extractRain(m: Measurement): List<GeoJsonFeature<MeasurementProperties>> {
+        val fs = mutableListOf<GeoJsonFeature<MeasurementProperties>>()
         if (m.data.Rain != null && m.data.time_day_rain != null) {
             fs.add(GeoJsonFeature(
                     type = "Feature",
                     geometry = geometry(m),
-                    properties = FeatureProperties(
+                    properties = MeasurementProperties(
                             sourceId = "netatmo",
                             _id = m._id,
                             featureType = "MeasureObservation",
@@ -170,7 +170,7 @@ class NetatmoGeoJsonTransform(val s3: S3) : ScheduledJob("netatmogeojsontransfor
             fs.add(GeoJsonFeature(
                     type = "Feature",
                     geometry = geometry(m),
-                    properties = FeatureProperties(
+                    properties = MeasurementProperties(
                             sourceId = "netatmo",
                             _id = m._id,
                             featureType = "MeasureObservation",
@@ -186,8 +186,8 @@ class NetatmoGeoJsonTransform(val s3: S3) : ScheduledJob("netatmogeojsontransfor
         return fs
     }
 
-    fun extractWind(m: Measurement): List<GeoJsonFeature> {
-        val fs = mutableListOf<GeoJsonFeature>()
+    fun extractWind(m: Measurement): List<GeoJsonFeature<MeasurementProperties>> {
+        val fs = mutableListOf<GeoJsonFeature<MeasurementProperties>>()
         m.data.wind?.let { wind ->
             fs.addAll(wind.flatMap {
                 val windSpeed = it.value[0].toDouble()
@@ -196,7 +196,7 @@ class NetatmoGeoJsonTransform(val s3: S3) : ScheduledJob("netatmogeojsontransfor
                     GeoJsonFeature(
                             type = "Feature",
                             geometry = geometry(m),
-                            properties = FeatureProperties(
+                            properties = MeasurementProperties(
                                     sourceId = "netatmo",
                                     _id = m._id,
                                     featureType = "MeasureObservation",
@@ -211,7 +211,7 @@ class NetatmoGeoJsonTransform(val s3: S3) : ScheduledJob("netatmogeojsontransfor
                     GeoJsonFeature(
                         type = "Feature",
                         geometry = geometry(m),
-                        properties = FeatureProperties(
+                        properties = MeasurementProperties(
                                 sourceId = "netatmo",
                                 _id = m._id,
                                 featureType = "MeasureObservation",
@@ -233,7 +233,7 @@ class NetatmoGeoJsonTransform(val s3: S3) : ScheduledJob("netatmogeojsontransfor
                     GeoJsonFeature(
                             type = "Feature",
                             geometry = geometry(m),
-                            properties = FeatureProperties(
+                            properties = MeasurementProperties(
                                     sourceId = "netatmo",
                                     _id = m._id,
                                     featureType = "MeasureObservation",
@@ -248,7 +248,7 @@ class NetatmoGeoJsonTransform(val s3: S3) : ScheduledJob("netatmogeojsontransfor
                     GeoJsonFeature(
                             type = "Feature",
                             geometry = geometry(m),
-                            properties = FeatureProperties(
+                            properties = MeasurementProperties(
                                     sourceId = "netatmo",
                                     _id = m._id,
                                     featureType = "MeasureObservation",

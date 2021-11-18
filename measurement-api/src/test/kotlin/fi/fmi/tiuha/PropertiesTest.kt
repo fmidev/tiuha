@@ -24,4 +24,10 @@ class PropertiesTest {
             generatePropertyURI("netatmo", "wind/speed")
         }
     }
+
+    @Test
+    fun `getPropertyId returns property URI with the beginning stripped away`() {
+        val propertyId = getPropertyId("http://tiuha.fmi.fi/property/netatmo/air_temperature")
+        assertEquals("netatmo/air_temperature", propertyId)
+    }
 }
