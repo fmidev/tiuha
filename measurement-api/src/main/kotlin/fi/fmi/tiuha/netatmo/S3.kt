@@ -3,16 +3,11 @@ package fi.fmi.tiuha.netatmo
 import fi.fmi.tiuha.Config
 import fi.fmi.tiuha.Environment
 import fi.fmi.tiuha.Log
-import fi.fmi.tiuha.SecretsManager
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.json.Json
 import software.amazon.awssdk.auth.credentials.AwsCredentials
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
 import software.amazon.awssdk.core.sync.RequestBody
 import software.amazon.awssdk.http.SdkHttpClient
 import software.amazon.awssdk.http.apache.ApacheHttpClient
-import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3Client
 import java.io.InputStream
 
@@ -54,31 +49,6 @@ class TiuhaS3 : RealS3() {
         Environment.LOCAL -> buildLocalstackS3Client(httpClient)
     }
 }
-
-class ArchiveS3 : RealS3() {
-    override val client: S3Client = S3Client.builder()
-        .httpClient(httpClient)
-        .region(Region.EU_WEST_1)
-        .credentialsProvider(
-            StaticCredentialsProvider.create(fetchCredentialsFromSecretManager())
-        )
-        .build()
-
-    private fun fetchCredentialsFromSecretManager(): AwsCredentials {
-        val json = SecretsManager.getSecretValue("observation-archive-access-keys")
-        val creds = Json.decodeFromString<AwsCredentialsJson>(json)
-        return object : AwsCredentials {
-            override fun accessKeyId() = creds.accessKeyId
-            override fun secretAccessKey() = creds.secretAccessKey
-        }
-    }
-}
-
-@Serializable
-data class AwsCredentialsJson(
-        val accessKeyId: String,
-        val secretAccessKey: String
-)
 
 abstract class RealS3 : S3 {
     val httpClient: SdkHttpClient = ApacheHttpClient.builder().maxConnections(50).build()

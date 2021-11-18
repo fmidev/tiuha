@@ -7,12 +7,7 @@ import fi.fmi.tiuha.qc.QCTask
 import software.amazon.awssdk.services.ecs.EcsClient
 
 fun main(args: Array<String>) {
-    if (args.contains("--import")) {
-        val keysToImport = args.dropWhile { it != "--import" }.drop(1)
-        importMeasurementsFromS3Bucket(keysToImport)
-    } else {
-        startServer()
-    }
+    startServer()
 }
 
 fun startServer() {

@@ -12,7 +12,6 @@ enum class Environment {
 object Config {
     val environment = Environment.valueOf(requireEnv("ENV").uppercase())
     val awsRegion = Region.EU_WEST_1
-    val measurementArchiveBucket = "fmi-iot-obs-arch"
 
     val dbHostname = requireEnv("DATABASE_HOST")
     val dbPort = Integer.parseInt(requireEnv("DATABASE_PORT"))
