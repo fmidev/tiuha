@@ -82,11 +82,12 @@ class Transaction(val c: Connection) {
     }
 
     fun <T> selectOne(query: String, params: List<Any>, fn: (ResultSet) -> T): T {
-        val resultOpt = selectOneOrNone(query, params, fn)
-        return when (resultOpt) {
-            null -> throw RuntimeException("Query returned returned no rows: $query")
-            else -> resultOpt
+        val results = select(query, params, fn)
+        val rows = results.size
+        if (rows != 1) {
+            throw RuntimeException("selectOne query returned returned wrong number of rows ($rows): $query")
         }
+        return results.first()
     }
 
     class Batcher(val statement: PreparedStatement) {

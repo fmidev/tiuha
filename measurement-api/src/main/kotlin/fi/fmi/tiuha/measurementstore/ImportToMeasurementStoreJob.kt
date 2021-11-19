@@ -17,11 +17,17 @@ class ImportToMeasurementStoreJob(private val ds: S3DataStore, private val s3: S
     override fun nextFireTime() = ZonedDateTime.now().plus(10, ChronoUnit.MINUTES)
 
     override fun exec() {
-        val keysToImport = db.selectPendingImports()
-        Log.info("Importing to measurement store: $keysToImport")
-        keysToImport.forEach {
+        val importIds = db.listPendingImports()
+        Log.info("Importing ${importIds.size} batches to measurement store")
+        importIds.forEach(::importBatch)
+    }
+
+    private fun importBatch(id: Long) {
+        db.inTx { tx ->
+            val row = db.selectImportForProcessing(tx, id)
+            Log.info("Importing ${row.importS3Key} to measurement store")
             val gson = Gson()
-            s3.getObjectStream(importBucket, it.importS3Key).use { stream ->
+            s3.getObjectStream(importBucket, row.importS3Key).use { stream ->
                 val inflatedStream = GZIPInputStream(stream)
                 JsonReader(InputStreamReader(inflatedStream)).use { reader ->
                     val type = TypeToken.getParameterized(GeoJson::class.java, QCMeasurementProperties::class.java).type
@@ -29,6 +35,7 @@ class ImportToMeasurementStoreJob(private val ds: S3DataStore, private val s3: S
                     writeFeatures(geoJson.features)
                 }
             }
+            db.updateImportComplete(tx, id)
         }
     }
 
