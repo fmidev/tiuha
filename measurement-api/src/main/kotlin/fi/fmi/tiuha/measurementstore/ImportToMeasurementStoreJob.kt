@@ -1,0 +1,46 @@
+package fi.fmi.tiuha.measurementstore
+
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import com.google.gson.stream.JsonReader
+import fi.fmi.tiuha.*
+import fi.fmi.tiuha.netatmo.S3
+import org.locationtech.jts.geom.GeometryFactory
+import java.io.InputStreamReader
+import java.time.ZonedDateTime
+import java.time.temporal.ChronoUnit
+import java.util.zip.GZIPInputStream
+
+class ImportToMeasurementStoreJob(private val ds: S3DataStore, private val s3: S3, private val importBucket: String) : ScheduledJob("insert_to_measurement_store") {
+    private val db = MeasurementStoreDb(Config.dataSource)
+
+    override fun nextFireTime() = ZonedDateTime.now().plus(10, ChronoUnit.MINUTES)
+
+    override fun exec() {
+        val keysToImport = db.selectPendingImports()
+        Log.info("Importing to measurement store: $keysToImport")
+        keysToImport.forEach {
+            val gson = Gson()
+            s3.getObjectStream(importBucket, it.importS3Key).use { stream ->
+                val inflatedStream = GZIPInputStream(stream)
+                JsonReader(InputStreamReader(inflatedStream)).use { reader ->
+                    val type = TypeToken.getParameterized(GeoJson::class.java, QCMeasurementProperties::class.java).type
+                    val geoJson = gson.fromJson<GeoJson<QCMeasurementProperties>>(reader, type)
+                    writeFeatures(geoJson.features)
+                }
+            }
+        }
+    }
+
+    private fun writeFeatures(features: List<GeoJsonQCFeature>) {
+        val geometryFactory = GeometryFactory()
+
+        ds.getMeasurementFeatureWriter().use { writer ->
+            features.forEach { json ->
+                val feat = writer.next()
+                setMeasurementFeatureAttributes(feat, geometryFactory, json)
+                writer.write()
+            }
+        }
+    }
+}

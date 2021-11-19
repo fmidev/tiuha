@@ -134,6 +134,13 @@ fun ResultSet.getDateTime(columnLabel: String): ZonedDateTime {
     return ZonedDateTime.ofInstant(ts.toInstant(), defaultTimeZone.toZoneId())
 }
 
+fun ResultSet.getDateTimeNullable(columnLabel: String): ZonedDateTime? {
+    if (this.getTimestamp(columnLabel) == null) {
+        return null
+    }
+    return this.getDateTime(columnLabel)
+}
+
 fun ResultSet.getDateTime(columnIndex: Int): ZonedDateTime {
     val ts = this.getTimestamp(columnIndex, defaultCalendar)
     return ZonedDateTime.ofInstant(ts.toInstant(), defaultTimeZone.toZoneId())

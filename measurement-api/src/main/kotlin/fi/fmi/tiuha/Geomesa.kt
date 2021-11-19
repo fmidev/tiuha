@@ -1,5 +1,6 @@
 package fi.fmi.tiuha
 
+import org.geotools.data.DataStore
 import org.geotools.data.Query
 import org.geotools.data.Transaction
 import org.geotools.filter.text.ecql.ECQL
@@ -8,13 +9,11 @@ import org.opengis.feature.simple.SimpleFeature
 import java.lang.Double.min
 import java.lang.Double.max
 
-object Geomesa {
-    val ds = S3DataStore()
-
+class Geomesa(private val ds: DataStore) {
     fun query(ecqlPredicate: String): List<SimpleFeature> = Log.time("GeoMesa query") {
         Log.info("Getting reader")
-        val query = Query(FEATURE_NAME, ECQL.toFilter(ecqlPredicate))
-        val reader = ds.dataStore.getFeatureReader(query, Transaction.AUTO_COMMIT)
+        val source = ds.getFeatureSource(FEATURE_NAME)
+        val featureCollection = source.getFeatures(ECQL.toFilter(ecqlPredicate))
         var i = 0
         var maxX = -1000.0
         var maxY = -1000.0
@@ -22,6 +21,7 @@ object Geomesa {
         var minY = 1000.0
         Log.info("Starting read")
         val features = mutableListOf<SimpleFeature>()
+        val reader = featureCollection.features()
         while (reader.hasNext()) {
             i++
             val feat = reader.next()

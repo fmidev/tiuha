@@ -2,7 +2,11 @@ package fi.fmi.tiuha
 
 import org.geotools.data.DataStore
 import org.geotools.data.DataStoreFinder
+import org.geotools.data.FeatureWriter
+import org.geotools.data.Transaction
 import org.locationtech.geomesa.fs.storage.common.interop.ConfigurationUtils
+import org.opengis.feature.simple.SimpleFeature
+import org.opengis.feature.simple.SimpleFeatureType
 import java.io.IOException
 
 
@@ -44,10 +48,10 @@ val HADOOP_CONFIG = when(Config.environment) {
     """
 }
 
-class S3DataStore {
+class S3DataStore(bucket: String) {
     val dataStore: DataStore = DataStoreFinder.getDataStore(
         mapOf(
-            "fs.path" to "s3a://${Config.measurementsBucket}/",
+            "fs.path" to "s3a://${bucket}/",
             "fs.config.xml" to HADOOP_CONFIG
         )
     )
@@ -69,4 +73,7 @@ class S3DataStore {
             dataStore.createSchema(sft)
         }
     }
+
+    fun getMeasurementFeatureWriter(): FeatureWriter<SimpleFeatureType, SimpleFeature> =
+        dataStore.getFeatureWriterAppend(sft.typeName, Transaction.AUTO_COMMIT)
 }
