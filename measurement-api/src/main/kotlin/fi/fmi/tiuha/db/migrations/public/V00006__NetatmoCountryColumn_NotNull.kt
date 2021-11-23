@@ -1,10 +1,10 @@
 package fi.fmi.tiuha.db.migrations.public
 
-import fi.fmi.tiuha.db.SchemaChange
-import fi.fmi.tiuha.db.Transaction
+import org.flywaydb.core.api.migration.BaseJavaMigration
+import org.flywaydb.core.api.migration.Context
 
-class V00006__NetatmoCountryColumn_NotNull : SchemaChange() {
-    override fun exec(tx: Transaction) {
-        tx.execute("ALTER TABLE netatmoimport ALTER COLUMN country SET NOT NULL".trimIndent(), emptyList())
+class V00006__NetatmoCountryColumn_NotNull : BaseJavaMigration() {
+    override fun migrate(ctx: Context) {
+        ctx.connection.prepareStatement("ALTER TABLE netatmoimport ALTER COLUMN country SET NOT NULL".trimIndent()).execute()
     }
 }

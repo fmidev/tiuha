@@ -1,6 +1,6 @@
 package fi.fmi.tiuha
 
-import fi.fmi.tiuha.db.SchemaMigration
+import fi.fmi.tiuha.db.runMigrations
 import fi.fmi.tiuha.measurementstore.ImportToMeasurementStoreJob
 import fi.fmi.tiuha.netatmo.*
 import fi.fmi.tiuha.qc.QCDb
@@ -13,7 +13,7 @@ fun main(args: Array<String>) {
 
 fun startServer() {
     Log.info("Server started")
-    SchemaMigration.runMigrations()
+    runMigrations()
 
     val s3 = TiuhaS3()
     val netatmo = NetatmoClient()
