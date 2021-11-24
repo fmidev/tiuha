@@ -26,7 +26,7 @@ class NetatmoImportDb(ds: DataSource) : Db(ds) {
                 select netatmoimport_id, country, s3bucket, s3key, geojsonkey, created, updated
                 from netatmoimport
                 where geojsonkey is null
-                limit 2
+                limit 100
             """, emptyList()) { NetatmoImportData.from(it) }
 
     fun insertConvertedGeoJSONEntry(tx: Transaction, netatmoImportId: Long, key: String) {
