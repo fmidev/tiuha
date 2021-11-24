@@ -35,7 +35,7 @@ class ImportToMeasurementStoreJobTest : TiuhaTest() {
             it.getTimestamp("imported_at")
         }
         assertNotNull(importedAt, "Measurement store import timestamp was not set after job was completed")
-        assertEquals(9, allFeatures().size)
+        assertEquals(4, allFeatures().size)
         val airTemperatures = gm.query("property_id = 'netatmo/air_temperature'")
         assertEquals(2, airTemperatures.size)
     }

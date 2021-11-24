@@ -48,7 +48,7 @@ class ImportToMeasurementStoreJob(private val ds: S3DataStore, private val s3: S
         val geometryFactory = GeometryFactory()
 
         ds.getMeasurementFeatureWriter().use { writer ->
-            features.forEach { json ->
+            features.filter { it.properties.qcPassed }.forEach { json ->
                 val feat = writer.next()
                 try {
                     setMeasurementFeatureAttributes(feat, geometryFactory, json, importId)

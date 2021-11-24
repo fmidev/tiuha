@@ -8,7 +8,7 @@ import org.opengis.feature.simple.SimpleFeatureType
 import java.time.ZonedDateTime
 import java.util.*
 
-private const val FEATURE_TYPE_SPEC = "*geom:Point:srid=4326,dtg:Date,property_id:String,qc_passed:Boolean,value:Double,import_id:Long"
+private const val FEATURE_TYPE_SPEC = "*geom:Point:srid=4326,dtg:Date,property_id:String,value:Double,import_id:Long"
 const val FEATURE_NAME = "measurement"
 val MEASUREMENT_FEATURE_TYPE: SimpleFeatureType = SimpleFeatureTypes.createType(FEATURE_NAME, FEATURE_TYPE_SPEC)
 
@@ -23,7 +23,6 @@ fun setMeasurementFeatureAttributes(feat: SimpleFeature, geometryFactory: Geomet
     feat.setAttribute("geom", geom)
     feat.setAttribute("dtg", Date.from(dtg))
     feat.setAttribute("property_id", propertyId)
-    feat.setAttribute("qc_passed", geoJsonFeature.properties.qcPassed)
     feat.setAttribute("value", geoJsonFeature.properties.result)
     feat.setAttribute("import_id", importId)
 }

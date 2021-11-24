@@ -20,7 +20,20 @@
         "observedProperty": "http://tiuha.fmi.fi/property/netatmo/air_temperature",
         "unitOfMeasureTitle": "C",
         "unitOfMeasure": "http://www.opengis.net/def/uom/UCUM/degC",
-        "result": 5.8
+        "result": 5.8,
+        "qcPassed": true,
+        "qcDetails": {
+          "method": "titanlib-temperature",
+          "version": null,
+          "flags": [
+            {
+              "check": "isolation_check",
+              "passed": true,
+              "result": 0
+            }
+          ]
+        }
+
       }
     },
     {
@@ -42,7 +55,20 @@
         "observedProperty": "http://tiuha.fmi.fi/property/netatmo/relative_humidity",
         "unitOfMeasureTitle": "%",
         "unitOfMeasure": "",
-        "result": 65
+        "result": 65,
+        "qcPassed": true,
+        "qcDetails": {
+          "method": "titanlib-humidity",
+          "version": null,
+          "flags": [
+            {
+              "check": "isolation_check",
+              "passed": true,
+              "result": 0
+            }
+          ]
+        }
+
       }
     },
     {
@@ -108,7 +134,19 @@
         "observedProperty": "http://tiuha.fmi.fi/property/netatmo/air_temperature",
         "unitOfMeasureTitle": "C",
         "unitOfMeasure": "http://www.opengis.net/def/uom/UCUM/degC",
-        "result": 6.5
+        "result": 6.5,
+        "qcPassed": true,
+        "qcDetails": {
+          "method": "titanlib-temperature",
+          "version": null,
+          "flags": [
+            {
+              "check": "isolation_check",
+              "passed": true,
+              "result": 0
+            }
+          ]
+        }
       }
     },
     {
@@ -130,7 +168,19 @@
         "observedProperty": "http://tiuha.fmi.fi/property/netatmo/relative_humidity",
         "unitOfMeasureTitle": "%",
         "unitOfMeasure": "",
-        "result": 68
+        "result": 68,
+        "qcPassed": true,
+        "qcDetails": {
+          "method": "titanlib-humidity",
+          "version": null,
+          "flags": [
+            {
+              "check": "isolation_check",
+              "passed": true,
+              "result": 0
+            }
+          ]
+        }
       }
     },
     {
@@ -152,7 +202,20 @@
         "observedProperty": "http://tiuha.fmi.fi/property/netatmo/air_pressure",
         "unitOfMeasureTitle": "mbar",
         "unitOfMeasure": "",
-        "result": 1006.1
+        "result": 1006.1,
+        "qcPassed": false,
+        "qcDetails": {
+          "method": "titanlib-pressure",
+          "version": null,
+          "flags": [
+            {
+              "check": "isolation_check",
+              "passed": false,
+              "result": 1
+            }
+          ]
+        }
+
       }
     },
     {
