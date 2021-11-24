@@ -10,6 +10,7 @@ function main {
   DATABASE_NAME="tiuha" \
   DATABASE_USERNAME="tiuha" \
   DATABASE_PASSWORD="tiuha" \
+  GEOMESA_DB_PASSWORD="geomesa" \
   IMPORT_BUCKET="fmi-tiuha-import-local" \
   TITAN_TASK_SUBNET="titan-subnet" \
   TITAN_TASK_DEFINITION_ARN="arn:titantask" \

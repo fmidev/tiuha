@@ -12,8 +12,8 @@ import java.lang.Double.max
 class Geomesa(private val ds: DataStore) {
     fun query(ecqlPredicate: String): List<SimpleFeature> = Log.time("GeoMesa query") {
         Log.info("Getting reader")
-        val source = ds.getFeatureSource(FEATURE_NAME)
-        val featureCollection = source.getFeatures(ECQL.toFilter(ecqlPredicate))
+        val query = Query(FEATURE_NAME, ECQL.toFilter(ecqlPredicate))
+        val reader = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
         var i = 0
         var maxX = -1000.0
         var maxY = -1000.0
@@ -21,7 +21,6 @@ class Geomesa(private val ds: DataStore) {
         var minY = 1000.0
         Log.info("Starting read")
         val features = mutableListOf<SimpleFeature>()
-        val reader = featureCollection.features()
         while (reader.hasNext()) {
             i++
             val feat = reader.next()

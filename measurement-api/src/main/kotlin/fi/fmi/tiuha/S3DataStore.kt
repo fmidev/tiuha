@@ -65,6 +65,11 @@ class S3DataStore(bucket: String) {
         ))
         ConfigurationUtils.setEncoding(sft, "parquet")
         ConfigurationUtils.setLeafStorage(sft, true)
+        ConfigurationUtils.setMetadata(sft, "jdbc", mapOf(
+            Pair("jdbc.url", Config.geomesaMetadataJdbcUrl),
+            Pair("jdbc.user", Config.geomesaUsername),
+            Pair("jdbc.password", Config.geomesaPassword)
+        ))
 
         try {
             dataStore.getSchema(FEATURE_NAME)

@@ -2,6 +2,7 @@ package fi.fmi.tiuha.netatmo
 
 import fi.fmi.tiuha.*
 import fi.fmi.tiuha.db.Db
+import fi.fmi.tiuha.db.createFlywayForSchema
 import fi.fmi.tiuha.db.runMigrations
 import org.junit.Before
 
@@ -17,12 +18,11 @@ abstract class TiuhaTest {
     }
 
     fun clearDb() {
+        createFlywayForSchema("public", Config.dataSource).clean()
         listOf(
-                "scheduledjob",
-                "netatmoimport",
-                "schemaversion",
-                "qc_task",
-                "measurement_store_import",
+            "geomesa.storage_meta",
+            "geomesa.storage_partitions",
+            "geomesa.storage_partition_files",
         ).forEach { db.execute("DROP TABLE IF EXISTS $it", emptyList()) }
         runMigrations()
     }

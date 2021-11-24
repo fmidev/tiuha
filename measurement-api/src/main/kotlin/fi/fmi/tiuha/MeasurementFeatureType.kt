@@ -12,9 +12,12 @@ private const val FEATURE_TYPE_SPEC = "*geom:Point:srid=4326,dtg:Date,property_i
 const val FEATURE_NAME = "measurement"
 val MEASUREMENT_FEATURE_TYPE: SimpleFeatureType = SimpleFeatureTypes.createType(FEATURE_NAME, FEATURE_TYPE_SPEC)
 
-fun setMeasurementFeatureAttributes(feat: SimpleFeature, geometryFactory: GeometryFactory, geoJsonFeature: GeoJsonQCFeature) {
-    val (x, y, z) = geoJsonFeature.geometry.coordinates
+fun setMeasurementFeatureAttributes(feat: SimpleFeature, geometryFactory: GeometryFactory, geoJsonFeature: GeoJsonQCFeature, importId: Long) {
+    val coordinates = geoJsonFeature.geometry.coordinates
+    val (x, y) = coordinates
+    val z = coordinates.getOrElse(2) { Coordinate.NULL_ORDINATE }
     val geom = geometryFactory.createPoint(Coordinate(x, y, z))
+
     val dtg = ZonedDateTime.parse(geoJsonFeature.properties.resultTime).toInstant()
     val propertyId = getPropertyId(geoJsonFeature.properties.observedProperty)
     feat.setAttribute("geom", geom)
@@ -22,5 +25,5 @@ fun setMeasurementFeatureAttributes(feat: SimpleFeature, geometryFactory: Geomet
     feat.setAttribute("property_id", propertyId)
     feat.setAttribute("qc_passed", geoJsonFeature.properties.qcPassed)
     feat.setAttribute("value", geoJsonFeature.properties.result)
-    feat.setAttribute("import_id", 0)
+    feat.setAttribute("import_id", importId)
 }

@@ -15,13 +15,13 @@ open class Db(val ds: DataSource) {
     fun <T> selectOne(query: String, params: List<Any>, fn: (ResultSet) -> T) = inTx { tx -> tx.selectOne(query, params, fn) }
 }
 
-class DataSource(config: Config) {
-    val hikariConfig = HikariConfig().apply {
-        driverClassName = "org.postgresql.Driver"
-        jdbcUrl = config.jdbcUrl
-        username = config.dbUsername
-        password = config.dbPassword
-        isAutoCommit = false
+class DataSource(private val jdbcUrl: String, private val dbUsername: String, private val dbPassword: String) {
+    private val hikariConfig = HikariConfig().also {
+        it.driverClassName = "org.postgresql.Driver"
+        it.jdbcUrl = jdbcUrl
+        it.username = dbUsername
+        it.password = dbPassword
+        it.isAutoCommit = false
     }
 
     val hikariDataSource = HikariDataSource(hikariConfig)

@@ -25,28 +25,37 @@ class ImportToMeasurementStoreJob(private val ds: S3DataStore, private val s3: S
     private fun importBatch(id: Long) {
         db.inTx { tx ->
             val row = db.selectImportForProcessing(tx, id)
-            Log.info("Importing ${row.importS3Key} to measurement store")
-            val gson = Gson()
-            s3.getObjectStream(importBucket, row.importS3Key).use { stream ->
-                val inflatedStream = GZIPInputStream(stream)
-                JsonReader(InputStreamReader(inflatedStream)).use { reader ->
-                    val type = TypeToken.getParameterized(GeoJson::class.java, QCMeasurementProperties::class.java).type
-                    val geoJson = gson.fromJson<GeoJson<QCMeasurementProperties>>(reader, type)
-                    writeFeatures(geoJson.features)
+            if (row.importedAt != null) {
+                Log.info("${row.importS3Key} already imported to measurement store")
+            } else {
+                Log.info("Importing ${row.importS3Key} to measurement store")
+                val gson = Gson()
+                s3.getObjectStream(importBucket, row.importS3Key).use { stream ->
+                    val inflatedStream = GZIPInputStream(stream)
+                    JsonReader(InputStreamReader(inflatedStream)).use { reader ->
+                        val type =
+                            TypeToken.getParameterized(GeoJson::class.java, QCMeasurementProperties::class.java).type
+                        val geoJson = gson.fromJson<GeoJson<QCMeasurementProperties>>(reader, type)
+                        writeFeatures(geoJson.features, row.id)
+                    }
                 }
+                db.updateImportComplete(tx, id)
             }
-            db.updateImportComplete(tx, id)
         }
     }
 
-    private fun writeFeatures(features: List<GeoJsonQCFeature>) {
+    private fun writeFeatures(features: List<GeoJsonQCFeature>, importId: Long) {
         val geometryFactory = GeometryFactory()
 
         ds.getMeasurementFeatureWriter().use { writer ->
             features.forEach { json ->
                 val feat = writer.next()
-                setMeasurementFeatureAttributes(feat, geometryFactory, json)
-                writer.write()
+                try {
+                    setMeasurementFeatureAttributes(feat, geometryFactory, json, importId)
+                    writer.write()
+                } catch (e: Exception) {
+                    Log.error(e, "Failed to set attributes for feature: $json")
+                }
             }
         }
     }

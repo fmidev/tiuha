@@ -11,6 +11,7 @@ function main {
   DATABASE_NAME="tiuha" \
   DATABASE_USERNAME="tiuha" \
   DATABASE_PASSWORD="tiuha" \
+  GEOMESA_DB_PASSWORD="geomesa" \
   IMPORT_BUCKET="fmi-tiuha-import-local" \
   ENV="local" \
   AWS_ACCESS_KEY_ID="access_key" \

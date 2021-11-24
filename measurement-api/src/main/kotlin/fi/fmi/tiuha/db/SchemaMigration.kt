@@ -5,14 +5,15 @@ import org.flywaydb.core.Flyway
 
 fun runMigrations() {
     val db = Db(Config.dataSource)
-    runMigrationForSchema("public", db.ds)
+    createFlywayForSchema("public", db.ds).migrate()
+    createFlywayForSchema("geomesa", db.ds).migrate()
 }
 
-fun runMigrationForSchema(schemaName: String, ds: DataSource) {
+fun createFlywayForSchema(schemaName: String, ds: DataSource): Flyway {
     val versionTableName = "schemaversion"
     val changesClassPath = "fi/fmi/tiuha/db/migrations/$schemaName"
 
-    val flyway = Flyway.configure()
+    return Flyway.configure()
         .locations("classpath:$changesClassPath")
         .failOnMissingLocations(true)
         .schemas(schemaName)
@@ -20,6 +21,4 @@ fun runMigrationForSchema(schemaName: String, ds: DataSource) {
         .dataSource(ds.hikariDataSource)
         .baselineOnMigrate(true)
         .load()
-
-    flyway.migrate()
 }

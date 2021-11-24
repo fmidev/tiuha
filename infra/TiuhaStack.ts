@@ -6,6 +6,7 @@ import * as ecr from '@aws-cdk/aws-ecr'
 import * as ecs from '@aws-cdk/aws-ecs'
 import * as logs from '@aws-cdk/aws-logs'
 import * as s3 from '@aws-cdk/aws-s3'
+import * as secretsmanager from '@aws-cdk/aws-secretsmanager'
 import * as rds from '@aws-cdk/aws-rds'
 import { Tags } from '@aws-cdk/core'
 
@@ -88,6 +89,7 @@ export class TiuhaStack extends cdk.Stack {
       removalPolicy: cdk.RemovalPolicy.RETAIN,
     })
 
+
     if (!cluster.secret) throw new Error("Expected DatabaseCluster.secret to be undefined")
 
 
@@ -133,7 +135,9 @@ export class TiuhaStack extends cdk.Stack {
   ): [ecs.FargateService, ec2.SecurityGroup] {
     const cluster = new ecs.Cluster(this, 'Cluster', { vpc })
     const apiImage = ecs.ContainerImage.fromEcrRepository(measurementApiRepository, versionTag)
-    
+
+    const geomesaDbPassword = new secretsmanager.Secret(this, 'GeomesaDbPassword')
+
     const logGroup = new logs.LogGroup(this, 'LogGroup', {
       logGroupName: 'measurement-api',
       retention: logs.RetentionDays.INFINITE,
@@ -164,8 +168,10 @@ export class TiuhaStack extends cdk.Stack {
         DATABASE_PORT: ecs.Secret.fromSecretsManager(db.secret!, 'port'),
         DATABASE_USERNAME: ecs.Secret.fromSecretsManager(db.secret!, 'username'),
         DATABASE_PASSWORD: ecs.Secret.fromSecretsManager(db.secret!, 'password'),
+        GEOMESA_DB_PASSWORD: ecs.Secret.fromSecretsManager(geomesaDbPassword),
       }
     })
+    geomesaDbPassword.grantRead(taskDefinition.taskRole)
 
     taskDefinition.addToTaskRolePolicy(new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,

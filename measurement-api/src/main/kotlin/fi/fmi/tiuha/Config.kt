@@ -20,7 +20,12 @@ object Config {
     val dbUsername = requireEnv("DATABASE_USERNAME")
     val dbPassword = requireEnv("DATABASE_PASSWORD")
 
-    val dataSource = DataSource(this)
+    val geomesaUsername = "geomesa"
+    val geomesaSchema = geomesaUsername
+    val geomesaPassword = requireEnv("GEOMESA_DB_PASSWORD")
+    val geomesaMetadataJdbcUrl = "jdbc:postgresql://$dbHostname:$dbPort/$dbName?currentSchema=$geomesaSchema"
+
+    val dataSource = DataSource(jdbcUrl, dbUsername, dbPassword)
 
     val importBucket = requireEnv("IMPORT_BUCKET")
     val measurementsBucket = "fmi-tiuha-measurements-" + requireEnv("ENV")
