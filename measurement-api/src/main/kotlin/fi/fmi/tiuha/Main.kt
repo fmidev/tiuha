@@ -33,5 +33,9 @@ fun startServer() {
     scheduledJobs.add(insertToMeasurementStoreJob)
 
     scheduledJobs.forEach { it.start() }
+
+    Log.info("Starting HTTP server")
+    val httpServer = TiuhaApi(Config.httpPort)
+    httpServer.start()
     scheduledJobs.forEach { it.await() }
 }

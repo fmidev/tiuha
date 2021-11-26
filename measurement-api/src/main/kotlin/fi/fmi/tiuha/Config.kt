@@ -29,6 +29,9 @@ object Config {
 
     val importBucket = requireEnv("IMPORT_BUCKET")
     val measurementsBucket = "fmi-tiuha-measurements-" + requireEnv("ENV")
+
+    val httpPort = 8383
+    val prettyPrintJson = true
 }
 
 fun requireEnv(key: String): String =

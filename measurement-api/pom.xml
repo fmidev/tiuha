@@ -21,6 +21,7 @@
         <geomesa.version>3.3.0</geomesa.version>
         <jackson.version>2.12.5</jackson.version>
         <hadoop.version>2.9.2</hadoop.version>
+        <ktor.version>1.6.5</ktor.version>
     </properties>
 
     <repositories>
@@ -137,6 +138,23 @@
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
             <version>8.0.5</version>
+        </dependency>
+
+        <!-- Ktor -->
+        <dependency>
+            <groupId>io.ktor</groupId>
+            <artifactId>ktor-server-core</artifactId>
+            <version>${ktor.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.ktor</groupId>
+            <artifactId>ktor-server-netty</artifactId>
+            <version>${ktor.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.ktor</groupId>
+            <artifactId>ktor-serialization</artifactId>
+            <version>${ktor.version}</version>
         </dependency>
 
         <dependency>
