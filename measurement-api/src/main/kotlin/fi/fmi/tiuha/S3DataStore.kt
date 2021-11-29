@@ -74,7 +74,7 @@ class S3DataStore(bucket: String) {
         try {
             dataStore.getSchema(FEATURE_NAME)
         } catch (e: IOException) {
-            Log.info(e, "Creating schema")
+            Log.info("Creating schema '$FEATURE_NAME'")
             dataStore.createSchema(sft)
         }
     }
