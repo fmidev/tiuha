@@ -114,7 +114,10 @@ export class TiuhaStack extends cdk.Stack {
       logging: new ecs.AwsLogDriver({
         logGroup,
         streamPrefix: 'titan'
-      })
+      }),
+      environment: {
+        VERSION: versionTag
+      }
     })
 
     this.importBucket.grantReadWrite(taskDefinition.taskRole)
