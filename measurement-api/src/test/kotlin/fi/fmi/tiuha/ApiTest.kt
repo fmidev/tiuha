@@ -42,8 +42,20 @@ class ApiTest : TiuhaTest() {
     }
 
     @Test
+    fun `requires start and end params`() {
+        assertEquals(get("/v1/edr/collections/netatmo/items?bbox=-1000.0,-1000.0,1000.0,1000.0"), Response(
+                status = 400,
+                body = ErrorResponse("start is required")
+        ))
+        assertEquals(get("/v1/edr/collections/netatmo/items?bbox=-1000.0,-1000.0,1000.0,1000.0&start=0"), Response(
+                status = 400,
+                body = ErrorResponse("end is required")
+        ))
+    }
+
+    @Test
     fun `validates bbox params`() {
-        assertEquals(get("/v1/edr/collections/netatmo/items?bbox=foobar"), Response(
+        assertEquals(get("/v1/edr/collections/netatmo/items?bbox=foobar&start=0&end=0"), Response(
                 status = 400,
                 body = ErrorResponse("Invalid bbox")
         ))
@@ -51,21 +63,28 @@ class ApiTest : TiuhaTest() {
 
     @Test
     fun `supports bounding box search`() {
-        val response = get<GeoJson<MeasurementProperties>>("/v1/edr/collections/netatmo/items?bbox=-1000.0,-1000.0,1000.0,1000.0")
+        val response = get<GeoJson<MeasurementProperties>>("/v1/edr/collections/netatmo/items?bbox=-1000.0,-1000.0,1000.0,1000.0&start=0&end=1638276538959")
         assertEquals(200, response.status)
         val body = response.body
         assertEquals("FeatureCollection", body.type)
         assertEquals(9, body.features.size)
     }
 
+    @Test
+    fun `does filter by time range`() {
+        val response = get<GeoJson<MeasurementProperties>>("/v1/edr/collections/netatmo/items?bbox=-1000.0,-1000.0,1000.0,1000.0&start=1632406373000&end=1632406373000")
+        assertEquals(200, response.status)
+        val body = response.body
+        assertEquals("FeatureCollection", body.type)
+        assertEquals(3, body.features.size)
+    }
+
     inline fun <reified T : Any> get(url: String): Response<T> {
         val builder = URIBuilder("http://localhost:$httpPort$url")
         val request = HttpGet(builder.build())
         val response = client.execute(request, BasicHttpContext())
-        val content = IOUtils.toByteArray(response.entity.content)
+        val json = String(IOUtils.toByteArray(response.entity.content))
         val statusCode = response.getStatusLine().getStatusCode()
-        val json = String(content)
-        println(json)
         val body = Json.decodeFromString<T>(json)
         return Response(statusCode, body)
     }
