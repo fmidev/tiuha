@@ -26,7 +26,7 @@ class ImportToMeasurementStoreJobTest : TiuhaTest() {
         val job = ImportToMeasurementStoreJob(geomesaDs, s3, TestConfig.TEST_IMPORT_BUCKET)
 
         val gm = Geomesa(S3DataStore(TestConfig.TEST_MEASUREMENTS_BUCKET).dataStore)
-        fun allFeatures() = gm.query("BBOX (geom, -180, -90, 180, 90)")
+        fun allFeatures() = gm.query("BBOX (geom, -180, -90, 180, 90)").features
         assertEquals(0, allFeatures().size)
 
         job.exec()
@@ -36,7 +36,7 @@ class ImportToMeasurementStoreJobTest : TiuhaTest() {
         }
         assertNotNull(importedAt, "Measurement store import timestamp was not set after job was completed")
         assertEquals(4, allFeatures().size)
-        val airTemperatures = gm.query("property_id = 'netatmo/air_temperature'")
+        val airTemperatures = gm.query("property_id = 'netatmo/air_temperature'").features
         assertEquals(2, airTemperatures.size)
     }
 

@@ -4,6 +4,8 @@ import software.amazon.awssdk.services.ecs.EcsAsyncClient
 import fi.fmi.tiuha.Config
 import fi.fmi.tiuha.Log
 import fi.fmi.tiuha.ScheduledJob
+import fi.fmi.tiuha.measurementstore.ImportToMeasurementStoreJob
+import fi.fmi.tiuha.netatmo.LocalStackS3
 import software.amazon.awssdk.services.ecs.EcsClient
 import software.amazon.awssdk.services.ecs.model.AssignPublicIp
 import software.amazon.awssdk.services.ecs.model.LaunchType
@@ -22,6 +24,7 @@ fun generateOutputKey(inputKey: String): String {
 class QCTask(
     private val db: QCDb,
     private val ecsClient: EcsClient,
+    private val noopQualityControl: Boolean = false,
 ) : ScheduledJob("qc_task") {
     override fun nextFireTime(): ZonedDateTime =
         ZonedDateTime.now().plus(2, ChronoUnit.MINUTES)
@@ -33,6 +36,11 @@ class QCTask(
             return@inTx
         }
         val outputKey = generateOutputKey(task.inputKey)
+
+        if (noopQualityControl) {
+            db.markQCTaskAsStarted(tx, id, "arn:fake", outputKey)
+            return@inTx
+        }
 
         val runTaskResponse = ecsClient.runTask { builder ->
             builder
@@ -64,6 +72,11 @@ class QCTask(
         val taskArn: String = runTaskResponse.tasks().first().taskArn()
 
         db.markQCTaskAsStarted(tx, id, taskArn, outputKey)
+    }
+
+    fun processAllSync() {
+        val tasks = db.getAllUnstartedQCTaskIds()
+        tasks.forEach { id -> runQCTask(id) }
     }
 
     override fun exec() {

@@ -22,6 +22,12 @@ class ImportToMeasurementStoreJob(private val ds: S3DataStore, private val s3: S
         importIds.forEach(::importBatch)
     }
 
+    fun processAllSync() {
+        val importIds = db.listPendingImports()
+        Log.info("Importing ${importIds.size} batches to measurement store")
+        importIds.forEach(::importBatch)
+    }
+
     private fun importBatch(id: Long) {
         db.inTx { tx ->
             val row = db.selectImportForProcessing(tx, id)
@@ -48,7 +54,7 @@ class ImportToMeasurementStoreJob(private val ds: S3DataStore, private val s3: S
         val geometryFactory = GeometryFactory()
 
         ds.getMeasurementFeatureWriter().use { writer ->
-            features.filter { it.properties.qcPassed }.forEach { json ->
+            features.filter { it.properties.qcPassed == true }.forEach { json ->
                 val feat = writer.next()
                 try {
                     setMeasurementFeatureAttributes(feat, geometryFactory, json, importId)

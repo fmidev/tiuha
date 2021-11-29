@@ -15,6 +15,12 @@ class QCDb(ds: DataSource) : Db(ds) {
             limit 10
         """.trimIndent(), emptyList()) { it.getLong("qc_task_id") }
 
+    fun getAllUnstartedQCTaskIds(): List<Long> =
+            select("""
+            select qc_task_id from qc_task
+            where output_s3key is null
+        """.trimIndent(), emptyList()) { it.getLong("qc_task_id") }
+
     fun markQCTaskAsStarted(tx: Transaction, id: Long, taskArn: String, outputKey: String) {
         tx.execute("""
             update qc_task set task_arn = ?, output_s3key = ?

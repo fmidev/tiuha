@@ -20,7 +20,6 @@ class NetatmoGeoJsonTransformTest : TiuhaTest() {
 
     @Test
     fun `updates netatmoimport state in database and S3`() {
-        assertEquals(0, 0)
         val importId = insertImport("netatmo/19700101000000/countryweatherdata-FI.tar.gz", "world_data_FI.tar.gz")
 
         val before = getImport(importId)
@@ -28,13 +27,18 @@ class NetatmoGeoJsonTransformTest : TiuhaTest() {
 
         assertEquals(1, countUnprocessed())
         assertEquals(0, countProcessed())
+        assertEquals(0, qcTaskCount())
         job.exec()
         assertEquals(0, countUnprocessed())
         assertEquals(1, countProcessed())
+        assertEquals(1, qcTaskCount())
 
         val after = getImport(importId)
         assertEquals("netatmo/19700101000000/countryweatherdata-FI.geojson.gz", after.geojsonkey)
+
     }
+
+    fun qcTaskCount(): Long = db.selectOne("select count(*) from qc_task", emptyList()) { it.getLong(1) }
 
     @Test
     fun `converts netatmo response to GeoJSON`() {

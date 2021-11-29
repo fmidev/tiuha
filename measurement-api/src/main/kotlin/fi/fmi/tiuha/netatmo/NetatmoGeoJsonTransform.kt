@@ -2,6 +2,8 @@ package fi.fmi.tiuha.netatmo
 
 import com.google.gson.Gson
 import fi.fmi.tiuha.*
+import fi.fmi.tiuha.db.Transaction
+import fi.fmi.tiuha.qc.QCTask
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
 import org.apache.commons.io.IOUtils
 import java.io.ByteArrayOutputStream
@@ -19,9 +21,7 @@ import java.util.zip.GZIPOutputStream
 private const val SOURCE_ID = "netatmo"
 
 class NetatmoGeoJsonTransform(val s3: S3) : ScheduledJob("netatmogeojsontransform") {
-    val gson = Gson()
     val transformExecutor = Executors.newFixedThreadPool(1)
-    val timeFormatter = DateTimeFormatter.ISO_INSTANT
 
     val db = NetatmoImportDb(Config.dataSource)
 
@@ -45,6 +45,11 @@ class NetatmoGeoJsonTransform(val s3: S3) : ScheduledJob("netatmogeojsontransfor
     fun attemptTransform(importId: Long) =
             transformExecutor.submit(Callable { process(importId) })
 
+    fun processAllSync() {
+        val datas = db.getAllDataForGeoJSONTransform()
+        datas.forEach { process(it.id) }
+    }
+
     fun process(id: Long) {
         db.inTx { tx ->
             val import = db.selectImportForProcessing(tx, id)
@@ -59,22 +64,14 @@ class NetatmoGeoJsonTransform(val s3: S3) : ScheduledJob("netatmogeojsontransfor
                 val key = import.s3key.replace(".tar.gz", ".geojson.gz")
                 s3.putObject(bucket, key, gzipGeoJSON(geojson))
                 db.insertConvertedGeoJSONEntry(tx, import.id, key)
+                insertQcTask(tx, key)
             }
         }
     }
 
-    fun gzipGeoJSON(xs: GeoJson<MeasurementProperties>): ByteArray {
-        val json = gson.toJson(xs)
-        val bytes = ByteArrayOutputStream()
-        val gzip = GZIPOutputStream(bytes)
-        try {
-            IOUtils.copy(StringReader(json), gzip)
-            gzip.finish()
-            return bytes.toByteArray()
-        } finally {
-            bytes.close()
-            gzip.close()
-        }
+    fun insertQcTask(tx: Transaction, inputKey: String): Long {
+        val sql = "insert into qc_task (input_s3key) values (?) RETURNING qc_task_id"
+        return tx.selectOne(sql, listOf(inputKey)) { rs -> rs.getLong(1) }
     }
 
     fun convert(ms: List<Measurement>): GeoJson<MeasurementProperties> {
@@ -293,6 +290,22 @@ class NetatmoGeoJsonTransform(val s3: S3) : ScheduledJob("netatmogeojsontransfor
     }
 }
 
+val gson = Gson()
+
+fun <T> gzipGeoJSON(x: GeoJson<T>): ByteArray {
+    val json = gson.toJson(x)
+    val bytes = ByteArrayOutputStream()
+    val gzip = GZIPOutputStream(bytes)
+    try {
+        IOUtils.copy(StringReader(json), gzip)
+        gzip.finish()
+        return bytes.toByteArray()
+    } finally {
+        bytes.close()
+        gzip.close()
+    }
+}
+
 object NetatmoUnit {
     val rainfall = "mm"
     val windSpeed = "kph"
@@ -301,3 +314,27 @@ object NetatmoUnit {
     val temperature = "C"
     val humidity = "%"
 }
+
+val netatmoPropertyNameUnitMap = mapOf(
+        "air_temperature" to NetatmoUnit.temperature,
+        "daily_rain_accumulation" to NetatmoUnit.rainfall,
+        "hourly_rain_accumulation" to NetatmoUnit.rainfall,
+        "relative_humidity" to NetatmoUnit.humidity,
+        "air_pressure" to NetatmoUnit.pressure,
+        "wind_speed" to NetatmoUnit.windSpeed,
+        "wind_angle" to NetatmoUnit.windAngle,
+        "wind_gust_speed" to NetatmoUnit.windSpeed,
+        "wind_gust_angle" to NetatmoUnit.windAngle,
+)
+
+val netatmoPropertyNameTitleMap = mapOf(
+        "air_temperature" to "Air temperature",
+        "daily_rain_accumulation" to "Daily rain accumulation",
+        "hourly_rain_accumulation" to "Hourly rain accumulation",
+        "relative_humidity" to "Relative Humidity",
+        "air_pressure" to "Air Pressure",
+        "wind_speed" to "Wind",
+        "wind_angle" to "Wind angle",
+        "wind_gust_speed" to "Wind gust",
+        "wind_gust_angle" to "Wind gust angle",
+)

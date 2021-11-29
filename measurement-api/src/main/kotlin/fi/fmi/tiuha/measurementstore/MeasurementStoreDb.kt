@@ -13,6 +13,14 @@ class MeasurementStoreDb(ds: DataSource) : Db(ds) {
             ) { it.getLong("id") }
         }
 
+    fun listAllPendingImports(): List<Long> =
+            ds.transaction { tx ->
+                tx.select(
+                        "select id, import_s3key, imported_at, created from measurement_store_import where imported_at is null order by created asc",
+                        emptyList(),
+                ) { it.getLong("id") }
+            }
+
     fun selectImportForProcessing(tx: Transaction, id: Long) =
         tx.selectOne("""
             select id, import_s3key, imported_at, created

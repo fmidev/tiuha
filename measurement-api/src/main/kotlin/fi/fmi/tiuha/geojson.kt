@@ -1,6 +1,9 @@
 package fi.fmi.tiuha
 
 import kotlinx.serialization.Serializable
+import java.time.format.DateTimeFormatter
+
+val timeFormatter = DateTimeFormatter.ISO_INSTANT
 
 @Serializable
 data class GeoJson<FeatureProperties>(
@@ -26,7 +29,7 @@ data class Geometry(
 @Serializable
 data class MeasurementProperties(
         val sourceId: String,
-        val _id: String,
+        val _id: String?,
         val featureType: String,
         val resultTime: String,
         val observedPropertyTitle: String,
@@ -37,7 +40,7 @@ data class MeasurementProperties(
 )
 
 @Serializable
-class QCMeasurementProperties (
+data class QCMeasurementProperties (
         val sourceId: String,
         val _id: String,
         val featureType: String,
@@ -47,8 +50,8 @@ class QCMeasurementProperties (
         val unitOfMeasureTitle: String,
         val unitOfMeasure: String,
         val result: Double,
-        val qcPassed: Boolean,
-        val qcDetails: QCDetails,
+        val qcPassed: Boolean?,
+        val qcDetails: QCDetails?,
 ) {
     companion object {
         fun from(input: MeasurementProperties, qcPassed: Boolean, qcDetails: QCDetails) = QCMeasurementProperties(
