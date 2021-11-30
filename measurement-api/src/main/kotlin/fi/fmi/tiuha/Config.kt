@@ -28,7 +28,7 @@ object Config {
     val dataSource = DataSource(jdbcUrl, dbUsername, dbPassword)
 
     val importBucket = requireEnv("IMPORT_BUCKET")
-    val measurementsBucket = "fmi-tiuha-measurements-" + requireEnv("ENV")
+    val measurementsBucket = requireEnv("MEASUREMENTS_BUCKET")
 
     val httpPort = 8383
     val prettyPrintJson = true

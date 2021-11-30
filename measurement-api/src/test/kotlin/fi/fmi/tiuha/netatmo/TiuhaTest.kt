@@ -14,7 +14,7 @@ abstract class TiuhaTest {
     fun before() {
         clearDb()
         clearBucket(s3, Config.importBucket)
-        clearBucket(s3, TestConfig.TEST_MEASUREMENTS_BUCKET)
+        clearBucket(s3, Config.measurementsBucket)
     }
 
     fun clearDb() {

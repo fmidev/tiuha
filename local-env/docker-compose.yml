@@ -15,6 +15,20 @@ services:
       POSTGRES_USER: tiuha
       POSTGRES_PASSWORD: tiuha
       PGDATA: '/tmp/'
+  tiuha-postgres-test:
+    image: postgres:12.2
+    ports:
+      - '5445:5432'
+    command: ["postgres", "-c", "log_statement=all"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tiuha-test"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    environment:
+      POSTGRES_USER: tiuha-test
+      POSTGRES_PASSWORD: tiuha-test
+      PGDATA: '/tmp/'
   s3-localstack:
     build: ./localstack
     container_name: tiuha-s3

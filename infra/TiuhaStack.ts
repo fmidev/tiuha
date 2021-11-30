@@ -161,6 +161,7 @@ export class TiuhaStack extends cdk.Stack {
       environment: {
         ENV: envName,
         IMPORT_BUCKET: this.importBucket.bucketName,
+        MEASUREMENTS_BUCKET: measurementsBucket.bucketName,
         TITAN_TASK_DEFINITION_ARN: titanTaskDefinition.taskDefinitionArn,
         TITAN_CLUSTER_ARN: cluster.clusterArn, // QC tasks run in the same cluster as the API for now, but it could have its own cluster
         TITAN_TASK_SUBNET: vpc.privateSubnets[0].subnetId,

@@ -101,8 +101,8 @@ fun insertTestData() {
         select output_s3key from qc_task
     """, emptyList())
 
-    val geomesaDs = S3DataStore(TestConfig.TEST_MEASUREMENTS_BUCKET)
-    val geomesaImport = ImportToMeasurementStoreJob(geomesaDs, s3, TestConfig.TEST_IMPORT_BUCKET)
+    val geomesaDs = S3DataStore(Config.measurementsBucket)
+    val geomesaImport = ImportToMeasurementStoreJob(geomesaDs, s3, Config.importBucket)
     geomesaImport.processAllSync()
 }
 
@@ -113,9 +113,9 @@ fun simulateQC(db: Db, s3: S3): List<Long> {
         QcTaskUpdate(rs.getLong("qc_task_id"), rs.getString("input_s3key"), rs.getString("output_s3key"))
     }
     updates.forEach {
-        val geojson = s3.getObjectStream(TestConfig.TEST_IMPORT_BUCKET, it.input).use { stream -> readGzippedGeojson(stream) }
+        val geojson = s3.getObjectStream(Config.importBucket, it.input).use { stream -> readGzippedGeojson(stream) }
         val withQcDetails = addQCDetails(geojson)
-        s3.putObject(TestConfig.TEST_IMPORT_BUCKET, it.output, gzipGeoJSON(withQcDetails))
+        s3.putObject(Config.importBucket, it.output, gzipGeoJSON(withQcDetails))
         db.execute("update qc_task set output_s3key = ?, updated = current_timestamp where qc_task_id = ?", listOf(it.output, it.id))
     }
 

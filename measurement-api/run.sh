@@ -13,6 +13,7 @@ function main {
   DATABASE_PASSWORD="tiuha" \
   GEOMESA_DB_PASSWORD="geomesa" \
   IMPORT_BUCKET="fmi-tiuha-import-local" \
+  MEASUREMENTS_BUCKET="fmi-tiuha-measurements-local" \
   ENV="local" \
   AWS_ACCESS_KEY_ID="access_key" \
   AWS_SECRET_ACCESS_KEY="secret_key" \

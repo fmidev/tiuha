@@ -22,10 +22,10 @@ class ImportToMeasurementStoreJobTest : TiuhaTest() {
             )
         }
 
-        val geomesaDs = S3DataStore(TestConfig.TEST_MEASUREMENTS_BUCKET)
-        val job = ImportToMeasurementStoreJob(geomesaDs, s3, TestConfig.TEST_IMPORT_BUCKET)
+        val geomesaDs = S3DataStore(Config.measurementsBucket)
+        val job = ImportToMeasurementStoreJob(geomesaDs, s3, Config.importBucket)
 
-        val gm = Geomesa(S3DataStore(TestConfig.TEST_MEASUREMENTS_BUCKET).dataStore)
+        val gm = Geomesa(S3DataStore(Config.measurementsBucket).dataStore)
         fun allFeatures() = gm.query("BBOX (geom, -180, -90, 180, 90)").features
         assertEquals(0, allFeatures().size)
 
@@ -49,7 +49,7 @@ class ImportToMeasurementStoreJobTest : TiuhaTest() {
         val bytes = byteArrayOutputStream.toByteArray()
 
         val key = TEST_IMPORT_KEY
-        s3.putObject(TestConfig.TEST_IMPORT_BUCKET, key, bytes)
+        s3.putObject(Config.importBucket, key, bytes)
         return key
     }
 }
