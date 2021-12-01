@@ -23,7 +23,7 @@ class ImportToMeasurementStoreJob(private val ds: S3DataStore, private val s3: S
     }
 
     fun processAllSync() {
-        val importIds = db.listPendingImports()
+        val importIds = db.listAllPendingImports()
         Log.info("Importing ${importIds.size} batches to measurement store")
         importIds.forEach(::importBatch)
     }
