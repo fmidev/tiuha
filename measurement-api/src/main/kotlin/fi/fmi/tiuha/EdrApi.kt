@@ -50,7 +50,10 @@ data class TimeRange(
             val start = params["start"] ?: throw BadRequestException("start is required")
             val end = params["end"] ?: throw BadRequestException("end is required")
             try {
-                return TimeRange(Date(start.toLong()).toInstant(), Date(end.toLong()).toInstant())
+                return TimeRange(
+                        Instant.from(timeFormatter.parse(start)),
+                        Instant.from(timeFormatter.parse(end)),
+                )
             } catch (e: java.lang.NumberFormatException) {
                 throw BadRequestException("Invalid start or end time")
             }

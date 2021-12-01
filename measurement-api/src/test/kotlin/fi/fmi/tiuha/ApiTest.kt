@@ -47,7 +47,7 @@ class ApiTest : TiuhaTest() {
                 status = 400,
                 body = ErrorResponse("start is required")
         ))
-        assertEquals(get("/v1/edr/collections/netatmo-air_temperature/cube?bbox=-1000.0,-1000.0,1000.0,1000.0&start=0"), Response(
+        assertEquals(get("/v1/edr/collections/netatmo-air_temperature/cube?bbox=-1000.0,-1000.0,1000.0,1000.0&start=1970-01-01T00:00:00.000Z"), Response(
                 status = 400,
                 body = ErrorResponse("end is required")
         ))
@@ -55,7 +55,7 @@ class ApiTest : TiuhaTest() {
 
     @Test
     fun `validates bbox params`() {
-        assertEquals(get("/v1/edr/collections/netatmo-air_temperature/cube?bbox=foobar&start=0&end=0"), Response(
+        assertEquals(get("/v1/edr/collections/netatmo-air_temperature/cube?bbox=foobar&start=1970-01-01T00:00:00.000Z&end=1970-01-01T00:00:00.000Z"), Response(
                 status = 400,
                 body = ErrorResponse("Invalid bbox")
         ))
@@ -63,7 +63,7 @@ class ApiTest : TiuhaTest() {
 
     @Test
     fun `supports bounding box search`() {
-        val response = get<GeoJson<MeasurementProperties>>("/v1/edr/collections/netatmo-air_temperature/cube?bbox=-1000.0,-1000.0,1000.0,1000.0&start=0&end=1638276538959")
+        val response = get<GeoJson<MeasurementProperties>>("/v1/edr/collections/netatmo-air_temperature/cube?bbox=-1000.0,-1000.0,1000.0,1000.0&start=1970-01-01T00:00:00.000Z&end=2021-12-31T23:59:59.999Z")
         assertEquals(200, response.status)
         val body = response.body
         assertEquals("FeatureCollection", body.type)
@@ -72,7 +72,7 @@ class ApiTest : TiuhaTest() {
 
     @Test
     fun `does filter by time range`() {
-        val response = get<GeoJson<MeasurementProperties>>("/v1/edr/collections/netatmo-air_temperature/cube?bbox=-1000.0,-1000.0,1000.0,1000.0&start=1632406373000&end=1632406373000")
+        val response = get<GeoJson<MeasurementProperties>>("/v1/edr/collections/netatmo-air_temperature/cube?bbox=-1000.0,-1000.0,1000.0,1000.0&start=2021-09-23T14:12:53Z&end=2021-09-23T14:12:53Z")
         assertEquals(200, response.status)
         val body = response.body
         assertEquals("FeatureCollection", body.type)
