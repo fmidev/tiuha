@@ -15,21 +15,21 @@ class QCDb(ds: DataSource) : Db(ds) {
         }
         return select("""
             select qc_task_id from qc_task
-            where output_s3key is null
+            where qc_task_status_id = 'PENDING'
             $limitSql
         """.trimIndent(), limitParams) { it.getLong("qc_task_id") }
     }
 
     fun markQCTaskAsStarted(tx: Transaction, id: Long, taskArn: String, outputKey: String) {
         tx.execute("""
-            update qc_task set task_arn = ?, output_s3key = ?
+            update qc_task set task_arn = ?, output_s3key = ?, qc_task_status_id = 'STARTED'
             where qc_task_id = ?
         """.trimIndent(), listOf(taskArn, outputKey, id))
     }
 
     fun getAndLockQCTask(tx: Transaction, id: Long): QCTaskRow =
         tx.selectOne("""
-            select qc_task_id, input_s3key, output_s3key, task_arn, created, updated
+            select qc_task_id, qc_task_status_id, input_s3key, output_s3key, task_arn, created, updated
             from qc_task
             where qc_task_id = ?
             for update
@@ -38,6 +38,7 @@ class QCDb(ds: DataSource) : Db(ds) {
 
 data class QCTaskRow(
     val id: Long,
+    val status: String,
     val inputKey: String,
     val outputKey: String?,
     val taskArn: String?,
@@ -47,6 +48,7 @@ data class QCTaskRow(
     companion object {
         fun from(rs: ResultSet): QCTaskRow = QCTaskRow(
             id = rs.getLong("qc_task_id"),
+            status = rs.getString("qc_task_status_id"),
             inputKey = rs.getString("input_s3key"),
             outputKey = rs.getString("output_s3key"),
             taskArn = rs.getString("task_arn"),

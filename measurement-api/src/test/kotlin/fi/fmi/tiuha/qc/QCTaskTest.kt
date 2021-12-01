@@ -70,7 +70,7 @@ class QCTaskTest : TiuhaTest() {
 
         val taskId = 1L
         db.execute(
-            "insert into qc_task (qc_task_id, input_s3key, output_s3key, task_arn) values (?, 'input_key.json', 'output_key.json', 'arn:test')",
+            "insert into qc_task (qc_task_id, qc_task_status_id, input_s3key, output_s3key, task_arn) values (?, 'PENDING', 'input_key.json', 'output_key.json', 'arn:test')",
             listOf(taskId)
         )
 
@@ -122,16 +122,17 @@ class QCTaskTest : TiuhaTest() {
 
         val taskId = 2L
         db.execute(
-            "insert into qc_task (qc_task_id, input_s3key) values (?, 'prefix/input_key.json')",
+            "insert into qc_task (qc_task_id, qc_task_status_id, input_s3key) values (?, 'PENDING', 'prefix/input_key.json')",
             listOf(taskId)
         )
 
         task.runQCTask(taskId)
-        val (actualTaskArn, actualOutputKey) = db.selectOne(
-            "select task_arn, output_s3key from qc_task where qc_task_id = ?",
+        val (actualTaskArn, statusId, actualOutputKey) = db.selectOne(
+            "select task_arn, qc_task_status_id, output_s3key from qc_task where qc_task_id = ?",
             listOf(taskId)
-        ) { Pair(it.getString("task_arn"), it.getString("output_s3key")) }
+        ) { Triple(it.getString("task_arn"), it.getString("qc_task_status_id"), it.getString("output_s3key")) }
         assertEquals(startedTaskArn, actualTaskArn)
+        assertEquals("STARTED", statusId)
         assertEquals("prefix/qc_input_key.json", actualOutputKey)
     }
 }

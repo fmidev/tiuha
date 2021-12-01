@@ -70,7 +70,7 @@ class NetatmoGeoJsonTransform(val s3: S3) : ScheduledJob("netatmogeojsontransfor
     }
 
     fun insertQcTask(tx: Transaction, inputKey: String): Long {
-        val sql = "insert into qc_task (input_s3key) values (?) RETURNING qc_task_id"
+        val sql = "insert into qc_task (qc_task_status_id, input_s3key) values ('PENDING', ?) RETURNING qc_task_id"
         return tx.selectOne(sql, listOf(inputKey)) { rs -> rs.getLong(1) }
     }
 

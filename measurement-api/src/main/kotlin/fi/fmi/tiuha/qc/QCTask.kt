@@ -31,7 +31,7 @@ class QCTask(
 
     fun runQCTask(id: Long) = db.inTx { tx ->
         val task = db.getAndLockQCTask(tx, id)
-        if (task.taskArn != null) {
+        if (task.status == "STARTED") {
             Log.info("QC task $id already started")
             return@inTx
         }
