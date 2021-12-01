@@ -27,6 +27,25 @@ class QCDb(ds: DataSource) : Db(ds) {
         """.trimIndent(), listOf(taskArn, outputKey, id))
     }
 
+    fun getStartedTasks(limit: Long? = null): List<QCTaskRow> {
+        val (limitSql, limitParams) = when (limit) {
+            null -> Pair("", emptyList())
+            else -> Pair("limit ?", listOf(limit))
+        }
+        return select("""
+            select qc_task_id, qc_task_status_id, input_s3key, output_s3key, task_arn, created, updated
+            from qc_task where qc_task_status_id = 'STARTED'
+            $limitSql
+        """.trimIndent(), limitParams, QCTaskRow::from)
+    }
+
+    fun markQCTaskAsCompleted(tx: Transaction, id: Long) {
+        tx.execute("""
+            update qc_task set qc_task_status_id = 'COMPLETE', updated = current_timestamp
+            where qc_task_id = ?
+        """.trimIndent(), listOf(id))
+    }
+
     fun getAndLockQCTask(tx: Transaction, id: Long): QCTaskRow =
         tx.selectOne("""
             select qc_task_id, qc_task_status_id, input_s3key, output_s3key, task_arn, created, updated

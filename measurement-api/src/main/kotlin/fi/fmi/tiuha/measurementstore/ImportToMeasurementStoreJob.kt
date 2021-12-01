@@ -4,6 +4,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.google.gson.stream.JsonReader
 import fi.fmi.tiuha.*
+import fi.fmi.tiuha.db.Transaction
 import fi.fmi.tiuha.netatmo.S3
 import org.locationtech.jts.geom.GeometryFactory
 import java.io.InputStreamReader
@@ -63,6 +64,12 @@ class ImportToMeasurementStoreJob(private val ds: S3DataStore, private val s3: S
                     Log.error(e, "Failed to set attributes for feature: $json")
                 }
             }
+        }
+    }
+
+    companion object {
+        fun insertMeasurementImport(tx: Transaction, s3key: String) {
+            tx.execute("insert into measurement_store_import (import_s3key) values (?)", listOf(s3key))
         }
     }
 }

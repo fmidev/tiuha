@@ -64,14 +64,9 @@ class NetatmoGeoJsonTransform(val s3: S3) : ScheduledJob("netatmogeojsontransfor
                 val key = import.s3key.replace(".tar.gz", ".geojson.gz")
                 s3.putObject(bucket, key, gzipGeoJSON(geojson))
                 db.insertConvertedGeoJSONEntry(tx, import.id, key)
-                insertQcTask(tx, key)
+                QCTask.insertQcTask(tx, key)
             }
         }
-    }
-
-    fun insertQcTask(tx: Transaction, inputKey: String): Long {
-        val sql = "insert into qc_task (qc_task_status_id, input_s3key) values ('PENDING', ?) RETURNING qc_task_id"
-        return tx.selectOne(sql, listOf(inputKey)) { rs -> rs.getLong(1) }
     }
 
     fun convert(ms: List<Measurement>): GeoJson<MeasurementProperties> {

@@ -15,6 +15,7 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.util.stream.Collectors
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 fun ecsTaskRequestJson(cluster: String, subnet: String, bucket: String, inputKey: String, outputKey: String, taskDefinition: String) = """
     {"cluster":"$cluster","launchType":"FARGATE","networkConfiguration":{"awsvpcConfiguration":{"subnets":["$subnet"],"assignPublicIp":"DISABLED"}},"overrides":{"containerOverrides":[{"name":"TitanlibContainer","command":["--bucket","$bucket","--inputKey","$inputKey","--outputKey","$outputKey"]}]},"propagateTags":"TASK_DEFINITION","taskDefinition":"$taskDefinition"}
@@ -66,13 +67,13 @@ class QCTaskTest : TiuhaTest() {
     @Test
     fun `QCTask does nothing when task is already started`() {
         val ecsClient = mockk<EcsClient>()
-        val task = QCTask(db, ecsClient)
+        val task = QCTask(db, ecsClient, s3)
 
-        val taskId = 1L
-        db.execute(
-            "insert into qc_task (qc_task_id, qc_task_status_id, input_s3key, output_s3key, task_arn) values (?, 'PENDING', 'input_key.json', 'output_key.json', 'arn:test')",
-            listOf(taskId)
-        )
+        val taskId = db.inTx { tx ->
+            val id = QCTask.insertQcTask(tx, "input_key.json")
+            db.markQCTaskAsStarted(tx, id, "arn:test", "output_key.json")
+            id
+        }
 
         task.runQCTask(taskId)
         verify { ecsClient wasNot called }
@@ -118,21 +119,48 @@ class QCTaskTest : TiuhaTest() {
             .region(Region.EU_WEST_1)
             .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("test", "test")))
             .build()
-        val task = QCTask(db, ecsClient)
+        val task = QCTask(db, ecsClient, s3)
 
-        val taskId = 2L
-        db.execute(
-            "insert into qc_task (qc_task_id, qc_task_status_id, input_s3key) values (?, 'PENDING', 'prefix/input_key.json')",
-            listOf(taskId)
-        )
+        val taskId = db.inTx { tx -> QCTask.insertQcTask(tx, "prefix/input_key.json") }
 
         task.runQCTask(taskId)
-        val (actualTaskArn, statusId, actualOutputKey) = db.selectOne(
-            "select task_arn, qc_task_status_id, output_s3key from qc_task where qc_task_id = ?",
-            listOf(taskId)
-        ) { Triple(it.getString("task_arn"), it.getString("qc_task_status_id"), it.getString("output_s3key")) }
-        assertEquals(startedTaskArn, actualTaskArn)
-        assertEquals("STARTED", statusId)
-        assertEquals("prefix/qc_input_key.json", actualOutputKey)
+        getQCTaskRow(taskId).let {
+            assertEquals(startedTaskArn, it.taskArn)
+            assertEquals("STARTED", it.status)
+            assertEquals("prefix/qc_input_key.json", it.outputKey)
+        }
     }
+
+    @Test
+    fun `checks when QC output is produced and creates measurement store import`() {
+        val ecsClient = EcsClient.builder().region(Region.EU_WEST_1).build()
+        val task = QCTask(db, ecsClient, s3, true)
+
+        val taskId = db.inTx { tx -> QCTask.insertQcTask(tx, "prefix/input_key.json") }
+
+        getQCTaskRow(taskId).let {
+            assertEquals("PENDING", it.status)
+        }
+
+        task.exec()
+        getQCTaskRow(taskId).let {
+            assertEquals("STARTED", it.status)
+            assertEquals("prefix/qc_input_key.json", it.outputKey)
+        }
+        assertEquals(0, countMeasurementStoreImports())
+
+        // Actual QC run is known to be done when the output is written to S3
+        s3.putObject(Config.importBucket, "prefix/qc_input_key.json", "foobar".toByteArray())
+
+        task.exec()
+        getQCTaskRow(taskId).let {
+            assertEquals("COMPLETE", it.status)
+            assertTrue(it.updated > it.created)
+        }
+        assertEquals(1, countMeasurementStoreImports())
+    }
+
+    fun getQCTaskRow(taskId: Long) = db.inTx { tx -> db.getAndLockQCTask(tx, taskId) }
+
+    fun countMeasurementStoreImports(): Long = db.selectOne("select count(*) from measurement_store_import", emptyList()) { it.getLong(1) }
 }

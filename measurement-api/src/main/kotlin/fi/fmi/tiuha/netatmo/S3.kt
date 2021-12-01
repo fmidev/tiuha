@@ -9,6 +9,7 @@ import software.amazon.awssdk.core.sync.RequestBody
 import software.amazon.awssdk.http.SdkHttpClient
 import software.amazon.awssdk.http.apache.ApacheHttpClient
 import software.amazon.awssdk.services.s3.S3Client
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException
 import java.io.InputStream
 
 interface S3 {
@@ -16,6 +17,7 @@ interface S3 {
     fun putObject(bucket: String, key: String, content: ByteArray): Unit
     fun deleteObject(bucket: String, key: String): Unit
     fun listKeys(bucket: String, prefix: String? = null): List<String>
+    fun keyExists(bucket: String, key: String): Boolean
 }
 
 val localStackCredentialsProvider =
@@ -83,5 +85,14 @@ abstract class RealS3 : S3 {
                 }
 
         return exec(true, null, emptyList())
+    }
+
+    override fun keyExists(bucket: String, key: String): Boolean {
+        try {
+            client.headObject({ it.bucket(bucket).key(key) })
+            return true
+        } catch (e: NoSuchKeyException) {
+            return false
+        }
     }
 }

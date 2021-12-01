@@ -108,10 +108,8 @@ fun insertTestData() {
     val transformTask = NetatmoGeoJsonTransform(s3)
     transformTask.processAllSync()
 
-    val ecsClient = EcsClient.builder().apply {
-        region(Region.EU_WEST_1)
-    }.build()
-    val qcTask = QCTask(QCDb(Config.dataSource), ecsClient, true)
+    val ecsClient = EcsClient.builder().region(Region.EU_WEST_1).build()
+    val qcTask = QCTask(QCDb(Config.dataSource), ecsClient, s3, true)
     qcTask.processAllSync()
     simulateQC(db, s3)
 

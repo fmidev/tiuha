@@ -22,7 +22,7 @@ fun startServer() {
     val measurementDataStore = S3DataStore(Config.measurementsBucket)
 
     val ecsClient = EcsClient.builder().region(Config.awsRegion).build()
-    val qcTask = QCTask(QCDb(Config.dataSource), ecsClient)
+    val qcTask = QCTask(QCDb(Config.dataSource), ecsClient, s3)
     val insertToMeasurementStoreJob = ImportToMeasurementStoreJob(measurementDataStore, s3, Config.importBucket)
 
     scheduledJobs.add(transformTask)
