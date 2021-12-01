@@ -1,5 +1,6 @@
 package fi.fmi.tiuha
 
+import fi.fmi.tiuha.netatmo.netatmoPropertyNameTitleMap
 import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.response.*
@@ -8,15 +9,20 @@ import java.time.Instant
 import java.util.*
 
 object EdrApi {
+    val collections = netatmoPropertyNameTitleMap.keys.toList().map { "netatmo-$it" }
     val s3DataStore = S3DataStore(Config.measurementsBucket)
     val geomesa = Geomesa(s3DataStore.dataStore)
 
     fun routes(r: Routing) = r.apply {
-        get("/v1/edr/collections/netatmo/items") {
+        get("/v1/edr/collections/{collection}/items") {
+            val collection = call.parameters["collection"] ?: throw BadRequestException("collection is required")
+            if (!collections.contains(collection)) throw BadRequestException("Invalid collection '$collection'")
+            val propertyId = collection.replace("-", "/")
+
             when {
                 call.parameters["bbox"] != null -> {
                     val timeRange = TimeRange.fromParameters(call.parameters)
-                    val result = bboxSearch(timeRange, Bbox.fromParameters(call.parameters))
+                    val result = bboxSearch(propertyId, timeRange, Bbox.fromParameters(call.parameters))
                     call.respond(result)
                 }
                 else -> throw BadRequestException("Bad Request")
@@ -24,11 +30,13 @@ object EdrApi {
         }
     }
 
-    fun bboxSearch(timeRange: TimeRange, bbox: Bbox): GeoJson<MeasurementProperties> {
+    fun bboxSearch(propertyId: String, timeRange: TimeRange, bbox: Bbox): GeoJson<MeasurementProperties> {
         return geomesa.query("""
             (dtg BETWEEN ${timeFormatter.format(timeRange.start)} AND ${timeFormatter.format(timeRange.end)})
             AND
             (BBOX (geom, ${bbox.lat1}, ${bbox.lon1}, ${bbox.lat2}, ${bbox.lon2}))
+            AND
+            (property_id = '$propertyId')
         """)
     }
 }
