@@ -14,7 +14,7 @@ object EdrApi {
     val geomesa = Geomesa(s3DataStore.dataStore)
 
     fun routes(r: Routing) = r.apply {
-        get("/v1/edr/collections/{collection}/items") {
+        get("/v1/edr/collections/{collection}/cube") {
             val collection = call.parameters["collection"] ?: throw BadRequestException("collection is required")
             if (!collections.contains(collection)) throw BadRequestException("Invalid collection '$collection'")
             val propertyId = collection.replace("-", "/")
