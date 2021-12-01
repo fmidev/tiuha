@@ -21,20 +21,18 @@ class NetatmoImportDb(ds: DataSource) : Db(ds) {
                 from netatmoimport
             """, emptyList()) { NetatmoImportData.from(it) }
 
-    fun getDataForGeoJSONTransform(): List<NetatmoImportData> =
-            select("""
-                select netatmoimport_id, country, s3bucket, s3key, geojsonkey, created, updated
-                from netatmoimport
-                where geojsonkey is null
-                limit 100
-            """, emptyList()) { NetatmoImportData.from(it) }
-
-    fun getAllDataForGeoJSONTransform(): List<NetatmoImportData> =
-            select("""
-                select netatmoimport_id, country, s3bucket, s3key, geojsonkey, created, updated
-                from netatmoimport
-                where geojsonkey is null
-            """, emptyList()) { NetatmoImportData.from(it) }
+    fun getDataForGeoJSONTransform(limit: Long? = null): List<NetatmoImportData> {
+        val (limitSql, limitParams) = when (limit) {
+            null -> Pair("", emptyList())
+            else -> Pair("limit ?", listOf(limit))
+        }
+        return select("""
+            select netatmoimport_id, country, s3bucket, s3key, geojsonkey, created, updated
+            from netatmoimport
+            where geojsonkey is null
+            $limitSql
+        """, limitParams) { NetatmoImportData.from(it) }
+    }
 
     fun insertConvertedGeoJSONEntry(tx: Transaction, netatmoImportId: Long, key: String) {
         tx.execute("update netatmoimport set geojsonkey = ? where netatmoimport_id = ?", listOf(key, netatmoImportId))

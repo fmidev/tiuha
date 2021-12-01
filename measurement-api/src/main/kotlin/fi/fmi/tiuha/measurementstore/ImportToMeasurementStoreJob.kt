@@ -17,13 +17,13 @@ class ImportToMeasurementStoreJob(private val ds: S3DataStore, private val s3: S
     override fun nextFireTime() = ZonedDateTime.now().plus(10, ChronoUnit.MINUTES)
 
     override fun exec() {
-        val importIds = db.listPendingImports()
+        val importIds = db.listPendingImports(limit = 5)
         Log.info("Importing ${importIds.size} batches to measurement store")
         importIds.forEach(::importBatch)
     }
 
     fun processAllSync() {
-        val importIds = db.listAllPendingImports()
+        val importIds = db.listPendingImports()
         Log.info("Importing ${importIds.size} batches to measurement store")
         importIds.forEach(::importBatch)
     }

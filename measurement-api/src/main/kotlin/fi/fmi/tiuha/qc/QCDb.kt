@@ -8,18 +8,17 @@ import java.sql.ResultSet
 import java.time.ZonedDateTime
 
 class QCDb(ds: DataSource) : Db(ds) {
-    fun getUnstartedQCTaskIds(): List<Long> =
-        select("""
+    fun getUnstartedQCTaskIds(limit: Long? = null): List<Long> {
+        val (limitSql, limitParams) = when (limit) {
+            null -> Pair("", emptyList())
+            else -> Pair("limit ?", listOf(limit))
+        }
+        return select("""
             select qc_task_id from qc_task
             where output_s3key is null
-            limit 10
-        """.trimIndent(), emptyList()) { it.getLong("qc_task_id") }
-
-    fun getAllUnstartedQCTaskIds(): List<Long> =
-            select("""
-            select qc_task_id from qc_task
-            where output_s3key is null
-        """.trimIndent(), emptyList()) { it.getLong("qc_task_id") }
+            $limitSql
+        """.trimIndent(), limitParams) { it.getLong("qc_task_id") }
+    }
 
     fun markQCTaskAsStarted(tx: Transaction, id: Long, taskArn: String, outputKey: String) {
         tx.execute("""

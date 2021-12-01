@@ -29,7 +29,7 @@ class NetatmoGeoJsonTransform(val s3: S3) : ScheduledJob("netatmogeojsontransfor
             ZonedDateTime.now().plus(1, ChronoUnit.MINUTES)
 
     override fun exec() = Log.time("NetatmoGeoJsonTransform") {
-        val datas = db.getDataForGeoJSONTransform()
+        val datas = db.getDataForGeoJSONTransform(limit = 100)
         datas.map {
             attemptTransform(it.id)
         }.forEach {
@@ -46,7 +46,7 @@ class NetatmoGeoJsonTransform(val s3: S3) : ScheduledJob("netatmogeojsontransfor
             transformExecutor.submit(Callable { process(importId) })
 
     fun processAllSync() {
-        val datas = db.getAllDataForGeoJSONTransform()
+        val datas = db.getDataForGeoJSONTransform()
         datas.forEach { process(it.id) }
     }
 

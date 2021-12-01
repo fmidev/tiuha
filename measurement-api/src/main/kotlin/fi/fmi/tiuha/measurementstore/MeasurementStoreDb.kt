@@ -5,21 +5,20 @@ import java.sql.ResultSet
 import java.time.ZonedDateTime
 
 class MeasurementStoreDb(ds: DataSource) : Db(ds) {
-    fun listPendingImports(): List<Long> =
-        ds.transaction { tx ->
-            tx.select(
-                "select id, import_s3key, imported_at, created from measurement_store_import where imported_at is null order by created asc limit 5",
-                emptyList(),
-            ) { it.getLong("id") }
+    fun listPendingImports(limit: Long? = null): List<Long> {
+        val (limitSql, limitParams) = when (limit) {
+            null -> Pair("", emptyList())
+            else -> Pair("limit ?", listOf(limit))
         }
 
-    fun listAllPendingImports(): List<Long> =
-            ds.transaction { tx ->
-                tx.select(
-                        "select id, import_s3key, imported_at, created from measurement_store_import where imported_at is null order by created asc",
-                        emptyList(),
-                ) { it.getLong("id") }
-            }
+        return select("""
+            select id, import_s3key, imported_at, created
+            from measurement_store_import
+            where imported_at is null
+            order by created asc
+            $limitSql
+        """, limitParams) { it.getLong("id") }
+    }
 
     fun selectImportForProcessing(tx: Transaction, id: Long) =
         tx.selectOne("""
