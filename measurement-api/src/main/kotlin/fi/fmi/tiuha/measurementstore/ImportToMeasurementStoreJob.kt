@@ -68,8 +68,8 @@ class ImportToMeasurementStoreJob(private val ds: S3DataStore, private val s3: S
     }
 
     companion object {
-        fun insertMeasurementImport(tx: Transaction, s3key: String) {
-            tx.execute("insert into measurement_store_import (import_s3key) values (?)", listOf(s3key))
+        fun insertMeasurementImport(tx: Transaction, s3key: String): Long {
+            return tx.selectOne("insert into measurement_store_import (import_s3key) values (?) returning id", listOf(s3key)) { it.getLong("id") }
         }
     }
 }

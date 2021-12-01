@@ -16,11 +16,7 @@ class ImportToMeasurementStoreJobTest : TiuhaTest() {
     @Test
     fun `features can be queried after import to measurement store`() {
         val key = insertTestGeoJSONToImport()
-        val importId = db.selectOne("insert into measurement_store_import (import_s3key) VALUES (?) returning id", listOf(key)) {
-            it.getLong(
-                "id"
-            )
-        }
+        val importId = db.inTx { tx -> ImportToMeasurementStoreJob.insertMeasurementImport(tx, key) }
 
         val geomesaDs = S3DataStore(Config.measurementsBucket)
         val job = ImportToMeasurementStoreJob(geomesaDs, s3, Config.importBucket)
