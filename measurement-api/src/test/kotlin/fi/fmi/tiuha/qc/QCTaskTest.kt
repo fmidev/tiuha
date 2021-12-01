@@ -143,9 +143,11 @@ class QCTaskTest : TiuhaTest() {
         }
 
         task.exec()
-        getQCTaskRow(taskId).let {
+        val startedRow = getQCTaskRow(taskId).let {
             assertEquals("STARTED", it.status)
             assertEquals("prefix/qc_input_key.json", it.outputKey)
+            assertTrue(it.updated > it.created, "Expected updated timestamp to be newer than created")
+            it
         }
         assertEquals(0, countMeasurementStoreImports())
 
@@ -155,7 +157,7 @@ class QCTaskTest : TiuhaTest() {
         task.exec()
         getQCTaskRow(taskId).let {
             assertEquals("COMPLETE", it.status)
-            assertTrue(it.updated > it.created)
+            assertTrue(it.updated > startedRow.updated, "Expected updated timestamp to be newer than previously")
         }
         assertEquals(1, countMeasurementStoreImports())
     }

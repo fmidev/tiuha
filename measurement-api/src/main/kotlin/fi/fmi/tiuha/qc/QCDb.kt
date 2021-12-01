@@ -22,7 +22,7 @@ class QCDb(ds: DataSource) : Db(ds) {
 
     fun markQCTaskAsStarted(tx: Transaction, id: Long, taskArn: String, outputKey: String) {
         tx.execute("""
-            update qc_task set task_arn = ?, output_s3key = ?, qc_task_status_id = 'STARTED'
+            update qc_task set task_arn = ?, output_s3key = ?, qc_task_status_id = 'STARTED', updated = current_timestamp
             where qc_task_id = ?
         """.trimIndent(), listOf(taskArn, outputKey, id))
     }
