@@ -50,12 +50,20 @@ class Geomesa(private val ds: DataStore) {
     fun featureToGeoJson(f: SimpleFeature): GeoJsonFeature<MeasurementProperties> {
         val geom = f.getAttributeAsType<Point>("geom")
         val dtg = f.getAttributeAsType<Date>("dtg")
+        val altitude = f.getAttributeAsType<Double?>("altitude")
         val (sourceId, propertyName) = f.getAttributeAsType<String>("property_id").split("/")
         val value = f.getAttributeAsType<Double>("value")
 
         return GeoJsonFeature(
                 type = "Feature",
-                geometry = Geometry(type = "Point", coordinates = listOf(geom.coordinate.x, geom.coordinate.y)),
+                geometry = Geometry(
+                        type = "Point",
+                        coordinates = if (altitude == null) {
+                            listOf(geom.coordinate.x, geom.coordinate.y)
+                        } else {
+                            listOf(geom.coordinate.x, geom.coordinate.y, altitude)
+                        },
+                ),
                 properties = MeasurementProperties(
                         sourceId = sourceId,
                         _id = "",
