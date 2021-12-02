@@ -13,6 +13,7 @@ function configure_aws_credentials {
 
 function aws {
   docker run \
+    --network host \
     --env AWS_PROFILE \
     --env AWS_REGION \
     --env AWS_DEFAULT_REGION \
