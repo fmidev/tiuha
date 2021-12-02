@@ -29,6 +29,7 @@ object Config {
 
     val importBucket = requireEnv("IMPORT_BUCKET")
     val measurementsBucket = requireEnv("MEASUREMENTS_BUCKET")
+    val noopQualityControl = environment == Environment.LOCAL
 
     val httpPort = 8383
     val prettyPrintJson = true

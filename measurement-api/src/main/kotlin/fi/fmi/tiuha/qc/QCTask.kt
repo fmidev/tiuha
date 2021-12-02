@@ -52,9 +52,13 @@ class QCTask(
 
         if (noopQualityControl) {
             db.markQCTaskAsStarted(tx, id, "arn:fake", outputKey)
-            return@inTx
+        } else {
+            val taskArn = startFargateTask(task, outputKey)
+            db.markQCTaskAsStarted(tx, id, taskArn, outputKey)
         }
+    }
 
+    fun startFargateTask(task: QCTaskRow, outputKey: String): String {
         val runTaskResponse = ecsClient.runTask { builder ->
             builder
                 .launchType(LaunchType.FARGATE)
@@ -82,9 +86,7 @@ class QCTask(
 
         println(runTaskResponse)
         println(runTaskResponse.tasks())
-        val taskArn: String = runTaskResponse.tasks().first().taskArn()
-
-        db.markQCTaskAsStarted(tx, id, taskArn, outputKey)
+        return runTaskResponse.tasks().first().taskArn()
     }
 
     fun processAllSync() {

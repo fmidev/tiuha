@@ -12,8 +12,10 @@ import software.amazon.awssdk.http.*
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.ecs.EcsClient
 import java.io.BufferedReader
+import java.io.ByteArrayOutputStream
 import java.io.InputStreamReader
 import java.util.stream.Collectors
+import java.util.zip.GZIPOutputStream
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
@@ -70,6 +72,7 @@ class QCTaskTest : TiuhaTest() {
         val task = QCTask(db, ecsClient, s3)
 
         val taskId = db.inTx { tx ->
+            insertTestGeoJSONToImport("input_key.json")
             val id = QCTask.insertQcTask(tx, "input_key.json")
             db.markQCTaskAsStarted(tx, id, "arn:test", "output_key.json")
             id
@@ -121,7 +124,10 @@ class QCTaskTest : TiuhaTest() {
             .build()
         val task = QCTask(db, ecsClient, s3)
 
-        val taskId = db.inTx { tx -> QCTask.insertQcTask(tx, "prefix/input_key.json") }
+        val taskId = db.inTx { tx ->
+            insertTestGeoJSONToImport("prefix/input_key.json")
+            QCTask.insertQcTask(tx, "prefix/input_key.json")
+        }
 
         task.runQCTask(taskId)
         getQCTaskRow(taskId).let {
@@ -135,8 +141,12 @@ class QCTaskTest : TiuhaTest() {
     fun `checks when QC output is produced and creates measurement store import`() {
         val ecsClient = EcsClient.builder().region(Region.EU_WEST_1).build()
         val task = QCTask(db, ecsClient, s3, true)
+        val localFakeQC = LocalFakeQC(s3)
 
-        val taskId = db.inTx { tx -> QCTask.insertQcTask(tx, "prefix/input_key.json") }
+        val taskId = db.inTx { tx ->
+            insertTestGeoJSONToImport("prefix/input_key.json")
+            QCTask.insertQcTask(tx, "prefix/input_key.json")
+        }
 
         getQCTaskRow(taskId).let {
             assertEquals("PENDING", it.status)
@@ -152,7 +162,7 @@ class QCTaskTest : TiuhaTest() {
         assertEquals(0, countMeasurementStoreImports())
 
         // Actual QC run is known to be done when the output is written to S3
-        s3.putObject(Config.importBucket, "prefix/qc_input_key.json", "foobar".toByteArray())
+        localFakeQC.processAllSync()
 
         task.exec()
         getQCTaskRow(taskId).let {
@@ -165,4 +175,16 @@ class QCTaskTest : TiuhaTest() {
     fun getQCTaskRow(taskId: Long) = db.inTx { tx -> db.getAndLockQCTask(tx, taskId) }
 
     fun countMeasurementStoreImports(): Long = db.selectOne("select count(*) from measurement_store_import", emptyList()) { it.getLong(1) }
+
+    private fun insertTestGeoJSONToImport(inputKey: String) {
+        val GEOJSON_TEST_FILE = "countryweatherdata-FI.geojson"
+        val stream = ClassLoader.getSystemClassLoader().getResourceAsStream(GEOJSON_TEST_FILE)!!
+        val byteArrayOutputStream = ByteArrayOutputStream()
+        GZIPOutputStream(byteArrayOutputStream).use {
+            stream.copyTo(it)
+        }
+        val bytes = byteArrayOutputStream.toByteArray()
+
+        s3.putObject(Config.importBucket, inputKey, bytes)
+    }
 }

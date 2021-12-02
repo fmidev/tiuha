@@ -1,11 +1,9 @@
 package fi.fmi.tiuha
 
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
-import com.google.gson.stream.JsonReader
 import fi.fmi.tiuha.db.Db
 import fi.fmi.tiuha.measurementstore.ImportToMeasurementStoreJob
 import fi.fmi.tiuha.netatmo.*
+import fi.fmi.tiuha.qc.LocalFakeQC
 import fi.fmi.tiuha.qc.QCDb
 import fi.fmi.tiuha.qc.QCTask
 import kotlinx.serialization.decodeFromString
@@ -20,9 +18,6 @@ import org.junit.Before
 import org.junit.Test
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.ecs.EcsClient
-import java.io.InputStream
-import java.io.InputStreamReader
-import java.util.zip.GZIPInputStream
 import kotlin.test.assertEquals
 
 class ApiTest : TiuhaTest() {
@@ -111,7 +106,9 @@ fun insertTestData() {
     val ecsClient = EcsClient.builder().region(Region.EU_WEST_1).build()
     val qcTask = QCTask(QCDb(Config.dataSource), ecsClient, s3, true)
     qcTask.processAllSync()
-    simulateQC(db, s3)
+
+    val localFakeQC = LocalFakeQC(s3)
+    localFakeQC.processAllSync()
 
     db.execute("""
         insert into measurement_store_import (import_s3key)
@@ -123,36 +120,3 @@ fun insertTestData() {
     geomesaImport.processAllSync()
 }
 
-data class QcTaskUpdate(val id: Long, val input: String, val output: String)
-
-fun simulateQC(db: Db, s3: S3): List<Long> {
-    val updates = db.select("select qc_task_id, input_s3key, output_s3key from qc_task", emptyList()) { rs ->
-        QcTaskUpdate(rs.getLong("qc_task_id"), rs.getString("input_s3key"), rs.getString("output_s3key"))
-    }
-    updates.forEach {
-        val geojson = s3.getObjectStream(Config.importBucket, it.input).use { stream -> readGzippedGeojson(stream) }
-        val withQcDetails = addQCDetails(geojson)
-        s3.putObject(Config.importBucket, it.output, gzipGeoJSON(withQcDetails))
-        db.execute("update qc_task set output_s3key = ?, updated = current_timestamp where qc_task_id = ?", listOf(it.output, it.id))
-    }
-
-    return updates.map { it.id }
-}
-
-fun addQCDetails(geojson: GeoJson<QCMeasurementProperties>): GeoJson<QCMeasurementProperties> {
-    val features = geojson.features.map { f->
-        f.copy(properties = f.properties.copy(
-                qcPassed = true,
-                qcDetails = QCDetails(method = "skip", version = "test", flags = emptyList()),
-        ))
-    }
-
-    return geojson.copy(features = features)
-}
-
-val gson = Gson()
-fun readGzippedGeojson(stream: InputStream): GeoJson<QCMeasurementProperties> =
-        JsonReader(InputStreamReader(GZIPInputStream(stream))).use { reader ->
-            val type = TypeToken.getParameterized(GeoJson::class.java, QCMeasurementProperties::class.java).type
-            gson.fromJson<GeoJson<QCMeasurementProperties>>(reader, type)
-        }
