@@ -97,7 +97,7 @@ class QCTask(
             try {
                 checkQCTask(task.id)
             } catch (e: Exception) {
-                Log.error(e, "Starting QC task ${task.id} failed")
+                Log.error(e, "Checking QC task ${task.id} progress failed")
             }
         }
 
