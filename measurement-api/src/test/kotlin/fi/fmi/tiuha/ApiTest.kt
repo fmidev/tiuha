@@ -109,14 +109,9 @@ fun insertTestData() {
 
     val localFakeQC = LocalFakeQC(s3)
     localFakeQC.processAllSync()
-
-    db.execute("""
-        insert into measurement_store_import (import_s3key)
-        select output_s3key from qc_task
-    """, emptyList())
+    qcTask.processAllSync()
 
     val geomesaDs = S3DataStore(Config.measurementsBucket)
     val geomesaImport = ImportToMeasurementStoreJob(geomesaDs, s3, Config.importBucket)
     geomesaImport.processAllSync()
 }
-

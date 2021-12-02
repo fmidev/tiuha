@@ -90,8 +90,8 @@ class QCTask(
     }
 
     fun processAllSync() {
-        val tasks = db.getUnstartedQCTaskIds()
-        tasks.forEach { id -> runQCTask(id) }
+        db.getStartedTasks().forEach { task -> checkQCTask(task.id) }
+        db.getUnstartedQCTaskIds().forEach { id -> runQCTask(id) }
     }
 
     override fun exec() {
