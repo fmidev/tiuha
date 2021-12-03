@@ -6,7 +6,6 @@ import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import java.time.Instant
-import java.util.*
 
 object EdrApi {
     val collections = netatmoPropertyNameTitleMap.keys.toList().map { "netatmo-$it" }

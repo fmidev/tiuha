@@ -43,7 +43,10 @@ class NetatmoImport(
         s3.putObject(Config.importBucket, s3Key, content)
         val importId = db.insertImport(country, Config.importBucket, s3Key)
 
-        transformTask?.attemptTransform(importId)
+        if (transformTask != null) {
+            Log.info("Starting GeoJSON transformation immediately")
+            transformTask.attemptTransform(importId)
+        }
     }
 
     override fun nextFireTime(): ZonedDateTime {

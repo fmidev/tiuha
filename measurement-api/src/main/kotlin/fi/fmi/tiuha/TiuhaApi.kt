@@ -10,6 +10,7 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import org.slf4j.event.Level
 
 data class BadRequestException(val error: String) : Throwable("BadRequest")
 
@@ -21,6 +22,10 @@ class TiuhaApi(port: Int) {
             port = port,
             watchPaths = listOf("measurement-api"),
     ) {
+        install(CallLogging) {
+            disableDefaultColors()
+        }
+
         install(ContentNegotiation) {
             json(Json {
                 prettyPrint = Config.prettyPrintJson

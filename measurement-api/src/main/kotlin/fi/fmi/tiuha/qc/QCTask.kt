@@ -32,13 +32,13 @@ class QCTask(
 
     fun checkQCTask(id: Long) = db.inTx { tx ->
         val task = db.getAndLockQCTask(tx, id)
-        Log.info("Checking if qc_task $id output is complete")
+        Log.info("Checking if output is completed for qc_task $task")
         if (s3.keyExists(Config.importBucket, task.outputKey!!)) {
-            Log.info("Output for qc_task $id was found ($task.outputKey)")
+            Log.info("Output for qc_task $id was found (${task.outputKey})")
             db.markQCTaskAsCompleted(tx, id)
             ImportToMeasurementStoreJob.insertMeasurementImport(tx, task.outputKey)
         } else {
-            Log.info("Output for qc_task $id was not found ($task.outputKey)")
+            Log.info("Output for qc_task $id was not found (${task.outputKey})")
         }
     }
 
@@ -84,8 +84,6 @@ class QCTask(
                 }
         }
 
-        println(runTaskResponse)
-        println(runTaskResponse.tasks())
         return runTaskResponse.tasks().first().taskArn()
     }
 
