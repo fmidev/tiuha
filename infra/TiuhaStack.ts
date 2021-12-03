@@ -1,4 +1,5 @@
 import * as cdk from '@aws-cdk/core'
+import { Tags } from '@aws-cdk/core'
 import * as cassandra from '@aws-cdk/aws-cassandra'
 import * as iam from '@aws-cdk/aws-iam'
 import * as ec2 from '@aws-cdk/aws-ec2'
@@ -8,7 +9,6 @@ import * as logs from '@aws-cdk/aws-logs'
 import * as s3 from '@aws-cdk/aws-s3'
 import * as secretsmanager from '@aws-cdk/aws-secretsmanager'
 import * as rds from '@aws-cdk/aws-rds'
-import { Tags } from '@aws-cdk/core'
 
 type TiuhaStackProps = cdk.StackProps & {
   envName: string
@@ -49,11 +49,12 @@ export class TiuhaStack extends cdk.Stack {
     })
     const [db, dbSG] = this.createDatabase(vpc, dbCredentials)
 
-    const [service, serviceSG] = this.createFargateService(
+    const [service, serviceSG, apiPort] = this.createFargateService(
       envName, vpc, props.measurementApiRepository, props.versionTag, db, measurementsBucket, titanTaskDefinition
     )
 
     const bastionSecurityGroup = this.createBastionHost(vpc)
+    serviceSG.addIngressRule(bastionSecurityGroup, apiPort)
 
     const postgresPort = ec2.Port.tcp(5432)
     dbSG.addIngressRule(bastionSecurityGroup, postgresPort)
@@ -135,7 +136,7 @@ export class TiuhaStack extends cdk.Stack {
     db: rds.DatabaseCluster,
     measurementsBucket: s3.Bucket,
     titanTaskDefinition: ecs.ITaskDefinition,
-  ): [ecs.FargateService, ec2.SecurityGroup] {
+  ): [ecs.FargateService, ec2.SecurityGroup, ec2.Port] {
     const cluster = new ecs.Cluster(this, 'Cluster', { vpc })
     const apiImage = ecs.ContainerImage.fromEcrRepository(measurementApiRepository, versionTag)
 
@@ -152,12 +153,18 @@ export class TiuhaStack extends cdk.Stack {
       memoryLimitMiB: 2048,
     })
 
+    const portNumber = 8383
+
     taskDefinition.addContainer('MeasurementApiContainer', {
       image: apiImage,
       logging: new ecs.AwsLogDriver({
         logGroup,
         streamPrefix: 'measurement-api',
       }),
+      portMappings: [{
+        protocol: ecs.Protocol.TCP,
+        containerPort: portNumber,
+      }],
       environment: {
         ENV: envName,
         IMPORT_BUCKET: this.importBucket.bucketName,
@@ -214,7 +221,7 @@ export class TiuhaStack extends cdk.Stack {
       platformVersion: ecs.FargatePlatformVersion.VERSION1_4,
     })
 
-    return [service, securityGroup]
+    return [service, securityGroup, ec2.Port.tcp(portNumber)]
   }
 
   createBastionHost(vpc: ec2.IVpc): ec2.ISecurityGroup {
