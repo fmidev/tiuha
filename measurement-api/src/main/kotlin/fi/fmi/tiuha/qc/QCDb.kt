@@ -53,6 +53,18 @@ class QCDb(ds: DataSource) : Db(ds) {
             where qc_task_id = ?
             for update
         """.trimIndent(), listOf(id), QCTaskRow::from)
+
+    fun statusCounts(): List<Pair<String, Long>> {
+        return select("""
+            select qc_task_status_id, count(qc_task_id) as count
+            from qc_task_status
+            left join qc_task using (qc_task_status_id)
+            group by qc_task_status_id
+            order by qc_task_status_id
+        """.trimIndent(), emptyList()) { rs ->
+            Pair(rs.getString("qc_task_status_id"), rs.getLong("count"))
+        }
+    }
 }
 
 data class QCTaskRow(

@@ -59,6 +59,7 @@ class QCTask(
     }
 
     fun startFargateTask(task: QCTaskRow, outputKey: String): String {
+        Log.info("Starting QC task on Fargate for qc_task ${task.id}")
         val runTaskResponse = ecsClient.runTask { builder ->
             builder
                 .launchType(LaunchType.FARGATE)
@@ -93,6 +94,10 @@ class QCTask(
     }
 
     override fun exec() {
+        db.statusCounts().forEach {
+            Log.info("qc_tasks with status ${it.first} ${it.second}")
+        }
+
         db.getStartedTasks(limit = 100).forEach { task ->
             try {
                 checkQCTask(task.id)
