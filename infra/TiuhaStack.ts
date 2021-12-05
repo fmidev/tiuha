@@ -62,7 +62,13 @@ export class TiuhaStack extends cdk.Stack {
   }
 
   createVpc(): ec2.IVpc {
-    return new ec2.Vpc(this, "DefaultVpc", {})
+    const vpc = new ec2.Vpc(this, "DefaultVpc", {})
+
+    vpc.addGatewayEndpoint("S3", {
+      service: ec2.GatewayVpcEndpointAwsService.S3
+    })
+
+    return vpc
   }
 
   createDatabase(vpc: ec2.IVpc, credentials: rds.Credentials): [rds.DatabaseCluster, ec2.SecurityGroup] {
