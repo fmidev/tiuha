@@ -107,7 +107,7 @@ class QCTask(
         }
 
 
-        val tasks = db.getUnstartedQCTaskIds(limit = 50)
+        val tasks = db.getUnstartedQCTaskIds(limit = 10)
         tasks.forEach { id ->
             try {
                 runQCTask(id)
