@@ -1,5 +1,6 @@
 package fi.fmi.tiuha
 
+import fi.fmi.tiuha.app.CreateApiClientApp.insertCredentials
 import fi.fmi.tiuha.db.Db
 import fi.fmi.tiuha.measurementstore.ImportToMeasurementStoreJob
 import fi.fmi.tiuha.netatmo.*
@@ -21,7 +22,6 @@ import org.apache.http.impl.client.BasicCredentialsProvider
 import org.apache.http.impl.client.HttpClients
 import org.junit.After
 import org.junit.Before
-import org.mindrot.jbcrypt.BCrypt
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.ecs.EcsClient
 
@@ -38,7 +38,7 @@ abstract class ApiTest : TiuhaTest() {
 
     @Before
     fun beforeApiTest() {
-        insertCredentials(db, testCredentials.clientId, testCredentials.apiKey)
+        db.inTx { tx -> insertCredentials(tx, testCredentials.clientId, testCredentials.apiKey) }
         insertTestData()
 
         api.start()
@@ -73,14 +73,6 @@ abstract class ApiTest : TiuhaTest() {
 }
 
 data class Response<T>(val status: Int, val body: T)
-
-fun insertCredentials(db: Db, clientId: String, password: String) {
-    Log.info("Inserting test credentials for client '$clientId'")
-    db.execute(
-            "INSERT INTO apiclient (apiclient_id, apikeyhash) VALUES (?, ?)",
-            listOf(clientId, BCrypt.hashpw(password, BCrypt.gensalt()))
-    )
-}
 
 fun insertTestData() {
     val db = Db(Config.dataSource)
