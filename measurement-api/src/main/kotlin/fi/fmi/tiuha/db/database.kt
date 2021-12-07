@@ -13,6 +13,7 @@ open class Db(val ds: DataSource) {
     fun execute(query: String, params: List<Any>) = inTx { tx -> tx.execute(query, params) }
     fun <T> select(query: String, params: List<Any>, fn: (ResultSet) -> T) = inTx { tx -> tx.select(query, params, fn) }
     fun <T> selectOne(query: String, params: List<Any>, fn: (ResultSet) -> T) = inTx { tx -> tx.selectOne(query, params, fn) }
+    fun <T> selectOneOrNone(query: String, params: List<Any>, fn: (ResultSet) -> T) = inTx { tx -> tx.selectOneOrNone(query, params, fn) }
 }
 
 class DataSource(private val jdbcUrl: String, private val dbUsername: String, private val dbPassword: String) {

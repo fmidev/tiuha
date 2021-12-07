@@ -12,7 +12,7 @@ object EdrApi {
     val s3DataStore = S3DataStore(Config.measurementsBucket)
     val geomesa = Geomesa(s3DataStore.dataStore)
 
-    fun routes(r: Routing) = r.apply {
+    fun routes(r: Route) = r.apply {
         get("/v1/edr/collections/{collection}/cube") {
             val collection = call.parameters["collection"] ?: throw BadRequestException("collection is required")
             if (!collections.contains(collection)) throw BadRequestException("Invalid collection '$collection'")

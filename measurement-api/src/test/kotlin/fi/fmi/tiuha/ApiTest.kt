@@ -9,23 +9,36 @@ import fi.fmi.tiuha.qc.QCTask
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import org.apache.commons.io.IOUtils
+import org.apache.http.HttpHost
+import org.apache.http.auth.AuthScope
+import org.apache.http.auth.UsernamePasswordCredentials
 import org.apache.http.client.methods.HttpGet
+import org.apache.http.client.protocol.HttpClientContext
 import org.apache.http.client.utils.URIBuilder
+import org.apache.http.impl.auth.BasicScheme
+import org.apache.http.impl.client.BasicAuthCache
+import org.apache.http.impl.client.BasicCredentialsProvider
 import org.apache.http.impl.client.HttpClients
-import org.apache.http.protocol.BasicHttpContext
 import org.junit.After
 import org.junit.Before
-import org.junit.Test
+import org.mindrot.jbcrypt.BCrypt
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.ecs.EcsClient
-import kotlin.test.assertEquals
 
-class ApiTest : TiuhaTest() {
+data class ApiCredentials(
+        val clientId: String,
+        val apiKey: String,
+)
+
+abstract class ApiTest : TiuhaTest() {
     val httpPort = 7766
     val api = TiuhaApi(httpPort)
+    val testCredentials = ApiCredentials("testclient", "password123")
+    val http = HttpClients.createDefault()
 
     @Before
     fun beforeApiTest() {
+        insertCredentials(db, testCredentials.clientId, testCredentials.apiKey)
         insertTestData()
 
         api.start()
@@ -36,58 +49,38 @@ class ApiTest : TiuhaTest() {
         api.stop()
     }
 
-    @Test
-    fun `requires start and end params`() {
-        assertEquals(get("/v1/edr/collections/netatmo-air_temperature/cube?bbox=-1000.0,-1000.0,1000.0,1000.0"), Response(
-                status = 400,
-                body = ErrorResponse("start is required")
-        ))
-        assertEquals(get("/v1/edr/collections/netatmo-air_temperature/cube?bbox=-1000.0,-1000.0,1000.0,1000.0&start=1970-01-01T00:00:00.000Z"), Response(
-                status = 400,
-                body = ErrorResponse("end is required")
-        ))
-    }
+    fun getGeoJson(url: String, creds: ApiCredentials? = testCredentials): Response<GeoJson<MeasurementProperties>> = get(url, creds = creds)
 
-    @Test
-    fun `validates bbox params`() {
-        assertEquals(get("/v1/edr/collections/netatmo-air_temperature/cube?bbox=foobar&start=1970-01-01T00:00:00.000Z&end=1970-01-01T00:00:00.000Z"), Response(
-                status = 400,
-                body = ErrorResponse("Invalid bbox")
-        ))
-    }
+    inline fun <reified T : Any> get(url: String, creds: ApiCredentials? = testCredentials): Response<T> {
+        val context = HttpClientContext.create()
+        if (creds != null) {
+            val provider = BasicCredentialsProvider()
+            provider.setCredentials(AuthScope.ANY, UsernamePasswordCredentials(creds.clientId, creds.apiKey))
+            context.setCredentialsProvider(provider)
+            context.setAuthCache(BasicAuthCache().apply {
+                put(HttpHost("localhost", httpPort, "http"), BasicScheme())
+            })
+        }
 
-    @Test
-    fun `supports bounding box search`() {
-        val response = get<GeoJson<MeasurementProperties>>("/v1/edr/collections/netatmo-air_temperature/cube?bbox=-1000.0,-1000.0,1000.0,1000.0&start=1970-01-01T00:00:00.000Z&end=2021-12-31T23:59:59.999Z")
-        assertEquals(200, response.status)
-        val body = response.body
-        assertEquals("FeatureCollection", body.type)
-        assertEquals(2, body.features.size)
-    }
-
-    @Test
-    fun `does filter by time range`() {
-        val response = get<GeoJson<MeasurementProperties>>("/v1/edr/collections/netatmo-air_temperature/cube?bbox=-1000.0,-1000.0,1000.0,1000.0&start=2021-09-23T14:12:53Z&end=2021-09-23T14:12:53Z")
-        assertEquals(200, response.status)
-        val body = response.body
-        assertEquals("FeatureCollection", body.type)
-        assertEquals(1, body.features.size)
-    }
-
-    inline fun <reified T : Any> get(url: String): Response<T> {
         val builder = URIBuilder("http://localhost:$httpPort$url")
         val request = HttpGet(builder.build())
-        val response = client.execute(request, BasicHttpContext())
+        val response = http.execute(request, context)
         val json = String(IOUtils.toByteArray(response.entity.content))
         val statusCode = response.getStatusLine().getStatusCode()
         val body = Json.decodeFromString<T>(json)
         return Response(statusCode, body)
     }
-
-    val client = HttpClients.createDefault()
 }
 
 data class Response<T>(val status: Int, val body: T)
+
+fun insertCredentials(db: Db, clientId: String, password: String) {
+    Log.info("Inserting test credentials for client '$clientId'")
+    db.execute(
+            "INSERT INTO apiclient (apiclient_id, apikeyhash) VALUES (?, ?)",
+            listOf(clientId, BCrypt.hashpw(password, BCrypt.gensalt()))
+    )
+}
 
 fun insertTestData() {
     val db = Db(Config.dataSource)
