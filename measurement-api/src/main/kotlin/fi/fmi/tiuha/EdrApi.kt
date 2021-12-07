@@ -5,6 +5,7 @@ import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.routing.*
+import java.time.Duration
 import java.time.Instant
 
 object EdrApi {
@@ -46,13 +47,21 @@ data class TimeRange(
 ) {
     companion object {
         fun fromParameters(params: Parameters): TimeRange {
-            val start = params["start"] ?: throw BadRequestException("start is required")
-            val end = params["end"] ?: throw BadRequestException("end is required")
+            val startParam = params["start"] ?: throw BadRequestException("start is required")
+            val endParam = params["end"] ?: throw BadRequestException("end is required")
             try {
-                return TimeRange(
-                        Instant.from(timeFormatter.parse(start)),
-                        Instant.from(timeFormatter.parse(end)),
-                )
+                val start = Instant.from(timeFormatter.parse(startParam))
+                val end = Instant.from(timeFormatter.parse(endParam))
+
+                if (start > end) {
+                    throw BadRequestException("Time range start is earlier than end")
+                }
+
+                if (Duration.between(start, end) > Duration.ofHours(1)) {
+                    throw BadRequestException("Time ranges longer than one hour are not allowed")
+                }
+
+                return TimeRange(start, end)
             } catch (e: java.lang.NumberFormatException) {
                 throw BadRequestException("Invalid start or end time")
             }

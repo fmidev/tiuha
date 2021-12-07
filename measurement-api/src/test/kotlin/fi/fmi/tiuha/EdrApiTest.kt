@@ -42,8 +42,24 @@ open class EdrApiTest : ApiTest() {
     }
 
     @Test
+    fun `validates that start time is earlier than equal to end time`() {
+        assertEquals(get("/v1/edr/collections/netatmo-air_temperature/cube?bbox=foobar&start=2021-01-01T00:00:00.000Z&end=1970-01-01T00:00:00.000Z"), Response(
+                status = 400,
+                body = ErrorResponse("Time range start is earlier than end")
+        ))
+    }
+
+    @Test
+    fun `validates that the time range is at most one hour`() {
+        assertEquals(get("/v1/edr/collections/netatmo-air_temperature/cube?bbox=foobar&start=1970-01-01T00:00:00.000Z&end=2021-01-01T00:00:00.000Z"), Response(
+                status = 400,
+                body = ErrorResponse("Time ranges longer than one hour are not allowed")
+        ))
+    }
+
+    @Test
     fun `supports bounding box search`() {
-        val response = getGeoJson("/v1/edr/collections/netatmo-air_temperature/cube?bbox=-1000.0,-1000.0,1000.0,1000.0&start=1970-01-01T00:00:00.000Z&end=2021-12-31T23:59:59.999Z")
+        val response = getGeoJson("/v1/edr/collections/netatmo-air_temperature/cube?bbox=-1000.0,-1000.0,1000.0,1000.0&start=2021-09-23T14:00:00Z&end=2021-09-23T15:00:00Z")
         assertEquals(200, response.status)
         val body = response.body
         assertEquals("FeatureCollection", body.type)
