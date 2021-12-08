@@ -9,7 +9,7 @@ import java.time.ZonedDateTime
 import java.util.*
 
 private const val FEATURE_TYPE_SPEC = "*geom:Point:srid=4326,dtg:Date,property_id:String,value:Double,import_id:Long,altitude:Double"
-const val FEATURE_NAME = "measurement_v1"
+const val FEATURE_NAME = "measurement_v2"
 val MEASUREMENT_FEATURE_TYPE: SimpleFeatureType = SimpleFeatureTypes.createType(FEATURE_NAME, FEATURE_TYPE_SPEC)
 
 fun setMeasurementFeatureAttributes(feat: SimpleFeature, geometryFactory: GeometryFactory, geoJsonFeature: GeoJsonQCFeature, importId: Long) {
