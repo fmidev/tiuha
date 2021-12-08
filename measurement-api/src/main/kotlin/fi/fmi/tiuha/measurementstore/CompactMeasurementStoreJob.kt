@@ -16,7 +16,7 @@ class CompactMeasurementStoreJob(private val ds: FileSystemDataStore) : Schedule
         compact.params().apply {
             `featureName_$eq`(FEATURE_NAME)
             `runMode_$eq`(DistributedRunParam.`RunModes$`.`MODULE$`.Local().toString())
-            `threads_$eq`(2)
+            `threads_$eq`(1)
         }
 
         compact.compact(ds)
