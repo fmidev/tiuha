@@ -38,6 +38,8 @@ class TiuhaApi(port: Int, ds: S3DataStore) {
             disableDefaultColors()
         }
 
+        install(Compression)
+
         install(ContentNegotiation) {
             json(Json {
                 prettyPrint = Config.prettyPrintJson
