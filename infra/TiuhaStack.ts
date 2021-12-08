@@ -9,6 +9,9 @@ import * as logs from '@aws-cdk/aws-logs'
 import * as s3 from '@aws-cdk/aws-s3'
 import * as secretsmanager from '@aws-cdk/aws-secretsmanager'
 import * as rds from '@aws-cdk/aws-rds'
+import * as elb from '@aws-cdk/aws-elasticloadbalancingv2'
+import * as route53 from '@aws-cdk/aws-route53'
+import * as certificatemanager from '@aws-cdk/aws-certificatemanager'
 
 type TiuhaStackProps = cdk.StackProps & {
   envName: string
@@ -18,6 +21,9 @@ type TiuhaStackProps = cdk.StackProps & {
 }
 
 export class TiuhaStack extends cdk.Stack {
+  apiPortNumber = 8383
+  envName: string
+  vpc: ec2.Vpc
   importBucket: s3.Bucket
 
   constructor(scope: cdk.Construct, id: string, props: TiuhaStackProps) {
@@ -29,16 +35,16 @@ export class TiuhaStack extends cdk.Stack {
 
     measurementsKeyspace.applyRemovalPolicy(cdk.RemovalPolicy.RETAIN)
 
-    const vpc = this.createVpc()
+    this.vpc = this.createVpc()
 
-    const envName = props.envName.toLowerCase()
+    this.envName = props.envName.toLowerCase()
     const measurementsBucket = new s3.Bucket(this, 'measurementsBucket', {
-      bucketName: `fmi-tiuha-measurements-${envName}`,
+      bucketName: `fmi-tiuha-measurements-${this.envName}`,
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
     })
 
     this.importBucket = new s3.Bucket(this, 'ImportBucket', {
-      bucketName: `fmi-tiuha-import-${envName}`,
+      bucketName: `fmi-tiuha-import-${this.envName}`,
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
     })
 
@@ -47,21 +53,74 @@ export class TiuhaStack extends cdk.Stack {
     const dbCredentials = rds.Credentials.fromGeneratedSecret('tiuha', {
       secretName: 'tiuha-database-credentials'
     })
-    const [db, dbSG] = this.createDatabase(vpc, dbCredentials)
+    const [db, dbSG] = this.createDatabase(this.vpc, dbCredentials)
 
     const [service, serviceSG, apiPort] = this.createFargateService(
-      envName, vpc, props.measurementApiRepository, props.versionTag, db, measurementsBucket, titanTaskDefinition
+      this.vpc, props.measurementApiRepository, props.versionTag, db, measurementsBucket, titanTaskDefinition
     )
 
-    const bastionSecurityGroup = this.createBastionHost(vpc)
+    const bastionSecurityGroup = this.createBastionHost(this.vpc)
     serviceSG.addIngressRule(bastionSecurityGroup, apiPort)
 
     const postgresPort = ec2.Port.tcp(5432)
     dbSG.addIngressRule(bastionSecurityGroup, postgresPort)
     dbSG.addIngressRule(serviceSG, postgresPort)
+
+    this.createPublicLoadBalancer(service)
   }
 
-  createVpc(): ec2.IVpc {
+  createPublicLoadBalancer(service: ecs.FargateService) {
+    const domainName = `${this.envName}-tiuha.com`
+
+    const loadBalancer = new elb.ApplicationLoadBalancer(this, "LoadBalancer", {
+      vpc: service.cluster.vpc,
+      internetFacing: true,
+    })
+
+    // only dev has own domain for demo purposes
+    if (this.envName === "dev") {
+      const hostedZone = route53.HostedZone.fromHostedZoneAttributes(this, "HostedZone", {
+        hostedZoneId: "Z10485242JB98Z7I2HV6U",
+        zoneName: domainName,
+      })
+      const apiDomainName = `api.${domainName}`
+
+      const certificate = new certificatemanager.DnsValidatedCertificate(this, "Certificate", {
+        hostedZone,
+        domainName: apiDomainName,
+      })
+
+      const listener = loadBalancer.addListener("PublicListener", {
+        protocol: elb.ApplicationProtocol.HTTPS,
+        certificates: [certificate],
+        open: true,
+      })
+
+      const targetGroup = listener.addTargets("FargateService", {
+        port: this.apiPortNumber,
+        protocol: elb.ApplicationProtocol.HTTP,
+        targets: [service],
+        healthCheck: {
+          interval: cdk.Duration.seconds(30),
+          protocol: elb.Protocol.HTTP,
+          path: "/healthcheck",
+          healthyHttpCodes: "200",
+          port: this.apiPortNumber.toString(),
+          timeout: cdk.Duration.seconds(10),
+          healthyThresholdCount: 2,
+          unhealthyThresholdCount: 2,
+        }
+      })
+
+      new route53.CnameRecord(this, "LoadBalancerDnsRecord", {
+        zone: hostedZone,
+        recordName: apiDomainName,
+        domainName: loadBalancer.loadBalancerDnsName,
+      })
+    }
+  }
+
+  createVpc(): ec2.Vpc {
     const vpc = new ec2.Vpc(this, "DefaultVpc", {})
 
     vpc.addGatewayEndpoint("S3", {
@@ -135,7 +194,6 @@ export class TiuhaStack extends cdk.Stack {
 
 
   createFargateService(
-    envName: string,
     vpc: ec2.IVpc,
     measurementApiRepository: ecr.IRepository,
     versionTag: string,
@@ -159,8 +217,6 @@ export class TiuhaStack extends cdk.Stack {
       memoryLimitMiB: 2048,
     })
 
-    const portNumber = 8383
-
     taskDefinition.addContainer('MeasurementApiContainer', {
       image: apiImage,
       logging: new ecs.AwsLogDriver({
@@ -169,10 +225,10 @@ export class TiuhaStack extends cdk.Stack {
       }),
       portMappings: [{
         protocol: ecs.Protocol.TCP,
-        containerPort: portNumber,
+        containerPort: this.apiPortNumber,
       }],
       environment: {
-        ENV: envName,
+        ENV: this.envName,
         IMPORT_BUCKET: this.importBucket.bucketName,
         MEASUREMENTS_BUCKET: measurementsBucket.bucketName,
         TITAN_TASK_DEFINITION_ARN: titanTaskDefinition.taskDefinitionArn,
@@ -227,7 +283,7 @@ export class TiuhaStack extends cdk.Stack {
       platformVersion: ecs.FargatePlatformVersion.VERSION1_4,
     })
 
-    return [service, securityGroup, ec2.Port.tcp(portNumber)]
+    return [service, securityGroup, ec2.Port.tcp(this.apiPortNumber)]
   }
 
   createBastionHost(vpc: ec2.IVpc): ec2.ISecurityGroup {

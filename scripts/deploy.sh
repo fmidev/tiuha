@@ -3,13 +3,6 @@ set -o nounset -o errexit -o pipefail
 repo="$( cd "$( dirname "$0" )" && pwd )"
 source "$repo/scripts/common-functions.sh"
 
-function deploy_cdk_app {
-	pushd "$repo/infra/"
-	npm_ci_if_package_lock_has_changed
-	npx aws-cdk deploy --app "npx ts-node app.ts" --require-approval never "$@"
-	popd
-}
-
 function main {
 	parse_env_from_script_name
 	configure_aws_credentials "fmi-tiuha-$ENV"
@@ -18,12 +11,47 @@ function main {
 	"$repo/run-tests.sh"
 
 	export VERSION_TAG="local-$( timestamp )-$( git rev-parse HEAD )"
-	#export VERSION_TAG="ci-$( git rev-parse HEAD )"
 
+	export AWS_ACCOUNT_ID="$( get_account_id )"
+
+	register_domain
+	cdk_bootstrap
 	deploy_cdk_app Repository
 	build_and_upload_measurement_api "$VERSION_TAG"
 	build_and_upload_titan_container "$VERSION_TAG"
 	deploy_cdk_app Tiuha
+}
+
+function deploy_cdk_app {
+	pushd "$repo/infra/"
+	npm_ci_if_package_lock_has_changed
+	npx aws-cdk deploy --app "npx ts-node app.ts" --require-approval never "$@"
+	popd
+}
+
+function diff_cdk_app {
+	pushd "$repo/infra/"
+	npm_ci_if_package_lock_has_changed
+	npx aws-cdk diff --app "npx ts-node app.ts" --require-approval never "$@"
+	popd
+}
+
+function cdk_bootstrap {
+	pushd "$repo/infra/"
+	npm_ci_if_package_lock_has_changed
+	npx aws-cdk bootstrap "aws://$AWS_ACCOUNT_ID/$AWS_REGION"
+	popd
+}
+
+function get_account_id {
+  aws sts get-caller-identity --query "Account" --output text
+}
+
+function register_domain {
+  pushd "$repo/infra"
+  npm_ci_if_package_lock_has_changed
+  npx ts-node ./DomainRegistration.ts
+  popd
 }
 
 function build_and_upload_measurement_api {

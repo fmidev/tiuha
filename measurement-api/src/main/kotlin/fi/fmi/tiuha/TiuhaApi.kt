@@ -63,6 +63,10 @@ class TiuhaApi(port: Int) {
         }
 
         install(Routing) {
+            get("/healthcheck") {
+                call.respond(HttpStatusCode.OK, "OK")
+            }
+
             authenticate {
                 EdrApi.routes(this)
             }
