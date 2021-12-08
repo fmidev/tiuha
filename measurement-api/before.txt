@@ -1,0 +1,301 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] --------------------< fi.fmi.tiuha:measurement-api >--------------------
+[INFO] Building measurement-api 1.0-SNAPSHOT
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- maven-dependency-plugin:2.8:tree (default-cli) @ measurement-api ---
+[INFO] fi.fmi.tiuha:measurement-api:jar:1.0-SNAPSHOT
+[INFO] +- org.jetbrains.kotlin:kotlin-stdlib:jar:1.5.30:compile
+[INFO] |  +- org.jetbrains:annotations:jar:13.0:compile
+[INFO] |  \- org.jetbrains.kotlin:kotlin-stdlib-common:jar:1.5.30:compile
+[INFO] +- software.amazon.awssdk:s3:jar:2.17.70:compile
+[INFO] |  +- software.amazon.awssdk:aws-xml-protocol:jar:2.17.70:compile
+[INFO] |  +- software.amazon.awssdk:protocol-core:jar:2.17.70:compile
+[INFO] |  +- software.amazon.awssdk:arns:jar:2.17.70:compile
+[INFO] |  +- software.amazon.awssdk:profiles:jar:2.17.70:compile
+[INFO] |  +- software.amazon.awssdk:sdk-core:jar:2.17.70:compile
+[INFO] |  |  \- org.reactivestreams:reactive-streams:jar:1.0.3:compile
+[INFO] |  +- software.amazon.awssdk:auth:jar:2.17.70:compile
+[INFO] |  |  +- software.amazon.awssdk:json-utils:jar:2.17.70:compile
+[INFO] |  |  \- software.amazon.eventstream:eventstream:jar:1.0.1:compile
+[INFO] |  +- software.amazon.awssdk:http-client-spi:jar:2.17.70:compile
+[INFO] |  +- software.amazon.awssdk:regions:jar:2.17.70:compile
+[INFO] |  +- software.amazon.awssdk:annotations:jar:2.17.70:compile
+[INFO] |  +- software.amazon.awssdk:utils:jar:2.17.70:compile
+[INFO] |  +- software.amazon.awssdk:aws-core:jar:2.17.70:compile
+[INFO] |  +- software.amazon.awssdk:metrics-spi:jar:2.17.70:compile
+[INFO] |  \- software.amazon.awssdk:netty-nio-client:jar:2.17.70:runtime
+[INFO] |     +- io.netty:netty-codec-http:jar:4.1.68.Final:compile
+[INFO] |     +- io.netty:netty-codec:jar:4.1.68.Final:compile
+[INFO] |     +- io.netty:netty-transport:jar:4.1.68.Final:compile
+[INFO] |     |  \- io.netty:netty-resolver:jar:4.1.68.Final:compile
+[INFO] |     +- io.netty:netty-common:jar:4.1.68.Final:compile
+[INFO] |     +- io.netty:netty-buffer:jar:4.1.68.Final:compile
+[INFO] |     +- io.netty:netty-handler:jar:4.1.68.Final:compile
+[INFO] |     +- io.netty:netty-transport-native-epoll:jar:linux-x86_64:4.1.68.Final:runtime
+[INFO] |     \- com.typesafe.netty:netty-reactive-streams-http:jar:2.0.5:runtime
+[INFO] |        \- com.typesafe.netty:netty-reactive-streams:jar:2.0.5:runtime
+[INFO] +- software.amazon.awssdk:secretsmanager:jar:2.17.70:compile
+[INFO] |  \- software.amazon.awssdk:aws-json-protocol:jar:2.17.70:compile
+[INFO] |     \- software.amazon.awssdk:third-party-jackson-core:jar:2.17.70:compile
+[INFO] +- software.amazon.awssdk:ecs:jar:2.17.70:compile
+[INFO] +- software.amazon.awssdk:sts:jar:2.17.70:compile
+[INFO] |  \- software.amazon.awssdk:aws-query-protocol:jar:2.17.70:compile
+[INFO] +- software.amazon.awssdk:apache-client:jar:2.17.70:compile
+[INFO] |  +- org.apache.httpcomponents:httpclient:jar:4.5.13:compile
+[INFO] |  \- org.apache.httpcomponents:httpcore:jar:4.4.11:compile
+[INFO] +- org.locationtech.geomesa:geomesa-fs-datastore_2.12:jar:3.3.0:compile
+[INFO] |  +- org.locationtech.geomesa:geomesa-index-api_2.12:jar:3.3.0:compile
+[INFO] |  |  +- io.sgr:s2-geometry-library-java:jar:1.0.1:compile
+[INFO] |  |  +- org.locationtech.geomesa:geomesa-feature-kryo_2.12:jar:3.3.0:compile
+[INFO] |  |  |  +- org.json4s:json4s-native_2.12:jar:3.5.4:compile
+[INFO] |  |  |  |  \- org.json4s:json4s-core_2.12:jar:3.5.4:compile
+[INFO] |  |  |  |     +- org.json4s:json4s-ast_2.12:jar:3.5.4:compile
+[INFO] |  |  |  |     \- org.json4s:json4s-scalap_2.12:jar:3.5.4:compile
+[INFO] |  |  |  \- com.jayway.jsonpath:json-path:jar:2.2.0:compile
+[INFO] |  |  +- org.locationtech.geomesa:geomesa-security_2.12:jar:3.3.0:compile
+[INFO] |  |  +- org.geotools:gt-process-feature:jar:23.3:compile
+[INFO] |  |  |  +- org.geotools:gt-process:jar:23.3:compile
+[INFO] |  |  |  |  \- org.jaitools:jt-utils:jar:1.6.0:compile
+[INFO] |  |  |  \- org.geotools:gt-coverage:jar:23.3:compile
+[INFO] |  |  |     +- org.jaitools:jt-zonalstats:jar:1.6.0:compile
+[INFO] |  |  |     +- it.geosolutions.jaiext.affine:jt-affine:jar:1.1.17:compile
+[INFO] |  |  |     +- it.geosolutions.jaiext.algebra:jt-algebra:jar:1.1.17:compile
+[INFO] |  |  |     +- it.geosolutions.jaiext.bandmerge:jt-bandmerge:jar:1.1.17:compile
+[INFO] |  |  |     +- it.geosolutions.jaiext.bandselect:jt-bandselect:jar:1.1.17:compile
+[INFO] |  |  |     +- it.geosolutions.jaiext.bandcombine:jt-bandcombine:jar:1.1.17:compile
+[INFO] |  |  |     +- it.geosolutions.jaiext.border:jt-border:jar:1.1.17:compile
+[INFO] |  |  |     +- it.geosolutions.jaiext.buffer:jt-buffer:jar:1.1.17:compile
+[INFO] |  |  |     +- it.geosolutions.jaiext.crop:jt-crop:jar:1.1.17:compile
+[INFO] |  |  |     +- it.geosolutions.jaiext.iterators:jt-iterators:jar:1.1.17:compile
+[INFO] |  |  |     +- it.geosolutions.jaiext.lookup:jt-lookup:jar:1.1.17:compile
+[INFO] |  |  |     +- it.geosolutions.jaiext.mosaic:jt-mosaic:jar:1.1.17:compile
+[INFO] |  |  |     +- it.geosolutions.jaiext.nullop:jt-nullop:jar:1.1.17:compile
+[INFO] |  |  |     +- it.geosolutions.jaiext.rescale:jt-rescale:jar:1.1.17:compile
+[INFO] |  |  |     +- it.geosolutions.jaiext.scale:jt-scale:jar:1.1.17:compile
+[INFO] |  |  |     +- it.geosolutions.jaiext.scale2:jt-scale2:jar:1.1.17:compile
+[INFO] |  |  |     |  \- org.huldra.math:bigint:jar:0.7.1:compile
+[INFO] |  |  |     +- it.geosolutions.jaiext.stats:jt-stats:jar:1.1.17:compile
+[INFO] |  |  |     +- it.geosolutions.jaiext.translate:jt-translate:jar:1.1.17:compile
+[INFO] |  |  |     +- it.geosolutions.jaiext.utilities:jt-utilities:jar:1.1.17:compile
+[INFO] |  |  |     +- it.geosolutions.jaiext.warp:jt-warp:jar:1.1.17:compile
+[INFO] |  |  |     +- it.geosolutions.jaiext.zonal:jt-zonal:jar:1.1.17:compile
+[INFO] |  |  |     +- it.geosolutions.jaiext.binarize:jt-binarize:jar:1.1.17:compile
+[INFO] |  |  |     +- it.geosolutions.jaiext.format:jt-format:jar:1.1.17:compile
+[INFO] |  |  |     +- it.geosolutions.jaiext.colorconvert:jt-colorconvert:jar:1.1.17:compile
+[INFO] |  |  |     +- it.geosolutions.jaiext.errordiffusion:jt-errordiffusion:jar:1.1.17:compile
+[INFO] |  |  |     +- it.geosolutions.jaiext.orderdither:jt-orderdither:jar:1.1.17:compile
+[INFO] |  |  |     +- it.geosolutions.jaiext.colorindexer:jt-colorindexer:jar:1.1.17:compile
+[INFO] |  |  |     +- it.geosolutions.jaiext.imagefunction:jt-imagefunction:jar:1.1.17:compile
+[INFO] |  |  |     +- it.geosolutions.jaiext.piecewise:jt-piecewise:jar:1.1.17:compile
+[INFO] |  |  |     +- it.geosolutions.jaiext.classifier:jt-classifier:jar:1.1.17:compile
+[INFO] |  |  |     +- it.geosolutions.jaiext.rlookup:jt-rlookup:jar:1.1.17:compile
+[INFO] |  |  |     +- it.geosolutions.jaiext.vectorbin:jt-vectorbin:jar:1.1.17:compile
+[INFO] |  |  |     \- it.geosolutions.jaiext.shadedrelief:jt-shadedrelief:jar:1.1.17:compile
+[INFO] |  |  +- com.github.ben-manes.caffeine:caffeine:jar:2.5.6:compile
+[INFO] |  |  \- org.calrissian.mango:mango-core:jar:1.2.0:compile
+[INFO] |  +- org.locationtech.geomesa:geomesa-fs-storage-api_2.12:jar:3.3.0:compile
+[INFO] |  |  \- org.geotools:gt-main:jar:23.3:compile
+[INFO] |  +- org.locationtech.geomesa:geomesa-fs-storage-common_2.12:jar:3.3.0:compile
+[INFO] |  |  +- com.github.pureconfig:pureconfig_2.12:jar:0.11.1:compile
+[INFO] |  |  |  +- com.github.pureconfig:pureconfig-core_2.12:jar:0.11.1:compile
+[INFO] |  |  |  |  \- com.github.pureconfig:pureconfig-macros_2.12:jar:0.11.1:compile
+[INFO] |  |  |  \- com.github.pureconfig:pureconfig-generic_2.12:jar:0.11.1:compile
+[INFO] |  |  |     \- com.chuusai:shapeless_2.12:jar:2.3.3:compile
+[INFO] |  |  \- org.apache.commons:commons-dbcp2:jar:2.6.0:compile
+[INFO] |  +- org.locationtech.geomesa:geomesa-fs-storage-convert_2.12:jar:3.3.0:compile
+[INFO] |  +- org.locationtech.geomesa:geomesa-convert-all_2.12:jar:3.3.0:compile
+[INFO] |  |  +- org.locationtech.geomesa:geomesa-convert-common_2.12:jar:3.3.0:compile
+[INFO] |  |  |  +- org.locationtech.geomesa:geomesa-feature-all_2.12:jar:3.3.0:compile
+[INFO] |  |  |  |  +- org.locationtech.geomesa:geomesa-feature-avro_2.12:jar:3.3.0:compile
+[INFO] |  |  |  |  \- org.locationtech.geomesa:geomesa-feature-nio_2.12:jar:3.3.0:compile
+[INFO] |  |  |  +- org.locationtech.geomesa:geomesa-metrics-core_2.12:jar:3.3.0:compile
+[INFO] |  |  |  \- io.dropwizard.metrics:metrics-core:jar:3.2.6:compile
+[INFO] |  |  +- org.locationtech.geomesa:geomesa-convert-avro_2.12:jar:3.3.0:compile
+[INFO] |  |  +- org.locationtech.geomesa:geomesa-convert-fixedwidth_2.12:jar:3.3.0:compile
+[INFO] |  |  +- org.locationtech.geomesa:geomesa-convert-jdbc_2.12:jar:3.3.0:compile
+[INFO] |  |  +- org.locationtech.geomesa:geomesa-convert-json_2.12:jar:3.3.0:compile
+[INFO] |  |  +- org.locationtech.geomesa:geomesa-convert-shp_2.12:jar:3.3.0:compile
+[INFO] |  |  +- org.locationtech.geomesa:geomesa-convert-parquet_2.12:jar:3.3.0:compile
+[INFO] |  |  |  +- org.locationtech.geomesa:geomesa-fs-storage-parquet_2.12:jar:3.3.0:compile
+[INFO] |  |  |  +- org.apache.parquet:parquet-column:jar:1.9.0:compile
+[INFO] |  |  |  |  +- org.apache.parquet:parquet-common:jar:1.9.0:compile
+[INFO] |  |  |  |  \- org.apache.parquet:parquet-encoding:jar:1.9.0:compile
+[INFO] |  |  |  \- org.apache.parquet:parquet-hadoop:jar:1.9.0:compile
+[INFO] |  |  |     +- org.apache.parquet:parquet-format:jar:2.3.1:compile
+[INFO] |  |  |     \- org.apache.parquet:parquet-jackson:jar:1.9.0:compile
+[INFO] |  |  +- org.locationtech.geomesa:geomesa-convert-text_2.12:jar:3.3.0:compile
+[INFO] |  |  +- org.locationtech.geomesa:geomesa-convert-xml_2.12:jar:3.3.0:compile
+[INFO] |  |  |  \- net.sf.saxon:Saxon-HE:jar:9.7.0-20:compile
+[INFO] |  |  \- org.locationtech.geomesa:geomesa-convert-redis-cache_2.12:jar:3.3.0:compile
+[INFO] |  |     \- redis.clients:jedis:jar:3.0.1:compile
+[INFO] |  +- org.locationtech.geomesa:geomesa-feature-common_2.12:jar:3.3.0:compile
+[INFO] |  |  \- org.locationtech.jts.io:jts-io-common:jar:1.17.0:compile
+[INFO] |  +- org.locationtech.geomesa:geomesa-filter_2.12:jar:3.3.0:compile
+[INFO] |  |  +- org.geotools:gt-cql:jar:23.3:compile
+[INFO] |  |  \- org.geotools:gt-transform:jar:23.3:compile
+[INFO] |  +- org.locationtech.geomesa:geomesa-utils_2.12:jar:3.3.0:compile
+[INFO] |  |  +- org.apache.commons:commons-pool2:jar:2.6.1:compile
+[INFO] |  |  +- org.apache.commons:commons-text:jar:1.6:compile
+[INFO] |  |  +- org.locationtech.jts:jts-core:jar:1.17.0:compile
+[INFO] |  |  +- org.geotools:gt-referencing:jar:23.3:compile
+[INFO] |  |  |  +- org.ejml:ejml-ddense:jar:0.34:compile
+[INFO] |  |  |  +- commons-pool:commons-pool:jar:1.5.4:compile
+[INFO] |  |  |  \- net.sf.geographiclib:GeographicLib-Java:jar:1.49:compile
+[INFO] |  |  +- org.geotools:gt-metadata:jar:23.3:compile
+[INFO] |  |  |  \- org.geotools.ogc:net.opengis.ows:jar:23.3:compile
+[INFO] |  |  |     +- org.geotools.ogc:org.w3.xlink:jar:23.3:compile
+[INFO] |  |  |     +- org.eclipse.emf:org.eclipse.emf.common:jar:2.15.0:compile
+[INFO] |  |  |     +- org.eclipse.emf:org.eclipse.emf.ecore:jar:2.15.0:compile
+[INFO] |  |  |     \- org.eclipse.emf:org.eclipse.emf.ecore.xmi:jar:2.15.0:compile
+[INFO] |  |  +- org.geotools:gt-opengis:jar:23.3:compile
+[INFO] |  |  |  \- systems.uom:systems-common-java8:jar:0.7.2:compile
+[INFO] |  |  |     +- tec.uom:uom-se:jar:1.0.8:compile
+[INFO] |  |  |     |  +- javax.measure:unit-api:jar:1.0:compile
+[INFO] |  |  |     |  \- tec.uom.lib:uom-lib-common:jar:1.0.2:compile
+[INFO] |  |  |     +- si.uom:si-quantity:jar:0.7.1:compile
+[INFO] |  |  |     \- si.uom:si-units-java8:jar:0.7.1:compile
+[INFO] |  |  +- org.geotools:gt-grid:jar:23.3:compile
+[INFO] |  |  +- org.geotools:gt-shapefile:jar:23.3:compile
+[INFO] |  |  +- org.ejml:ejml-core:jar:0.34:compile
+[INFO] |  |  +- org.ejml:ejml-simple:jar:0.34:compile
+[INFO] |  |  +- org.locationtech.spatial4j:spatial4j:jar:0.8:compile
+[INFO] |  |  +- com.esotericsoftware:kryo-shaded:jar:3.0.3:compile
+[INFO] |  |  |  \- com.esotericsoftware:minlog:jar:1.3.0:compile
+[INFO] |  |  +- com.clearspring.analytics:stream:jar:2.9.2:compile
+[INFO] |  |  +- org.parboiled:parboiled-scala_2.12:jar:1.2.0:compile
+[INFO] |  |  |  \- org.parboiled:parboiled-core:jar:1.2.0:compile
+[INFO] |  |  +- org.ehcache:sizeof:jar:0.3.0:compile
+[INFO] |  |  +- org.scala-lang.modules:scala-parser-combinators_2.12:jar:1.1.2:compile
+[INFO] |  |  +- org.scala-lang.modules:scala-xml_2.12:jar:1.3.0:compile
+[INFO] |  |  \- com.typesafe.scala-logging:scala-logging_2.12:jar:3.8.0:compile
+[INFO] |  |     \- org.scala-lang:scala-reflect:jar:2.12.4:compile
+[INFO] |  +- org.locationtech.geomesa:geomesa-z3_2.12:jar:3.3.0:compile
+[INFO] |  |  \- org.locationtech.sfcurve:sfcurve-zorder_2.12:jar:0.2.2:compile
+[INFO] |  |     \- org.locationtech.sfcurve:sfcurve-api_2.12:jar:0.2.2:compile
+[INFO] |  \- org.scala-lang:scala-library:jar:2.12.13:compile
+[INFO] +- org.apache.hadoop:hadoop-common:jar:2.9.2:compile
+[INFO] |  +- org.apache.hadoop:hadoop-annotations:jar:2.9.2:compile
+[INFO] |  +- com.google.guava:guava:jar:11.0.2:compile
+[INFO] |  +- commons-cli:commons-cli:jar:1.2:compile
+[INFO] |  +- org.apache.commons:commons-math3:jar:3.1.1:compile
+[INFO] |  +- xmlenc:xmlenc:jar:0.52:compile
+[INFO] |  +- commons-codec:commons-codec:jar:1.4:compile
+[INFO] |  +- commons-io:commons-io:jar:2.4:compile
+[INFO] |  +- commons-net:commons-net:jar:3.1:compile
+[INFO] |  +- commons-collections:commons-collections:jar:3.2.2:compile
+[INFO] |  +- javax.servlet:servlet-api:jar:2.5:compile
+[INFO] |  +- org.mortbay.jetty:jetty:jar:6.1.26:compile
+[INFO] |  +- org.mortbay.jetty:jetty-util:jar:6.1.26:compile
+[INFO] |  +- org.mortbay.jetty:jetty-sslengine:jar:6.1.26:compile
+[INFO] |  +- javax.servlet.jsp:jsp-api:jar:2.1:runtime
+[INFO] |  +- com.sun.jersey:jersey-core:jar:1.9:compile
+[INFO] |  +- com.sun.jersey:jersey-json:jar:1.9:compile
+[INFO] |  |  +- org.codehaus.jettison:jettison:jar:1.1:compile
+[INFO] |  |  +- com.sun.xml.bind:jaxb-impl:jar:2.2.3-1:compile
+[INFO] |  |  |  \- javax.xml.bind:jaxb-api:jar:2.2.2:compile
+[INFO] |  |  |     +- javax.xml.stream:stax-api:jar:1.0-2:compile
+[INFO] |  |  |     \- javax.activation:activation:jar:1.1:compile
+[INFO] |  |  +- org.codehaus.jackson:jackson-jaxrs:jar:1.8.3:compile
+[INFO] |  |  \- org.codehaus.jackson:jackson-xc:jar:1.8.3:compile
+[INFO] |  +- com.sun.jersey:jersey-server:jar:1.9:compile
+[INFO] |  |  \- asm:asm:jar:3.1:compile
+[INFO] |  +- commons-logging:commons-logging:jar:1.1.3:compile
+[INFO] |  +- log4j:log4j:jar:1.2.17:compile
+[INFO] |  +- net.java.dev.jets3t:jets3t:jar:0.9.0:compile
+[INFO] |  |  \- com.jamesmurty.utils:java-xmlbuilder:jar:0.4:compile
+[INFO] |  +- commons-lang:commons-lang:jar:2.6:compile
+[INFO] |  +- commons-configuration:commons-configuration:jar:1.6:compile
+[INFO] |  |  +- commons-digester:commons-digester:jar:1.8:compile
+[INFO] |  |  |  \- commons-beanutils:commons-beanutils:jar:1.7.0:compile
+[INFO] |  |  \- commons-beanutils:commons-beanutils-core:jar:1.8.0:compile
+[INFO] |  +- org.apache.commons:commons-lang3:jar:3.4:compile
+[INFO] |  +- org.slf4j:slf4j-api:jar:1.7.25:compile
+[INFO] |  +- org.slf4j:slf4j-log4j12:jar:1.7.25:compile
+[INFO] |  +- org.codehaus.jackson:jackson-core-asl:jar:1.9.13:compile
+[INFO] |  +- org.codehaus.jackson:jackson-mapper-asl:jar:1.9.13:compile
+[INFO] |  +- org.apache.avro:avro:jar:1.7.7:compile
+[INFO] |  |  \- com.thoughtworks.paranamer:paranamer:jar:2.3:compile
+[INFO] |  +- com.google.protobuf:protobuf-java:jar:2.5.0:compile
+[INFO] |  +- org.apache.hadoop:hadoop-auth:jar:2.9.2:compile
+[INFO] |  |  +- com.nimbusds:nimbus-jose-jwt:jar:4.41.1:compile
+[INFO] |  |  |  +- com.github.stephenc.jcip:jcip-annotations:jar:1.0-1:compile
+[INFO] |  |  |  \- net.minidev:json-smart:jar:2.3:compile (version selected from constraint [1.3.1,2.3])
+[INFO] |  |  |     \- net.minidev:accessors-smart:jar:1.2:compile
+[INFO] |  |  |        \- org.ow2.asm:asm:jar:5.0.4:compile
+[INFO] |  |  +- org.apache.directory.server:apacheds-kerberos-codec:jar:2.0.0-M15:compile
+[INFO] |  |  |  +- org.apache.directory.server:apacheds-i18n:jar:2.0.0-M15:compile
+[INFO] |  |  |  +- org.apache.directory.api:api-asn1-api:jar:1.0.0-M20:compile
+[INFO] |  |  |  \- org.apache.directory.api:api-util:jar:1.0.0-M20:compile
+[INFO] |  |  \- org.apache.curator:curator-framework:jar:2.7.1:compile
+[INFO] |  +- com.jcraft:jsch:jar:0.1.54:compile
+[INFO] |  +- org.apache.curator:curator-client:jar:2.7.1:compile
+[INFO] |  +- org.apache.curator:curator-recipes:jar:2.7.1:compile
+[INFO] |  +- com.google.code.findbugs:jsr305:jar:3.0.0:compile
+[INFO] |  +- org.apache.htrace:htrace-core4:jar:4.1.0-incubating:compile
+[INFO] |  +- org.apache.zookeeper:zookeeper:jar:3.4.6:compile
+[INFO] |  |  \- io.netty:netty:jar:3.7.0.Final:compile
+[INFO] |  +- org.apache.commons:commons-compress:jar:1.4.1:compile
+[INFO] |  |  \- org.tukaani:xz:jar:1.0:compile
+[INFO] |  +- org.codehaus.woodstox:stax2-api:jar:3.1.4:compile
+[INFO] |  \- com.fasterxml.woodstox:woodstox-core:jar:5.0.3:compile
+[INFO] +- org.apache.hadoop:hadoop-aws:jar:2.9.2:compile
+[INFO] |  \- com.amazonaws:aws-java-sdk-bundle:jar:1.11.199:compile
+[INFO] +- com.fasterxml.jackson.core:jackson-core:jar:2.12.5:compile
+[INFO] +- com.fasterxml.jackson.core:jackson-databind:jar:2.12.5:compile
+[INFO] +- com.fasterxml.jackson.core:jackson-annotations:jar:2.12.5:compile
+[INFO] +- org.xerial.snappy:snappy-java:jar:1.1.1.6:compile
+[INFO] +- org.jetbrains.kotlinx:kotlinx-serialization-json:jar:1.2.2:compile
+[INFO] |  \- org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:jar:1.2.2:compile
+[INFO] |     \- org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:jar:1.2.2:compile
+[INFO] +- com.google.code.gson:gson:jar:2.8.8:compile
+[INFO] +- org.apache.commons:commons-csv:jar:1.9.0:compile
+[INFO] +- com.zaxxer:HikariCP:jar:4.0.3:compile
+[INFO] +- org.postgresql:postgresql:jar:42.2.23:compile
+[INFO] |  \- org.checkerframework:checker-qual:jar:3.5.0:runtime
+[INFO] +- org.flywaydb:flyway-core:jar:8.0.5:compile
+[INFO] +- io.ktor:ktor-server-core:jar:1.6.5:compile
+[INFO] |  +- org.jetbrains.kotlin:kotlin-stdlib-jdk8:jar:1.5.31:compile
+[INFO] |  +- org.jetbrains.kotlin:kotlin-stdlib-jdk7:jar:1.5.31:compile
+[INFO] |  +- org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:jar:1.5.2-native-mt:compile
+[INFO] |  |  \- org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:jar:1.5.2-native-mt:compile
+[INFO] |  +- io.ktor:ktor-utils-jvm:jar:1.6.5:compile
+[INFO] |  |  \- io.ktor:ktor-io-jvm:jar:1.6.5:compile
+[INFO] |  +- io.ktor:ktor-http-jvm:jar:1.6.5:compile
+[INFO] |  +- com.typesafe:config:jar:1.4.1:compile
+[INFO] |  +- org.jetbrains.kotlin:kotlin-reflect:jar:1.5.31:compile
+[INFO] |  \- org.fusesource.jansi:jansi:jar:2.4.0:runtime
+[INFO] +- io.ktor:ktor-server-netty:jar:1.6.5:compile
+[INFO] |  +- io.ktor:ktor-server-host-common:jar:1.6.5:compile
+[INFO] |  |  \- io.ktor:ktor-http-cio-jvm:jar:1.6.5:compile
+[INFO] |  |     \- io.ktor:ktor-network-jvm:jar:1.6.5:compile
+[INFO] |  +- io.netty:netty-codec-http2:jar:4.1.69.Final:compile
+[INFO] |  +- org.eclipse.jetty.alpn:alpn-api:jar:1.1.3.v20160715:compile
+[INFO] |  +- io.netty:netty-transport-native-kqueue:jar:4.1.69.Final:compile
+[INFO] |  |  \- io.netty:netty-transport-native-unix-common:jar:4.1.69.Final:compile
+[INFO] |  \- io.netty:netty-transport-native-epoll:jar:4.1.69.Final:compile
+[INFO] +- io.ktor:ktor-serialization:jar:1.6.5:compile
+[INFO] +- io.ktor:ktor-auth:jar:1.6.5:compile
+[INFO] |  +- io.ktor:ktor-client-core-jvm:jar:1.6.5:compile
+[INFO] |  \- com.googlecode.json-simple:json-simple:jar:1.1.1:compile
+[INFO] +- org.mindrot:jbcrypt:jar:0.4:compile
+[INFO] +- org.jetbrains.kotlin:kotlin-test:jar:1.5.31:test
+[INFO] +- io.mockk:mockk:jar:1.12.0:test
+[INFO] |  +- io.mockk:mockk-dsl-jvm:jar:1.12.0:test
+[INFO] |  |  \- io.mockk:mockk-dsl:jar:1.12.0:test
+[INFO] |  +- io.mockk:mockk-common:jar:1.12.0:test
+[INFO] |  \- io.mockk:mockk-agent-jvm:jar:1.12.0:test
+[INFO] |     +- io.mockk:mockk-agent-api:jar:1.12.0:test
+[INFO] |     +- io.mockk:mockk-agent-common:jar:1.12.0:test
+[INFO] |     +- org.objenesis:objenesis:jar:3.1:compile
+[INFO] |     +- net.bytebuddy:byte-buddy:jar:1.11.5:test
+[INFO] |     \- net.bytebuddy:byte-buddy-agent:jar:1.11.5:test
+[INFO] \- junit:junit:jar:4.13.2:test
+[INFO]    \- org.hamcrest:hamcrest-core:jar:1.3:test
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time: 4.075 s
+[INFO] Finished at: 2021-12-08T13:17:35+02:00
+[INFO] ------------------------------------------------------------------------

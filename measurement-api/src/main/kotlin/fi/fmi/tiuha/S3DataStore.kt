@@ -16,8 +16,7 @@ val HADOOP_CONFIG = when(Config.environment) {
             <property>
                 <name>fs.s3a.aws.credentials.provider</name>
                 <value>
-                    com.amazonaws.auth.ContainerCredentialsProvider,
-                    com.amazonaws.auth.profile.ProfileCredentialsProvider
+                    com.amazonaws.auth.ContainerCredentialsProvider
                 </value>
             </property>
         </configuration>
