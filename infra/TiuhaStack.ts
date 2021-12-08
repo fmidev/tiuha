@@ -25,9 +25,15 @@ export class TiuhaStack extends cdk.Stack {
   envName: string
   vpc: ec2.Vpc
   importBucket: s3.Bucket
+  hostedZone: route53.HostedZone
 
   constructor(scope: cdk.Construct, id: string, props: TiuhaStackProps) {
     super(scope, id, props)
+    this.envName = props.envName.toLowerCase()
+
+    this.hostedZone = new route53.HostedZone(this, "TiuhaHostedZone", {
+      zoneName: this.envName === "prod" ? "tiuha.fmi.fi" : `tiuha-${this.envName}.fmi.fi`
+    })
 
     const measurementsKeyspace = new cassandra.CfnKeyspace(this, 'Measurements', {
       keyspaceName: 'measurements',
@@ -37,7 +43,6 @@ export class TiuhaStack extends cdk.Stack {
 
     this.vpc = this.createVpc()
 
-    this.envName = props.envName.toLowerCase()
     const measurementsBucket = new s3.Bucket(this, 'measurementsBucket', {
       bucketName: `fmi-tiuha-measurements-${this.envName}`,
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
@@ -79,14 +84,14 @@ export class TiuhaStack extends cdk.Stack {
 
     // only dev has own domain for demo purposes
     if (this.envName === "dev") {
-      const hostedZone = route53.HostedZone.fromHostedZoneAttributes(this, "HostedZone", {
+      const tempHostedZone = route53.HostedZone.fromHostedZoneAttributes(this, "HostedZone", {
         hostedZoneId: "Z10485242JB98Z7I2HV6U",
         zoneName: domainName,
       })
       const apiDomainName = `api.${domainName}`
 
       const certificate = new certificatemanager.DnsValidatedCertificate(this, "Certificate", {
-        hostedZone,
+        hostedZone: tempHostedZone,
         domainName: apiDomainName,
       })
 
@@ -113,7 +118,13 @@ export class TiuhaStack extends cdk.Stack {
       })
 
       new route53.CnameRecord(this, "LoadBalancerDnsRecord", {
-        zone: hostedZone,
+        zone: tempHostedZone,
+        recordName: apiDomainName,
+        domainName: loadBalancer.loadBalancerDnsName,
+      })
+
+      new route53.CnameRecord(this, "LoadBalancerTiuhaDnsRecord", {
+        zone: this.hostedZone,
         recordName: apiDomainName,
         domainName: loadBalancer.loadBalancerDnsName,
       })
