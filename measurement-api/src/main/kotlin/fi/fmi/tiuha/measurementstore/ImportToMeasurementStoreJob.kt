@@ -15,10 +15,10 @@ import java.util.zip.GZIPInputStream
 class ImportToMeasurementStoreJob(private val ds: S3DataStore, private val s3: S3, private val importBucket: String) : ScheduledJob("insert_to_measurement_store") {
     private val db = MeasurementStoreDb(Config.dataSource)
 
-    override fun nextFireTime() = ZonedDateTime.now().plus(10, ChronoUnit.MINUTES)
+    override fun nextFireTime() = ZonedDateTime.now().plus(5, ChronoUnit.MINUTES)
 
     override fun exec() {
-        val importIds = db.listPendingImports(limit = 5)
+        val importIds = db.listPendingImports(limit = 10)
         Log.info("Importing ${importIds.size} batches to measurement store")
         importIds.forEach(::importBatch)
     }
