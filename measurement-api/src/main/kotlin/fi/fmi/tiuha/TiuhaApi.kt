@@ -21,8 +21,9 @@ data class BadRequestException(val error: String) : Throwable("BadRequest")
 
 @Serializable data class ErrorResponse(val error: String)
 
-class TiuhaApi(port: Int) {
+class TiuhaApi(port: Int, ds: S3DataStore) {
     val db = Db(Config.dataSource)
+    val edrApi = EdrApi(ds)
     val server = embeddedServer(
             Netty,
             port = port
@@ -68,7 +69,7 @@ class TiuhaApi(port: Int) {
             }
 
             authenticate {
-                EdrApi.routes(this)
+                edrApi.routes(this)
             }
         }
     }

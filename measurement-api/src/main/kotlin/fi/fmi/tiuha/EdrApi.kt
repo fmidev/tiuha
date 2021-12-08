@@ -8,9 +8,8 @@ import io.ktor.routing.*
 import java.time.Duration
 import java.time.Instant
 
-object EdrApi {
+class EdrApi(s3DataStore: S3DataStore) {
     val collections = netatmoPropertyNameTitleMap.keys.toList().map { "netatmo-$it" }
-    val s3DataStore = S3DataStore(Config.measurementsBucket)
     val geomesa = Geomesa(s3DataStore.dataStore)
 
     fun routes(r: Route) = r.apply {

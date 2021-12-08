@@ -14,23 +14,23 @@ fun main(args: Array<String>) {
     logHeapMemorySize()
     runMigrations()
 
-    val scheduledJobs = startScheduledJobs()
+    val measurementDataStore = S3DataStore(Config.measurementsBucket)
+    val scheduledJobs = startScheduledJobs(measurementDataStore)
 
     Log.info("Starting HTTP server")
-    val httpServer = TiuhaApi(Config.httpPort)
+    val httpServer = TiuhaApi(Config.httpPort, measurementDataStore)
     httpServer.start()
     Log.info("HTTP server started")
 
     scheduledJobs.forEach { it.await() }
 }
 
-fun startScheduledJobs(): MutableList<ScheduledJob> {
+fun startScheduledJobs(measurementDataStore: S3DataStore): MutableList<ScheduledJob> {
     Log.info("Starting scheduled jobs")
     val s3 = TiuhaS3()
     val netatmo = NetatmoClient()
     val scheduledJobs = mutableListOf<ScheduledJob>()
     val transformTask = NetatmoGeoJsonTransform(s3)
-    val measurementDataStore = S3DataStore(Config.measurementsBucket)
 
     val ecsClient = EcsClient.builder().region(Config.awsRegion).build()
     val qcTask = QCTask(QCDb(Config.dataSource), ecsClient, s3, Config.noopQualityControl)

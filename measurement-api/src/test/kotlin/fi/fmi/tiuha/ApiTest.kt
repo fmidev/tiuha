@@ -32,7 +32,8 @@ data class ApiCredentials(
 
 abstract class ApiTest : TiuhaTest() {
     val httpPort = 7766
-    val api = TiuhaApi(httpPort)
+    val geomesaDs = S3DataStore(Config.measurementsBucket)
+    val api = TiuhaApi(httpPort, geomesaDs)
     val testCredentials = ApiCredentials("testclient", "password123")
     val http = HttpClients.createDefault()
 

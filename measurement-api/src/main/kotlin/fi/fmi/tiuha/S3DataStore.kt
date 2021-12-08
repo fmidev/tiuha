@@ -1,9 +1,9 @@
 package fi.fmi.tiuha
 
-import org.geotools.data.DataStore
 import org.geotools.data.DataStoreFinder
 import org.geotools.data.FeatureWriter
 import org.geotools.data.Transaction
+import org.locationtech.geomesa.fs.data.FileSystemDataStore
 import org.locationtech.geomesa.fs.storage.common.interop.ConfigurationUtils
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.feature.simple.SimpleFeatureType
@@ -49,12 +49,21 @@ val HADOOP_CONFIG = when(Config.environment) {
 }
 
 class S3DataStore(bucket: String) {
-    val dataStore: DataStore = DataStoreFinder.getDataStore(
-        mapOf(
-            "fs.path" to "s3a://${bucket}/",
-            "fs.config.xml" to HADOOP_CONFIG
+    var dataStore: FileSystemDataStore
+
+    init {
+        val ds = DataStoreFinder.getDataStore(
+            mapOf(
+                "fs.path" to "s3a://${bucket}/",
+                "fs.config.xml" to HADOOP_CONFIG
+            )
         )
-    )
+        if (ds is FileSystemDataStore) {
+            dataStore = ds
+        } else {
+            throw Error("Expected a FileSystemDataStore but instead got ${ds::class.qualifiedName}")
+        }
+    }
 
     private val sft = MEASUREMENT_FEATURE_TYPE
 
@@ -74,7 +83,7 @@ class S3DataStore(bucket: String) {
         try {
             dataStore.getSchema(FEATURE_NAME)
         } catch (e: IOException) {
-            Log.info("Creating schema '$FEATURE_NAME'")
+            Log.info(e, "Creating schema '$FEATURE_NAME'")
             dataStore.createSchema(sft)
         }
     }
