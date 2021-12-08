@@ -67,7 +67,7 @@ class S3DataStore(bucket: String) {
     private val sft = MEASUREMENT_FEATURE_TYPE
 
     init {
-        ConfigurationUtils.setScheme(sft, "attribute,daily,z2-8bits", mapOf(
+        ConfigurationUtils.setScheme(sft, "attribute,hourly,z2-8bits", mapOf(
             "dtg-attribute" to "dtg",
             "partitioned-attribute" to "property_id",
         ))
