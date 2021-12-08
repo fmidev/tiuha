@@ -1,6 +1,7 @@
 package fi.fmi.tiuha
 
 import fi.fmi.tiuha.db.runMigrations
+import fi.fmi.tiuha.measurementstore.CompactMeasurementStoreJob
 import fi.fmi.tiuha.measurementstore.ImportToMeasurementStoreJob
 import fi.fmi.tiuha.netatmo.*
 import fi.fmi.tiuha.qc.LocalFakeQC
@@ -42,6 +43,7 @@ fun startScheduledJobs(measurementDataStore: S3DataStore): MutableList<Scheduled
         Log.info("Using real QC")
     }
     val insertToMeasurementStoreJob = ImportToMeasurementStoreJob(measurementDataStore, s3, Config.importBucket)
+    val compactMeasurementStoreJob = CompactMeasurementStoreJob(measurementDataStore.dataStore)
 
     scheduledJobs.add(transformTask)
     scheduledJobs.addAll(NetatmoImport.countries.map {
@@ -49,6 +51,7 @@ fun startScheduledJobs(measurementDataStore: S3DataStore): MutableList<Scheduled
     })
     scheduledJobs.add(qcTask)
     scheduledJobs.add(insertToMeasurementStoreJob)
+    scheduledJobs.add(compactMeasurementStoreJob)
 
     scheduledJobs.forEach { it.start() }
     Log.info("Scheduled jobs started")
