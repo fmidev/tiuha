@@ -88,9 +88,15 @@
             <version>${hadoop.version}</version>
         </dependency>
         <dependency>
+            <!-- hadoop-aws uses AWS SDK v1, so specifying a newer version here -->
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-java-sdk-bundle</artifactId>
             <version>1.12.126</version>
+        </dependency>
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>1.2.17</version>
         </dependency>
 
         <dependency>
