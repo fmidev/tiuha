@@ -35,6 +35,7 @@ function run_tunnel_container {
       --volume "${HOME}/.aws:/root/.aws" \
       --privileged \
       --publish "127.0.0.1:1111:1111" \
+      --name "tiuha-psql-tunnel-to-${ENV}" \
       --detach \
       --rm $IMAGE_TAG
     )

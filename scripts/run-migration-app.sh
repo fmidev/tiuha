@@ -10,6 +10,10 @@ function main {
   parse_env_from_script_name
   configure_aws_credentials "fmi-tiuha-${ENV}"
 
+  info "Waiting for tunnel to ${ENV} database to be open"
+  info "Run ./scripts/psql-${ENV}.sh to open tunnel"
+  wait_for_container_to_be_healthy "tiuha-psql-tunnel-to-${ENV}"
+
   DATABASE_HOST="localhost" \
   DATABASE_PORT="1111" \
   DATABASE_NAME="$( get_secret_value 'tiuha-database-credentials' | jq -r '.dbname' )" \
