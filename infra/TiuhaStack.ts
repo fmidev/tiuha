@@ -23,6 +23,7 @@ type TiuhaStackProps = cdk.StackProps & {
 export class TiuhaStack extends cdk.Stack {
   apiPortNumber = 8383
   envName: string
+  domainName: string
   vpc: ec2.Vpc
   importBucket: s3.Bucket
   hostedZone: route53.HostedZone
@@ -30,9 +31,10 @@ export class TiuhaStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props: TiuhaStackProps) {
     super(scope, id, props)
     this.envName = props.envName.toLowerCase()
+    this.domainName = this.envName === "prod" ? "tiuha.fmi.fi" : `tiuha-${this.envName}.fmi.fi`
 
     this.hostedZone = new route53.HostedZone(this, "TiuhaHostedZone", {
-      zoneName: this.envName === "prod" ? "tiuha.fmi.fi" : `tiuha-${this.envName}.fmi.fi`
+      zoneName: this.domainName,
     })
 
     const measurementsKeyspace = new cassandra.CfnKeyspace(this, 'Measurements', {
@@ -75,60 +77,45 @@ export class TiuhaStack extends cdk.Stack {
   }
 
   createPublicLoadBalancer(service: ecs.FargateService) {
-    const domainName = `${this.envName}-tiuha.com`
-
     const loadBalancer = new elb.ApplicationLoadBalancer(this, "LoadBalancer", {
       vpc: service.cluster.vpc,
       internetFacing: true,
     })
 
-    // only dev has own domain for demo purposes
-    if (this.envName === "dev") {
-      const tempHostedZone = route53.HostedZone.fromHostedZoneAttributes(this, "HostedZone", {
-        hostedZoneId: "Z10485242JB98Z7I2HV6U",
-        zoneName: domainName,
-      })
-      const apiDomainName = `api.${domainName}`
+    const apiDomainName = `api.${this.domainName}`
 
-      const certificate = new certificatemanager.DnsValidatedCertificate(this, "Certificate", {
-        hostedZone: tempHostedZone,
-        domainName: apiDomainName,
-      })
+    const certificate = new certificatemanager.DnsValidatedCertificate(this, "Certificate", {
+      hostedZone: this.hostedZone,
+      domainName: apiDomainName,
+    })
 
-      const listener = loadBalancer.addListener("PublicListener", {
-        protocol: elb.ApplicationProtocol.HTTPS,
-        certificates: [certificate],
-        open: true,
-      })
+    const listener = loadBalancer.addListener("PublicListener", {
+      protocol: elb.ApplicationProtocol.HTTPS,
+      certificates: [certificate],
+      open: true,
+    })
 
-      const targetGroup = listener.addTargets("FargateService", {
-        port: this.apiPortNumber,
-        protocol: elb.ApplicationProtocol.HTTP,
-        targets: [service],
-        healthCheck: {
-          interval: cdk.Duration.seconds(30),
-          protocol: elb.Protocol.HTTP,
-          path: "/healthcheck",
-          healthyHttpCodes: "200",
-          port: this.apiPortNumber.toString(),
-          timeout: cdk.Duration.seconds(10),
-          healthyThresholdCount: 2,
-          unhealthyThresholdCount: 2,
-        }
-      })
+    const targetGroup = listener.addTargets("FargateService", {
+      port: this.apiPortNumber,
+      protocol: elb.ApplicationProtocol.HTTP,
+      targets: [service],
+      healthCheck: {
+        interval: cdk.Duration.seconds(30),
+        protocol: elb.Protocol.HTTP,
+        path: "/healthcheck",
+        healthyHttpCodes: "200",
+        port: this.apiPortNumber.toString(),
+        timeout: cdk.Duration.seconds(10),
+        healthyThresholdCount: 2,
+        unhealthyThresholdCount: 2,
+      }
+    })
 
-      new route53.CnameRecord(this, "LoadBalancerDnsRecord", {
-        zone: tempHostedZone,
-        recordName: apiDomainName,
-        domainName: loadBalancer.loadBalancerDnsName,
-      })
-
-      new route53.CnameRecord(this, "LoadBalancerTiuhaDnsRecord", {
-        zone: this.hostedZone,
-        recordName: apiDomainName,
-        domainName: loadBalancer.loadBalancerDnsName,
-      })
-    }
+    new route53.CnameRecord(this, "LoadBalancerDnsRecord", {
+      zone: this.hostedZone,
+      recordName: apiDomainName,
+      domainName: loadBalancer.loadBalancerDnsName,
+    })
   }
 
   createVpc(): ec2.Vpc {

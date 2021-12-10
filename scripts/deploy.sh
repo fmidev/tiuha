@@ -14,7 +14,6 @@ function main {
 
 	export AWS_ACCOUNT_ID="$( get_account_id )"
 
-	register_domain
 	cdk_bootstrap
 	deploy_cdk_app Repository
 	build_and_upload_measurement_api "$VERSION_TAG"
@@ -45,13 +44,6 @@ function cdk_bootstrap {
 
 function get_account_id {
   aws sts get-caller-identity --query "Account" --output text
-}
-
-function register_domain {
-  pushd "$repo/infra"
-  npm_ci_if_package_lock_has_changed
-  npx ts-node ./DomainRegistration.ts
-  popd
 }
 
 function build_and_upload_measurement_api {
