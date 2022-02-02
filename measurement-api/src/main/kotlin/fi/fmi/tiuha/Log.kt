@@ -1,6 +1,6 @@
 package fi.fmi.tiuha
 
-import org.apache.log4j.LogManager
+import org.apache.logging.log4j.LogManager
 import java.time.Duration
 import java.time.Instant
 
