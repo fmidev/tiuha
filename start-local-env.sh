@@ -15,9 +15,9 @@ function main {
   tmux new-session -d -s $session
 
   tmux select-pane -t 0
-  tmux send-keys "$repo/scripts/run-database.sh" C-m
+  tmux send-keys "$repo/scripts/run-local-services.sh" C-m
 
-  tmux splitw -v
+  tmux splitw -h
   tmux send-keys "$repo/measurement-api/run.sh" C-m
 
   tmux select-pane -t 0

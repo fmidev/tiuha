@@ -1,39 +1,72 @@
+from itertools import groupby
 import argparse
 import boto3
 import gzip
 import json
-import numbers
+import os
 import sys
-import temperature
+
+import netatmo_qc
+
+VERSION = os.environ.get("VERSION", None)
+
 
 class FeatureCollection:
     def __init__(self, collection):
         self.collection = collection
         self.features = collection["features"]
-        self.init_data_vectors()
+        self.grouped = self.group_by_source_and_property(self.features)
 
-    def init_data_vectors(self):
-        self.lats = []
-        self.lons = []
-        self.elevs = []
-        self.values = []
+    def group_by_source_and_property(self, features):
+        def keyfunc(x):
+            source = x[1]["properties"].get("sourceId", "netatmo")
+            property = x[1]["properties"]["observedPropertyTitle"]
+            return (source, property)
 
-        for feature in self.features:
-            lon, lat, elev = feature["geometry"]["coordinates"]
-            self.lats.append(lat)
-            self.lons.append(lon)
-            self.elevs.append(elev)
-            self.values.append(feature["properties"]["result"])
+        sorted_by_property = sorted(enumerate(features), key=keyfunc)
+        result = {}
+        for key, group in groupby(sorted_by_property, key=keyfunc):
+            result[key] = list(group)
+        return result
+
 
 
 def check_features(input_str):
+    print("Parsing input GeoJSON")
     featureCollection = FeatureCollection(json.JSONDecoder().decode(input_str))
-    flags = temperature.check(featureCollection.lats, featureCollection.lons, featureCollection.elevs, featureCollection.values)
+    print(f"Checking {len(featureCollection.features)} features")
+    for key, features_with_index in featureCollection.grouped.items():
+        print(f"Processing {len(features_with_index)} features with property {key}")
+        indexes = list(map(lambda x: x[0], features_with_index))
+        features = list(map(lambda x: x[1], features_with_index))
 
-    for feature, flag in zip(featureCollection.features, flags):
-        feature["properties"]["qcFlag"] = flag.item()
+        if key == ("netatmo", "Air temperature"):
+            print(f"Running QC for {key}")
+            check_results = netatmo_qc.temperature(features)
+            assign_qc_results("titanlib-temperature", featureCollection, indexes, check_results)
+        elif key == ("netatmo", "Relative Humidity"):
+            print(f"Running QC for {key}")
+            check_results = netatmo_qc.humidity(features)
+            assign_qc_results("titanlib-humidity", featureCollection, indexes, check_results)
+        elif key == ("netatmo", "Air Pressure"):
+            print(f"Running QC for {key}")
+            check_results = netatmo_qc.airpressure(features)
+            assign_qc_results("titanlib-airpressure", featureCollection, indexes, check_results)
+        else:
+            print(f"No QC available for {key}")
 
     return json.JSONEncoder().encode(featureCollection.collection)
+
+def assign_qc_results(method, featureCollection, indexes, check_results):
+    for idx, flags in zip(indexes, check_results):
+        feature = featureCollection.features[idx]
+        all_checks_passed = all(f["passed"] for f in flags)
+        feature["properties"]["qcPassed"] = all_checks_passed
+        feature["properties"]["qcDetails"] = {
+            "method": method,
+            "version": VERSION,
+            "flags": flags,
+        }
 
 def read_input_from_s3(bucket, input_key):
     s3 = boto3.resource('s3')
@@ -44,8 +77,7 @@ def read_input_from_s3(bucket, input_key):
     return content.decode('utf-8')
 
 def read_input_from_stdin():
-    with sys.stdin as input_file:
-        return input_file.read()
+    return sys.stdin.buffer.read()
 
 def write_output_to_s3(output_str, bucket, output_key):
     s3 = boto3.resource('s3')
@@ -65,6 +97,7 @@ def main():
     parser.add_argument('--inputKey')
     parser.add_argument('--outputKey')
     args = parser.parse_args()
+    print("Running with args", args)
 
     if args.bucket and (args.inputKey == args.outputKey):
         print('Input and output key are the same, input would get overwritten', file=sys.stderr)
@@ -80,6 +113,12 @@ def main():
         input_str = read_input_from_s3(args.bucket, args.inputKey)
     else:
         input_str = read_input_from_stdin()
+        # Try to decompress e.g. if piping from S3
+        try:
+            input_str = gzip.decompress(input_str)
+        except Exception as e:
+            pass
+        input_str = input_str.decode("utf-8")
 
     output_str = check_features(input_str)
 

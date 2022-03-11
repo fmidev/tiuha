@@ -13,6 +13,7 @@ function configure_aws_credentials {
 
 function aws {
   docker run \
+    --network host \
     --env AWS_PROFILE \
     --env AWS_REGION \
     --env AWS_DEFAULT_REGION \
@@ -43,6 +44,11 @@ function use_correct_node_version {
   nvm use "$NODE_VERSION" || nvm install "$NODE_VERSION"
 }
 
+function get_secret_value {
+  local -r secret_id="$1"
+  aws secretsmanager get-secret-value --secret-id "$secret_id" --query 'SecretString' --output text
+}
+
 function npm_ci_if_package_lock_has_changed {
   info "Checking if npm ci needs to be run"
   require_command shasum
@@ -62,6 +68,16 @@ function npm_ci_if_package_lock_has_changed {
   else
     info "package-lock.json doesn't seem to have changed, skipping npm ci"
   fi
+}
+
+function wait_for_container_to_be_healthy {
+  require_command docker
+  local -r container_name="$1"
+
+  info "Waiting for docker container $container_name to be healthy"
+  until [ "$(docker inspect -f {{.State.Health.Status}} "$container_name" 2>/dev/null || echo "not-running")" == "healthy" ]; do
+    sleep 2;
+  done;
 }
 
 function require_command {

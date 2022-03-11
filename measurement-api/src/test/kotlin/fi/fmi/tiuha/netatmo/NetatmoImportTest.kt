@@ -1,31 +1,29 @@
 package fi.fmi.tiuha.netatmo
 
 import fi.fmi.tiuha.Config
-import fi.fmi.tiuha.NetatmoClient
-import fi.fmi.tiuha.NetatmoImport
-import fi.fmi.tiuha.SchedulerDb
 import org.apache.commons.io.IOUtils
 import org.junit.Test
 import kotlin.test.assertEquals
 
 class NetatmoImportTest : TiuhaTest() {
-    val fakeNetatmoClient = FakeNetatmoClient()
-    val job = NetatmoImport("FI", fakeS3, fakeNetatmoClient, null)
-    fun exec() = job.exec()
+    private val fakeNetatmoClient = FakeNetatmoClient()
+    private val job = NetatmoImport("FI", s3, fakeNetatmoClient, null)
+    override val db = NetatmoImportDb(Config.dataSource)
 
     @Test
     fun `Netatmo import adds the key to S3 and records it in database`() {
-        assertEquals(fakeS3.listKeys(Config.importBucket).size, 0)
+        assertEquals(s3.listKeys(Config.importBucket).size, 0)
         assertEquals(db.getNetatmoImportData().size, 0)
 
-        exec()
+        job.exec()
 
-        val keys = fakeS3.listKeys(Config.importBucket)
+        val keys = s3.listKeys(Config.importBucket)
         assertEquals(keys.size, 1)
         val imports = db.getNetatmoImportData()
         assertEquals(imports.size, 1)
 
         assertEquals(keys[0], imports[0].s3key)
+        assertEquals("FI", imports[0].country)
     }
 }
 
@@ -33,7 +31,7 @@ class FakeNetatmoClient : NetatmoClient() {
     var responseStatus = 200
     var responseContent = readFile("world_data_FI.tar.gz")
 
-    fun readFile(file: String): ByteArray {
+    private fun readFile(file: String): ByteArray {
         val stream = ClassLoader.getSystemClassLoader().getResourceAsStream(file)!!
         return IOUtils.toByteArray(stream)
     }

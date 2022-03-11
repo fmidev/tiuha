@@ -1,122 +1,98 @@
 package fi.fmi.tiuha.netatmo
 
-import com.amazonaws.ClientConfiguration
-import com.amazonaws.auth.AWSCredentialsProvider
-import com.amazonaws.auth.AWSStaticCredentialsProvider
-import com.amazonaws.auth.BasicAWSCredentials
-import com.amazonaws.services.s3.AmazonS3
-import com.amazonaws.services.s3.AmazonS3ClientBuilder
-import com.amazonaws.services.s3.model.GetObjectRequest
-import com.amazonaws.services.s3.model.ListObjectsRequest
-import com.amazonaws.services.s3.model.ObjectMetadata
-import com.amazonaws.services.s3.model.PutObjectRequest
 import fi.fmi.tiuha.Config
+import fi.fmi.tiuha.Environment
 import fi.fmi.tiuha.Log
-import fi.fmi.tiuha.SecretsManager
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.json.Json
-import org.apache.commons.io.IOUtils
+import software.amazon.awssdk.auth.credentials.AwsCredentials
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
+import software.amazon.awssdk.core.sync.RequestBody
+import software.amazon.awssdk.http.SdkHttpClient
+import software.amazon.awssdk.http.apache.ApacheHttpClient
+import software.amazon.awssdk.services.s3.S3Client
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException
 import java.io.InputStream
 
 interface S3 {
-    fun listKeys(bucket: String, prefix: String? = null): List<String>
     fun getObjectStream(bucket: String, key: String, maxBytes: Long? = null): InputStream
     fun putObject(bucket: String, key: String, content: ByteArray): Unit
+    fun deleteObject(bucket: String, key: String): Unit
+    fun listKeys(bucket: String, prefix: String? = null): List<String>
+    fun keyExists(bucket: String, key: String): Boolean
+}
+
+val localStackCredentialsProvider =
+        StaticCredentialsProvider.create(
+                object : AwsCredentials {
+                    override fun accessKeyId() = "access_key"
+                    override fun secretAccessKey() = "secret_key"
+                }
+        )
+
+private fun buildLocalstackS3Client(httpClient: SdkHttpClient): S3Client = S3Client.builder()
+        .httpClient(httpClient)
+        .endpointOverride(java.net.URI("http://localhost:4566"))
+        .serviceConfiguration { it.pathStyleAccessEnabled(true) }
+        .credentialsProvider(localStackCredentialsProvider)
+        .region(Config.awsRegion)
+        .build()
+
+private fun buildRealS3Client(httpClient: SdkHttpClient): S3Client = S3Client.builder()
+        .httpClient(httpClient)
+        .region(Config.awsRegion)
+        .build()
+
+class LocalStackS3 : RealS3() {
+    override val client = buildLocalstackS3Client(httpClient)
 }
 
 class TiuhaS3 : RealS3() {
-    override val client = AmazonS3ClientBuilder.standard()
-            .withClientConfiguration(s3ClientConfig)
-            .withRegion(Config.awsRegion)
-            .build()
-}
-
-class ArchiveS3 : RealS3() {
-    override val client = AmazonS3ClientBuilder.standard()
-            .withClientConfiguration(s3ClientConfig)
-            .withRegion(Config.awsRegion)
-            .withCredentials(fetchCredentialsFromSecretManager())
-            .build()
-
-    private fun fetchCredentialsFromSecretManager(): AWSCredentialsProvider {
-        val json = SecretsManager.getSecretValue("observation-archive-access-keys")
-        val creds = Json.decodeFromString<AwsCredentials>(json)
-        return AWSStaticCredentialsProvider(BasicAWSCredentials(creds.accessKeyId, creds.secretAccessKey))
+    override val client = when(Config.environment) {
+        Environment.PROD, Environment.DEV -> buildRealS3Client(httpClient)
+        Environment.LOCAL -> buildLocalstackS3Client(httpClient)
     }
 }
-
-@Serializable
-data class AwsCredentials(
-        val accessKeyId: String,
-        val secretAccessKey: String
-)
 
 abstract class RealS3 : S3 {
-    val s3ClientConfig = ClientConfiguration().apply { maxConnections = 50 }
-    abstract val client: AmazonS3
-
-    override fun listKeys(bucket: String, prefix: String?): List<String> {
-        Log.info("Fetching keys from S3 bucket $bucket with prefix $prefix")
-
-        fun exec(more: Boolean, marker: String?, previousKeys: List<String>): List<String> {
-            when (more) {
-                false -> return previousKeys
-                true -> {
-                    val req = ListObjectsRequest()
-                            .withBucketName(bucket)
-                            .withPrefix(prefix)
-                            .withMarker(marker)
-                    val response = client.listObjects(req)
-                    val keys = response.objectSummaries.map { it.key }
-                    return exec(response.isTruncated, response.nextMarker, previousKeys + keys)
-                }
-            }
-        }
-
-        return exec(true, null, emptyList())
-    }
+    val httpClient: SdkHttpClient = ApacheHttpClient.builder().maxConnections(50).build()
+    abstract val client: S3Client
 
     override fun getObjectStream(bucket: String, key: String, maxBytes: Long?): InputStream {
-        val request = GetObjectRequest(bucket, key)
-        if (maxBytes != null) {
-            request.setRange(0, maxBytes)
+        return client.getObject {
+            it.bucket(bucket)
+            it.key(key)
+            if (maxBytes != null) {
+                it.range("bytes=0-$maxBytes")
+            }
         }
-        return client.getObject(request).objectContent
     }
 
     override fun putObject(bucket: String, key: String, content: ByteArray) {
         Log.info("Uploading to S3 bucket $bucket object $key")
-        val metadata = ObjectMetadata()
-        metadata.contentLength = content.size.toLong()
-        val request = PutObjectRequest(bucket, key, content.inputStream(), metadata)
-        client.putObject(request)
-    }
-}
-
-class FakeS3 : S3 {
-    private val storage = mutableMapOf<Pair<String, String>, ByteArray>()
-
-    override fun listKeys(bucket: String, prefix: String?): List<String> =
-            storage.keys.toList()
-                    .filter { it.first == bucket }
-                    .filter { prefix == null || it.second.startsWith(prefix) }
-                    .map { it.second }
-
-    override fun getObjectStream(bucket: String, key: String, maxBytes: Long?): InputStream =
-            when (val obj = storage[Pair(bucket, key)]) {
-                null -> throw RuntimeException("S3 object $key not found in bucket $bucket")
-                else -> obj.inputStream()
-            }
-
-    override fun putObject(bucket: String, key: String, content: ByteArray) {
-        storage[Pair(bucket, key)] = content.clone()
+        client.putObject({ it.bucket(bucket).key(key) }, RequestBody.fromBytes(content))
     }
 
-    fun putObjectFromResources(bucket: String, key: String, resource: String) {
-        val stream = ClassLoader.getSystemClassLoader().getResourceAsStream(resource)!!
-        return putObject(bucket, key, IOUtils.toByteArray(stream))
+    override fun deleteObject(bucket: String, key: String) {
+        Log.info("Deleting S3 object $key from bucket $bucket")
+        client.deleteObject({ it.bucket(bucket).key(key) })
     }
 
-    fun cleanup() = storage.clear()
+    override fun listKeys(bucket: String, prefix: String?): List<String> {
+        fun exec(fetchMore: Boolean, marker: String?, keys: List<String>): List<String> =
+                if (!fetchMore) keys else {
+                    val response = client.listObjects({ it.bucket(bucket).prefix(prefix).marker(marker) })
+                    val moreKeys = response.contents().map { it.key() }
+                    exec(response.isTruncated, response.nextMarker(), keys + moreKeys)
+                }
+
+        return exec(true, null, emptyList())
+    }
+
+    override fun keyExists(bucket: String, key: String): Boolean {
+        try {
+            client.headObject({ it.bucket(bucket).key(key) })
+            return true
+        } catch (e: NoSuchKeyException) {
+            return false
+        }
+    }
 }

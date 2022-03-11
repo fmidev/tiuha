@@ -6,12 +6,18 @@ function main {
   cd "$repo/measurement-api/"
 
   DATABASE_HOST="localhost" \
-  DATABASE_PORT="5444" \
-  DATABASE_NAME="tiuha" \
-  DATABASE_USERNAME="tiuha" \
-  DATABASE_PASSWORD="tiuha" \
-  IMPORT_BUCKET="fmi-tiuha-import-local" \
-  mvn clean test
+  DATABASE_PORT="5445" \
+  DATABASE_NAME="tiuha-test" \
+  DATABASE_USERNAME="tiuha-test" \
+  DATABASE_PASSWORD="tiuha-test" \
+  GEOMESA_DB_PASSWORD="geomesa" \
+  IMPORT_BUCKET="fmi-tiuha-import-test" \
+  MEASUREMENTS_BUCKET="fmi-tiuha-measurements-test" \
+  TITAN_TASK_SUBNET="titan-subnet" \
+  TITAN_TASK_DEFINITION_ARN="arn:titantask" \
+  TITAN_CLUSTER_ARN="arn:titancluster" \
+  ENV=local \
+  mvn clean test "$@"
 }
 
 main "$@"

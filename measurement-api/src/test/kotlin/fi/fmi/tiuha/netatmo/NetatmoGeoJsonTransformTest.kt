@@ -10,7 +10,8 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
 class NetatmoGeoJsonTransformTest : TiuhaTest() {
-    val job = NetatmoGeoJsonTransform(fakeS3)
+    val job = NetatmoGeoJsonTransform(s3)
+    override val db = NetatmoImportDb(Config.dataSource)
 
     @Test
     fun `can be executed without imports`() {
@@ -19,7 +20,6 @@ class NetatmoGeoJsonTransformTest : TiuhaTest() {
 
     @Test
     fun `updates netatmoimport state in database and S3`() {
-        assertEquals(0, 0)
         val importId = insertImport("netatmo/19700101000000/countryweatherdata-FI.tar.gz", "world_data_FI.tar.gz")
 
         val before = getImport(importId)
@@ -27,13 +27,18 @@ class NetatmoGeoJsonTransformTest : TiuhaTest() {
 
         assertEquals(1, countUnprocessed())
         assertEquals(0, countProcessed())
+        assertEquals(0, qcTaskCount())
         job.exec()
         assertEquals(0, countUnprocessed())
         assertEquals(1, countProcessed())
+        assertEquals(1, qcTaskCount())
 
         val after = getImport(importId)
         assertEquals("netatmo/19700101000000/countryweatherdata-FI.geojson.gz", after.geojsonkey)
+
     }
+
+    fun qcTaskCount(): Long = db.selectOne("select count(*) from qc_task", emptyList()) { it.getLong(1) }
 
     @Test
     fun `converts netatmo response to GeoJSON`() {
@@ -42,96 +47,159 @@ class NetatmoGeoJsonTransformTest : TiuhaTest() {
         val import = getImport(importId)
 
         val result = readGeoJSON(import)
-        assertEquals(5, result.features.size)
-        val expected = GeoJson(
-                type = "FeatureCollection",
-                features = listOf(
-                        GeoJsonFeature(
-                                type = "Feature",
-                                geometry = Geometry(type = "Point", coordinates = listOf(24.9607611, 60.2037551, 30.0)),
-                                properties = FeatureProperties(
-                                        _id = "enc:16:testIdDynamicum",
-                                        featureType = "MeasureObservation",
-                                        resultTime = "2021-09-23T14:12:53Z",
-                                        observedPropertyTitle = "Air temperature",
-                                        observedProperty = "http://vocab.nerc.ac.uk/collection/P07/current/CFSN0023/",
-                                        unitOfMeasureTitle = "C",
-                                        unitOfMeasure = "http://www.opengis.net/def/uom/UCUM/degC",
-                                        result = 5.8,
-                                )
-                        ),
-                        GeoJsonFeature(
-                                type = "Feature",
-                                geometry = Geometry(type = "Point", coordinates = listOf(24.9607611, 60.2037551, 30.0)),
-                                properties = FeatureProperties(
-                                        _id = "enc:16:testIdDynamicum",
-                                        featureType = "MeasureObservation",
-                                        resultTime = "2021-09-23T14:12:53Z",
-                                        observedPropertyTitle = "Relative Humidity",
-                                        observedProperty = "http://vocab.nerc.ac.uk/collection/P07/current/CFSN0413/",
-                                        unitOfMeasureTitle = "%",
-                                        unitOfMeasure = "",
-                                        result = 65.0,
-                                )
-                        ),
+        assertEquals(9, result.features.size)
 
-                        GeoJsonFeature(
-                                type = "Feature",
-                                geometry = Geometry(type = "Point", coordinates = listOf(24.9486983, 60.1696741, 5.0)),
-                                properties = FeatureProperties(
-                                        _id = "enc:16:testIdYk4",
-                                        featureType = "MeasureObservation",
-                                        resultTime = "2021-09-23T14:16:15Z",
-                                        observedPropertyTitle = "Air temperature",
-                                        observedProperty = "http://vocab.nerc.ac.uk/collection/P07/current/CFSN0023/",
-                                        unitOfMeasureTitle = "C",
-                                        unitOfMeasure = "http://www.opengis.net/def/uom/UCUM/degC",
-                                        result = 6.5,
-                                )
-                        ),
-                        GeoJsonFeature(
-                                type = "Feature",
-                                geometry = Geometry(type = "Point", coordinates = listOf(24.9486983, 60.1696741, 5.0)),
-                                properties = FeatureProperties(
-                                        _id = "enc:16:testIdYk4",
-                                        featureType = "MeasureObservation",
-                                        resultTime = "2021-09-23T14:16:15Z",
-                                        observedPropertyTitle = "Relative Humidity",
-                                        observedProperty = "http://vocab.nerc.ac.uk/collection/P07/current/CFSN0413/",
-                                        unitOfMeasureTitle = "%",
-                                        unitOfMeasure = "",
-                                        result = 68.0,
-                                )
-                        ),
-                        GeoJsonFeature(
-                                type = "Feature",
-                                geometry = Geometry(type = "Point", coordinates = listOf(24.9486983, 60.1696741, 5.0)),
-                                properties = FeatureProperties(
-                                        _id = "enc:16:testIdYk4",
-                                        featureType = "MeasureObservation",
-                                        resultTime = "2021-09-23T14:16:15Z",
-                                        observedPropertyTitle = "Air Pressure",
-                                        observedProperty = "http://vocab.nerc.ac.uk/collection/P07/current/CFSN0015/",
-                                        unitOfMeasureTitle = "mbar",
-                                        unitOfMeasure = "",
-                                        result = 1006.1,
-                                )
-                        )
+        assertEquals(GeoJsonFeature(
+                type = "Feature",
+                geometry = Geometry(type = "Point", coordinates = listOf(24.9607611, 60.2037551, 30.0)),
+                properties = MeasurementProperties(
+                        sourceId = "netatmo",
+                        _id = "enc:16:testIdDynamicum",
+                        featureType = "MeasureObservation",
+                        resultTime = "2021-09-23T14:12:53Z",
+                        observedPropertyTitle = "Air temperature",
+                        observedProperty = "http://tiuha.fmi.fi/property/netatmo/air_temperature",
+                        unitOfMeasureTitle = "C",
+                        unitOfMeasure = "http://www.opengis.net/def/uom/UCUM/degC",
+                        result = 5.8,
                 )
-        )
-        assertEquals(expected, result)
+        ), result.features[0])
+        assertEquals(GeoJsonFeature(
+                type = "Feature",
+                geometry = Geometry(type = "Point", coordinates = listOf(24.9607611, 60.2037551, 30.0)),
+                properties = MeasurementProperties(
+                        sourceId = "netatmo",
+                        _id = "enc:16:testIdDynamicum",
+                        featureType = "MeasureObservation",
+                        resultTime = "2021-09-23T14:12:53Z",
+                        observedPropertyTitle = "Relative Humidity",
+                        observedProperty = "http://tiuha.fmi.fi/property/netatmo/relative_humidity",
+                        unitOfMeasureTitle = "%",
+                        unitOfMeasure = "",
+                        result = 65.0,
+                )
+        ), result.features[1])
+        assertEquals(GeoJsonFeature(
+                type = "Feature",
+                geometry = Geometry(type = "Point", coordinates = listOf(24.9607611, 60.2037551, 30.0)),
+                properties = MeasurementProperties(
+                        sourceId = "netatmo",
+                        _id = "enc:16:testIdDynamicum",
+                        featureType = "MeasureObservation",
+                        resultTime = "2021-09-22T21:00:00Z",
+                        observedPropertyTitle = "Daily rain accumulation",
+                        observedProperty = "http://tiuha.fmi.fi/property/netatmo/daily_rain_accumulation",
+                        unitOfMeasureTitle = "mm",
+                        unitOfMeasure = "",
+                        result = 0.0,
+                )
+        ), result.features[2])
+        assertEquals(GeoJsonFeature(
+                type = "Feature",
+                geometry = Geometry(type = "Point", coordinates = listOf(24.9607611, 60.2037551, 30.0)),
+                properties = MeasurementProperties(
+                        sourceId = "netatmo",
+                        _id = "enc:16:testIdDynamicum",
+                        featureType = "MeasureObservation",
+                        resultTime = "2021-09-23T14:12:53Z",
+                        observedPropertyTitle = "Hourly rain accumulation",
+                        observedProperty = "http://tiuha.fmi.fi/property/netatmo/hourly_rain_accumulation",
+                        unitOfMeasureTitle = "mm",
+                        unitOfMeasure = "",
+                        result = 0.0,
+                )
+        ), result.features[3])
+        assertEquals(GeoJsonFeature(
+                type = "Feature",
+                geometry = Geometry(type = "Point", coordinates = listOf(24.9486983, 60.1696741, 5.0)),
+                properties = MeasurementProperties(
+                        sourceId = "netatmo",
+                        _id = "enc:16:testIdYk4",
+                        featureType = "MeasureObservation",
+                        resultTime = "2021-09-23T14:16:15Z",
+                        observedPropertyTitle = "Air temperature",
+                        observedProperty = "http://tiuha.fmi.fi/property/netatmo/air_temperature",
+                        unitOfMeasureTitle = "C",
+                        unitOfMeasure = "http://www.opengis.net/def/uom/UCUM/degC",
+                        result = 6.5,
+                )
+        ), result.features[4])
+        assertEquals(GeoJsonFeature(
+                type = "Feature",
+                geometry = Geometry(type = "Point", coordinates = listOf(24.9486983, 60.1696741, 5.0)),
+                properties = MeasurementProperties(
+                        sourceId = "netatmo",
+                        _id = "enc:16:testIdYk4",
+                        featureType = "MeasureObservation",
+                        resultTime = "2021-09-23T14:16:15Z",
+                        observedPropertyTitle = "Relative Humidity",
+                        observedProperty = "http://tiuha.fmi.fi/property/netatmo/relative_humidity",
+                        unitOfMeasureTitle = "%",
+                        unitOfMeasure = "",
+                        result = 68.0,
+                )
+        ), result.features[5])
+        assertEquals(GeoJsonFeature(
+                type = "Feature",
+                geometry = Geometry(type = "Point", coordinates = listOf(24.9486983, 60.1696741, 5.0)),
+                properties = MeasurementProperties(
+                        sourceId = "netatmo",
+                        _id = "enc:16:testIdYk4",
+                        featureType = "MeasureObservation",
+                        resultTime = "2021-09-23T14:16:15Z",
+                        observedPropertyTitle = "Air Pressure",
+                        observedProperty = "http://tiuha.fmi.fi/property/netatmo/air_pressure",
+                        unitOfMeasureTitle = "mbar",
+                        unitOfMeasure = "",
+                        result = 1006.1,
+                )
+        ), result.features[6])
+
+
+        assertEquals(GeoJsonFeature(
+                type = "Feature",
+                geometry = Geometry(type = "Point", coordinates = listOf(24.9486983, 60.1696741, 5.0)),
+                properties = MeasurementProperties(
+                        sourceId = "netatmo",
+                        _id = "enc:16:testIdYk4",
+                        featureType = "MeasureObservation",
+                        resultTime = "2021-09-22T21:00:00Z",
+                        observedPropertyTitle = "Daily rain accumulation",
+                        observedProperty = "http://tiuha.fmi.fi/property/netatmo/daily_rain_accumulation",
+                        unitOfMeasureTitle = "mm",
+                        unitOfMeasure = "",
+                        result = 0.0,
+                )
+        ), result.features[7])
+        assertEquals(GeoJsonFeature(
+                type = "Feature",
+                geometry = Geometry(type = "Point", coordinates = listOf(24.9486983, 60.1696741, 5.0)),
+                properties = MeasurementProperties(
+                        sourceId = "netatmo",
+                        _id = "enc:16:testIdYk4",
+                        featureType = "MeasureObservation",
+                        resultTime = "2021-09-23T14:16:22Z",
+                        observedPropertyTitle = "Hourly rain accumulation",
+                        observedProperty = "http://tiuha.fmi.fi/property/netatmo/hourly_rain_accumulation",
+                        unitOfMeasureTitle = "mm",
+                        unitOfMeasure = "",
+                        result = 0.0,
+                )
+        ), result.features[8])
     }
 
-    fun readGeoJSON(import: NetatmoImportData): GeoJson {
-        val json = fakeS3.getObjectStream(import.s3bucket, import.geojsonkey!!).use { stream ->
+    fun readGeoJSON(import: NetatmoImportData): GeoJson<MeasurementProperties> {
+        val json = s3.getObjectStream(import.s3bucket, import.geojsonkey!!).use { stream ->
             IOUtils.toString(GZIPInputStream(stream))
         }
         return Json.decodeFromString(json)
     }
 
     fun insertImport(s3key: String, resourceFile: String): Long {
-        fakeS3.putObjectFromResources(Config.importBucket, s3key, resourceFile)
-        return db.insertImport(Config.importBucket, s3key)
+        val stream = ClassLoader.getSystemClassLoader().getResourceAsStream(resourceFile)!!
+        val content = IOUtils.toByteArray(stream)
+        s3.putObject(Config.importBucket, s3key, content)
+        return db.insertImport("FI", Config.importBucket, s3key)
     }
 
     fun getImport(id: Long) = db.inTx { tx -> db.selectImportForProcessing(tx, id) }

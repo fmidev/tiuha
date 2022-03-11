@@ -1,15 +1,15 @@
 package fi.fmi.tiuha
 
-import com.amazonaws.services.secretsmanager.AWSSecretsManagerClientBuilder
-import com.amazonaws.services.secretsmanager.model.GetSecretValueRequest
+import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient
+import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest
 
 object SecretsManager {
-    private val client = AWSSecretsManagerClientBuilder.standard()
-            .withRegion(Config.awsRegion)
+    private val client = SecretsManagerClient.builder()
+            .region(Config.awsRegion)
             .build()
 
     fun getSecretValue(secretId: String): String {
-        val response = client.getSecretValue(GetSecretValueRequest().withSecretId(secretId))
-        return response.secretString
+        val response = client.getSecretValue { it.secretId(secretId) }
+        return response.secretString()
     }
 }

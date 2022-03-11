@@ -1,11 +1,17 @@
 package fi.fmi.tiuha
 
-import com.amazonaws.regions.Regions
 import fi.fmi.tiuha.db.DataSource
+import software.amazon.awssdk.regions.Region
+
+
+enum class Environment {
+    PROD, DEV, LOCAL
+}
+
 
 object Config {
-    val awsRegion = Regions.EU_WEST_1
-    val measurementArchiveBucket = "fmi-iot-obs-arch"
+    val environment = Environment.valueOf(requireEnv("ENV").uppercase())
+    val awsRegion = Region.EU_WEST_1
 
     val dbHostname = requireEnv("DATABASE_HOST")
     val dbPort = Integer.parseInt(requireEnv("DATABASE_PORT"))
@@ -14,9 +20,19 @@ object Config {
     val dbUsername = requireEnv("DATABASE_USERNAME")
     val dbPassword = requireEnv("DATABASE_PASSWORD")
 
-    val dataSource = DataSource(this)
+    val geomesaUsername = "geomesa"
+    val geomesaSchema = geomesaUsername
+    val geomesaPassword = requireEnv("GEOMESA_DB_PASSWORD")
+    val geomesaMetadataJdbcUrl = "jdbc:postgresql://$dbHostname:$dbPort/$dbName?currentSchema=$geomesaSchema"
+
+    val dataSource = DataSource(jdbcUrl, dbUsername, dbPassword)
 
     val importBucket = requireEnv("IMPORT_BUCKET")
+    val measurementsBucket = requireEnv("MEASUREMENTS_BUCKET")
+    val noopQualityControl = environment == Environment.LOCAL
+
+    val httpPort = 8383
+    val prettyPrintJson = true
 }
 
 fun requireEnv(key: String): String =

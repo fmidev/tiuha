@@ -3,7 +3,7 @@ set -o nounset -o errexit -o pipefail
 
 function main {
   local instance_id="$(aws ec2 describe-instances --output text \
-    --filter Name=tag:Name,Values=BastionHost \
+    --filter Name=tag:Name,Values=BastionHost --filter Name=instance-state-name,Values=running \
     --query 'Reservations[0].Instances[0].InstanceId')"
 
   local availability_zone="$(aws ec2 describe-instances --output text \
@@ -21,7 +21,9 @@ function main {
     --instance-os-user ec2-user \
     --ssh-public-key file://temporary_key.pub
 
-  ssh -i temporary_key -o ProxyCommand="aws ssm start-session --target %h --document-name AWS-StartSSHSession --parameters 'portNumber=%p'" \
+  ssh -i temporary_key \
+    -o StrictHostKeyChecking=no \
+    -o ProxyCommand="aws ssm start-session --target %h --document-name AWS-StartSSHSession --parameters 'portNumber=%p'" \
     -N -L 0.0.0.0:1111:$postgres_host:5432 \
     "ec2-user@${instance_id}"
 }

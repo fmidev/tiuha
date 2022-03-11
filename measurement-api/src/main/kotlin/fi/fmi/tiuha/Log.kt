@@ -1,6 +1,6 @@
 package fi.fmi.tiuha
 
-import org.apache.log4j.LogManager
+import org.apache.logging.log4j.LogManager
 import java.time.Duration
 import java.time.Instant
 
@@ -19,7 +19,7 @@ object Log {
         logger.error(msg)
     }
 
-    fun error(ex: Exception, msg: String) {
+    fun error(ex: Throwable, msg: String) {
         logger.error(msg, ex)
     }
 
