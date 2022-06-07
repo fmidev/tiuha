@@ -37,11 +37,11 @@ export class TiuhaStack extends cdk.Stack {
       zoneName: this.domainName,
     })
 
-    const measurementsKeyspace = new cassandra.CfnKeyspace(this, 'Measurements', {
-      keyspaceName: 'measurements',
-    })
-
-    measurementsKeyspace.applyRemovalPolicy(cdk.RemovalPolicy.RETAIN)
+//    const measurementsKeyspace = new cassandra.CfnKeyspace(this, 'Measurements', {
+//      keyspaceName: 'measurements',
+//    })
+//
+//    measurementsKeyspace.applyRemovalPolicy(cdk.RemovalPolicy.RETAIN)
 
     this.vpc = this.createVpc()
 
@@ -82,7 +82,7 @@ export class TiuhaStack extends cdk.Stack {
       internetFacing: true,
     })
 
-    const apiDomainName = `api.${this.domainName}`
+    const apiDomainName = `*.${this.domainName}`
 
     const certificate = new certificatemanager.DnsValidatedCertificate(this, "Certificate", {
       hostedZone: this.hostedZone,
@@ -90,6 +90,7 @@ export class TiuhaStack extends cdk.Stack {
     })
 
     const listener = loadBalancer.addListener("PublicListener", {
+//        protocol: elb.ApplicationProtocol.HTTP,
       protocol: elb.ApplicationProtocol.HTTPS,
       certificates: [certificate],
       open: true,
