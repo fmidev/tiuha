@@ -19,7 +19,7 @@
         <kotlin.compiler.jvmTarget>1.8</kotlin.compiler.jvmTarget>
         <awssdk.version>2.17.70</awssdk.version>
         <geomesa.version>3.3.0</geomesa.version>
-        <jackson.version>2.13.2</jackson.version>
+        <jackson.version>2.13.3</jackson.version>
         <hadoop.version>3.2.3</hadoop.version>
         <ktor.version>1.6.5</ktor.version>
     </properties>
