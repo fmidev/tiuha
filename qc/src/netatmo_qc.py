@@ -42,7 +42,7 @@ def temperature(features):
         }])
 
     # buddy check parameters:
-    radius = np.full(points.size(), 10000) # [] if different radius for each check
+    radius = numpy.full(points.size(), 10000) # [] if different radius for each check
     buddy_check_num_min = numpy.full(points.size(), 5)
     threshold = 2
     max_elev_diff = 200
