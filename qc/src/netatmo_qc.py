@@ -62,7 +62,7 @@ def temperature(features):
     num_min = 5
     num_max = 100
     inner_radius = 50000
-    outer_radius 150000
+    outer_radius = 150000
     num_iterations = 5 #2
     num_min_prof = 20
     min_elev_diff = 200
