@@ -1,17 +1,18 @@
-import * as cdk from '@aws-cdk/core'
-import { Tags } from '@aws-cdk/core'
-import * as cassandra from '@aws-cdk/aws-cassandra'
-import * as iam from '@aws-cdk/aws-iam'
-import * as ec2 from '@aws-cdk/aws-ec2'
-import * as ecr from '@aws-cdk/aws-ecr'
-import * as ecs from '@aws-cdk/aws-ecs'
-import * as logs from '@aws-cdk/aws-logs'
-import * as s3 from '@aws-cdk/aws-s3'
-import * as secretsmanager from '@aws-cdk/aws-secretsmanager'
-import * as rds from '@aws-cdk/aws-rds'
-import * as elb from '@aws-cdk/aws-elasticloadbalancingv2'
-import * as route53 from '@aws-cdk/aws-route53'
-import * as certificatemanager from '@aws-cdk/aws-certificatemanager'
+import * as cdk from 'aws-cdk-lib'
+import { Construct } from 'constructs'
+import { Tags } from 'aws-cdk-lib'
+import { aws_cassandra as cassandra } from 'aws-cdk-lib'
+import { aws_iam as iam } from 'aws-cdk-lib'
+import { aws_ec2 as ec2 } from 'aws-cdk-lib'
+import { aws_ecr as ecr } from 'aws-cdk-lib'
+import { aws_ecs as ecs } from 'aws-cdk-lib'
+import { aws_logs as logs } from 'aws-cdk-lib'
+import { aws_s3 as s3 } from 'aws-cdk-lib'
+import { aws_secretsmanager as secretsmanager } from 'aws-cdk-lib'
+import { aws_rds as rds } from 'aws-cdk-lib'
+import { aws_elasticloadbalancingv2 as elb } from 'aws-cdk-lib'
+import { aws_route53 as route53 } from 'aws-cdk-lib'
+import { aws_certificatemanager as certificatemanager } from 'aws-cdk-lib'
 
 type TiuhaStackProps = cdk.StackProps & {
   envName: string
@@ -28,7 +29,7 @@ export class TiuhaStack extends cdk.Stack {
   importBucket: s3.Bucket
   hostedZone: route53.HostedZone
 
-  constructor(scope: cdk.Construct, id: string, props: TiuhaStackProps) {
+  constructor(scope: Construct, id: string, props: TiuhaStackProps) {
     super(scope, id, props)
     this.envName = props.envName.toLowerCase()
     this.domainName = this.envName === "prod" ? "tiuha.fmi.fi" : `tiuha-${this.envName}.fmi.fi`
@@ -134,8 +135,9 @@ export class TiuhaStack extends cdk.Stack {
     const securtiyGroup = new ec2.SecurityGroup(this, 'DatabaseClusterSecurityGroup', { vpc })
 
     const engine = rds.DatabaseClusterEngine.auroraPostgres({
-      version: rds.AuroraPostgresEngineVersion.VER_12_6,
+      version: rds.AuroraPostgresEngineVersion.VER_12_7,
     })
+
 
     const cluster = new rds.DatabaseCluster(this, 'DatabaseCluster', {
       engine,
