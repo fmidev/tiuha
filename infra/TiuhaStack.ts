@@ -67,12 +67,12 @@ export class TiuhaStack extends cdk.Stack {
       this.vpc, props.measurementApiRepository, props.versionTag, db, measurementsBucket, titanTaskDefinition
     )
 
-//    const bastionSecurityGroup = this.createBastionHost(this.vpc)
-//    serviceSG.addIngressRule(bastionSecurityGroup, apiPort)
+    const bastionSecurityGroup = this.createBastionHost(this.vpc)
+    serviceSG.addIngressRule(bastionSecurityGroup, apiPort)
 
-//    const postgresPort = ec2.Port.tcp(5432)
-//    dbSG.addIngressRule(bastionSecurityGroup, postgresPort)
-//    dbSG.addIngressRule(serviceSG, postgresPort)
+    const postgresPort = ec2.Port.tcp(5432)
+    dbSG.addIngressRule(bastionSecurityGroup, postgresPort)
+    dbSG.addIngressRule(serviceSG, postgresPort)
 
     this.createPublicLoadBalancer(service)
   }

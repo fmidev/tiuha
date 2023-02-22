@@ -73,7 +73,7 @@ def temperature(features):
     eps2 = numpy.full(points.size(), 0.5)
     # obs_to_check
 
-    flags, prob, rep = titanlib.sct(points, values, num_min, num_max, inner_radius, outer_radius, num_iterations, num_min_prof, min_elev_diff, 
+    flags = titanlib.sct(points, values, num_min, num_max, inner_radius, outer_radius, num_iterations, num_min_prof, min_elev_diff, 
             min_horizontal_scale, vertical_scale, pos, neg, eps2)
 
     for i, flag in enumerate(flags):
