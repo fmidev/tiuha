@@ -1,0 +1,20 @@
+namespace: tiuha-dev
+
+netatmo:
+  enabled: true
+
+localstack:
+  enabled: true
+  pvc:
+    enabled: true
+    name: s3-localstack-claim0
+    size: 10Gi
+
+postgres:
+  enabled: true
+
+postgresTest:
+  enabled: true
+
+localenv:
+  enabled: true

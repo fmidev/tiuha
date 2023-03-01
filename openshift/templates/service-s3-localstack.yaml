@@ -1,0 +1,17 @@
+{{- if .Values.localstack.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: s3-localstack
+  namespace: {{ .Values.namespace }}
+spec:
+  ports:
+    - name: "4566"
+      port: 4566
+      targetPort: 4566
+    - name: "4571"
+      port: 4571
+      targetPort: 4571
+  selector:
+    app: s3-localstack
+{{- end }}

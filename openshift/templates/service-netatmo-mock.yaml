@@ -1,0 +1,14 @@
+{{- if .Values.netatmo.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: netatmo-mock
+  namespace: {{ .Values.namespace }}
+spec:
+  ports:
+    - name: "1234"
+      port: 1234
+      targetPort: 80
+  selector:
+    app: netatmo-mock
+{{- end }}

@@ -1,0 +1,25 @@
+{{- if .Values.netatmo.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: netatmo-mock
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: netatmo-mock
+  template:
+    metadata:
+      labels:
+        io.kompose.network/local-env-default: "true"
+        app: netatmo-mock
+    spec:
+      containers:
+        - image: netatmo-mock
+          name: tiuha-netatmo
+          ports:
+            - containerPort: 80
+          resources: {}
+      restartPolicy: Always
+{{- end }}
