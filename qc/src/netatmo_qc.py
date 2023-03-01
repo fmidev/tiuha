@@ -112,6 +112,31 @@ def humidity(features):
             "result": int(flag),
         })
 
+    # sct check parameters:
+    num_min = 5
+    num_max = 100
+    inner_radius = 50000
+    outer_radius = 150000
+    num_iterations = 5 #2
+    num_min_prof = 20
+    min_elev_diff = 200
+    min_horizontal_scale = 10000
+    vertical_scale = 200
+    pos = numpy.full(points.size(), 4)
+    neg = numpy.full(points.size(), 8)
+    eps2 = numpy.full(points.size(), 0.5)
+    # obs_to_check
+
+    flags, prob, rep  = titanlib.sct(points, values, num_min, num_max, inner_radius, outer_radius, num_iterations, num_min_prof, min_elev_diff,
+			min_horizontal_scale, vertical_scale, pos, neg, eps2)
+
+    for i, flag in enumerate(flags):
+        results[i].append({
+            "check": "sct_check",
+            "passed": bool(flag == 0),
+            "result": int(flag),
+        })
+
     return results
 
 def airpressure(features):
@@ -137,6 +162,31 @@ def airpressure(features):
     for i, flag in enumerate(titanlib.buddy_check(points, values, radius, buddy_check_num_min, threshold, max_elev_diff, elev_gradient, min_std, num_iterations)):
         results[i].append({
             "check": "buddy_check",
+            "passed": bool(flag == 0),
+            "result": int(flag),
+        })
+
+    # sct check parameters:
+    num_min = 5
+    num_max = 100
+    inner_radius = 50000
+    outer_radius = 150000
+    num_iterations = 5 #2
+    num_min_prof = 20
+    min_elev_diff = 200
+    min_horizontal_scale = 10000
+    vertical_scale = 200
+    pos = numpy.full(points.size(), 4)
+    neg = numpy.full(points.size(), 8)
+    eps2 = numpy.full(points.size(), 0.5)
+    # obs_to_check
+
+    flags, prob, rep  = titanlib.sct(points, values, num_min, num_max, inner_radius, outer_radius, num_iterations, num_min_prof, min_elev_diff,
+			min_horizontal_scale, vertical_scale, pos, neg, eps2)
+
+    for i, flag in enumerate(flags):
+        results[i].append({
+            "check": "sct_check",
             "passed": bool(flag == 0),
             "result": int(flag),
         })

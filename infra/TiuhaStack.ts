@@ -173,8 +173,8 @@ export class TiuhaStack extends cdk.Stack {
     })
 
     const taskDefinition = new ecs.FargateTaskDefinition(this, 'TitanlibTask', {
-      cpu: 512,
-      memoryLimitMiB: 2048,
+      cpu: 1024,
+      memoryLimitMiB: 8192,
     })
     taskDefinition.addContainer('TitanlibContainer', {
       image,
