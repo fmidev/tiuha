@@ -1,11 +1,6 @@
 import titanlib
 import numpy
 
-# isolation check:
-
-isolation_check_radius = 15000
-isolation_check_num_min = 5
-
 def getCoordinatesIndex(feature, idx):
     try:
         return feature["geometry"]["coordinates"][idx]
@@ -33,6 +28,10 @@ def getTitanlibParams(features):
 def temperature(features):
     [points, values] = getTitanlibParams(features)
     results = []
+
+    # isolation check parameters:
+    isolation_check_radius = 15000
+    isolation_check_num_min = 5
 
     for flag in titanlib.isolation_check(points, isolation_check_num_min, isolation_check_radius):
         results.append([{
@@ -88,6 +87,11 @@ def temperature(features):
 def humidity(features):
     [points, values] = getTitanlibParams(features)
     results = []
+
+    # isolation check parameters:
+    isolation_check_radius = 15000
+    isolation_check_num_min = 5
+
     for flag in titanlib.isolation_check(points, isolation_check_num_min, isolation_check_radius):
         results.append([{
             "check": "isolation_check",
@@ -142,6 +146,11 @@ def humidity(features):
 def airpressure(features):
     [points, values] = getTitanlibParams(features)
     results = []
+
+    # isolation check parameters:
+    isolation_check_radius = 15000
+    isolation_check_num_min = 5
+
     for flag in titanlib.isolation_check(points, isolation_check_num_min, isolation_check_radius):
         results.append([{
             "check": "isolation_check",
