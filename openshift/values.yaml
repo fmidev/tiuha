@@ -12,6 +12,9 @@ localstack:
     enabled: true
     name: s3-localstack-claim0
     size: 10Gi
+  buildconfig:
+    enabled: true
+    name: localstack
 
 postgres:
   enabled: true
@@ -21,3 +24,9 @@ postgresTest:
 
 localenv:
   enabled: true
+
+measurementapi:
+  enabled: true
+  buildconfig:
+    enabled: true
+    name: measurement-api
