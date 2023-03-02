@@ -1,4 +1,4 @@
-FROM localstack/localstack:0.12.19
+FROM localstack/localstack:1.4
 
 ENV DATA_DIR=/tmp/localstack/data
 ENV SERVICES=s3

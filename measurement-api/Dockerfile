@@ -1,4 +1,4 @@
-FROM openjdk:17
+FROM openjdk:21
 
 COPY target/measurement-api-1.0-SNAPSHOT-shaded.jar /app/server.jar
 
