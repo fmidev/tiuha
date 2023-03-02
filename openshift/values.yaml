@@ -2,6 +2,9 @@ namespace: tiuha-dev
 
 netatmo:
   enabled: true
+  buildconfig: 
+    enabled: true
+    name: netatmo
 
 localstack:
   enabled: true
