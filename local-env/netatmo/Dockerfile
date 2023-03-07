@@ -1,4 +1,4 @@
 # Unprivileged nginx image
-FROM nginxinc/nginx-unprivileged:1.23-alpine
+FROM ghcr.io/nginxinc/nginx-unprivileged:stable
 
 COPY countryweatherdata.tar.gz /usr/share/nginx/html/getcountryweatherdata
