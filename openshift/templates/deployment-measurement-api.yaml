@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: measurement-api
+  namespace: tiuha-dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: measurement-api
+  template:
+    metadata:
+      labels:
+        app: measurement-api
+    spec:
+      containers:
+      - args:
+        - java
+        - -XX:MaxRAMPercentage=90
+        - -jar
+        - /app/server.jar
+        env:
+        - name: DATABASE_HOST
+          value: 172.30.51.118
+        - name: DATABASE_PORT
+          value: "5444"
+        - name: DATABASE_NAME
+          value: tiuha
+        - name: DATABASE_USERNAME
+          value: tiuha
+        - name: DATABASE_PASSWORD
+          value: tiuha
+        - name: GEOMESA_DB_PASSWORD
+          value: geomesa
+        - name: IMPORT_BUCKET
+          value: fmi-tiuha-import-local
+        - name: MEASUREMENTS_BUCKET
+          value: fmi-tiuha-measurements-local
+        - name: ENV
+          value: local
+        - name: AWS_ACCESS_KEY_ID
+          value: access_key
+        - name: AWS_SECRET_ACCESS_KEY
+          value: secret_key
+        image: image-registry.openshift-image-registry.svc:5000/tiuha-dev/measurement-api
+        imagePullPolicy: Always
+        name: measurement-api
