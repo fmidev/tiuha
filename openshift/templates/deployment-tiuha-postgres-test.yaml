@@ -21,7 +21,7 @@ spec:
             - log_statement=all
           env:
             - name: PGDATA
-              value: /tmp/
+              value: /temp/
             - name: POSTGRES_PASSWORD
               value: tiuha-test
             - name: POSTGRES_USER
