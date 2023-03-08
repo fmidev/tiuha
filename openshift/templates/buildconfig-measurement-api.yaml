@@ -28,6 +28,8 @@ spec:
     type: Docker
     dockerStrategy:
      dockerfilePath: Dockerfile
+     pullSecret: 
+        name: dockerhub-partios
      env:
      {{- range .Values.measurementapi.buildconfig.envs }}
         - name: {{ . }}
