@@ -22,9 +22,9 @@ spec:
           name: tiuha-s3
           ports:
             - containerPort: 4566
-              hostIP: 127.0.0.1
+              protocol: TCP
             - containerPort: 4571
-              hostIP: 127.0.0.1
+              protocol: TCP
           resources: {}
           volumeMounts:
             - mountPath: /var/run/docker.sock
