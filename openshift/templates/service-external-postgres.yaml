@@ -6,4 +6,3 @@ metadata:
 spec:
   type: ExternalName
   externalName: dbdev2.fmi.fi
-selector: {}
