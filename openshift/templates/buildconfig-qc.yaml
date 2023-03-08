@@ -1,0 +1,33 @@
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: qc
+  namespace: tiuha-dev
+spec:
+  lookupPolicy:
+    local: false
+---
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: qc
+  namespace: tiuha-dev
+spec:
+  source:
+    type: Git
+    git:
+      uri: 'ssh://git@github.fmi.fi/hav/tiuha.git'
+      ref: main
+    contextDir: qc/
+    sourceSecret:
+      name: tiuha-openshift-image-builder
+  strategy:
+    type: Docker
+    dockerStrategy:
+      dockerfilePath: Dockerfile
+      pullSecret: 
+        name: dockerhub-partios
+  output:
+    to:
+      kind: ImageStreamTag
+      name: qc:latest
