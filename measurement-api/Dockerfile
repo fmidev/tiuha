@@ -1,5 +1,7 @@
-FROM openjdk:21
+FROM maven:eclipse-temurin
 
-COPY target/measurement-api-1.0-SNAPSHOT-shaded.jar /app/server.jar
+COPY src pom.xml /app/
 
-CMD ["java", "-XX:MaxRAMPercentage=90", "-jar", "/app/server.jar"]
+RUN mvn package -DskipTests -f /app/pom.xml
+
+CMD ["java", "-XX:MaxRAMPercentage=90", "-jar", "/app/target/measurement-api-1.0-SNAPSHOT-shaded.jar"]
