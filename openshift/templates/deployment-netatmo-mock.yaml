@@ -16,7 +16,7 @@ spec:
         app: netatmo-mock
     spec:
       containers:
-        - image: netatmo-mock
+        - image: image-registry.openshift-image-registry.svc:5000/tiuha-dev/netatmo:latest
           name: tiuha-netatmo
           ports:
             - containerPort: 80
