@@ -23,12 +23,12 @@ spec:
             - log_statement=all
           env:
             - name: PGDATA
-              value: /tmp/
+              value: /tmp
             - name: POSTGRES_PASSWORD
               value: tiuha
             - name: POSTGRES_USER
               value: tiuha
-          image: postgres:12.2
+          image: image-registry.openshift-image-registry.svc:5000/tiuha-dev/postgres:latest
           livenessProbe:
             exec:
               command:
