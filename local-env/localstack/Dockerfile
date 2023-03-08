@@ -1,8 +1,6 @@
-FROM localstack/localstack:1.4
+FROM localstack/localstack:0.12.19
 
 ENV DATA_DIR=/tmp/localstack/data
-
-RUN chmod -R 664 /var/lib/localstack/logs
 
 COPY docker-entrypoint-initaws.d /docker-entrypoint-initaws.d/
 COPY supervisord.conf /etc/supervisord.conf
