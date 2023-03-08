@@ -21,7 +21,7 @@ spec:
     git:
       uri: 'ssh://git@github.fmi.fi/hav/tiuha.git'
       ref: main
-    contextDir: local-env/localstack/
+    contextDir: "local-env/localstack/"
     sourceSecret:
       name: tiuha-openshift-image-builder
   strategy:
