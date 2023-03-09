@@ -1,7 +1,9 @@
 FROM maven:eclipse-temurin
 
-COPY src pom.xml /app/
+WORKDIR /app
 
-RUN mvn package -DskipTests -f /app/pom.xml
+COPY . .
+
+RUN mvn package -DskipTests 
 
 CMD ["java", "-XX:MaxRAMPercentage=90", "-jar", "/app/target/measurement-api-1.0-SNAPSHOT-shaded.jar"]
