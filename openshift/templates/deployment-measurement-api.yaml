@@ -14,12 +14,7 @@ spec:
         app: measurement-api
     spec:
       containers:
-      - args:
-        - java
-        - -XX:MaxRAMPercentage=90
-        - -jar
-        - /app/server.jar
-        env:
+      - env:
         - name: DATABASE_HOST
           value: 172.30.51.118
         - name: DATABASE_PORT
