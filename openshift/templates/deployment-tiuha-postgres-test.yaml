@@ -1,3 +1,4 @@
+{{- if .Values.postgresTest.enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -39,3 +40,4 @@ spec:
             - containerPort: 5432
           resources: {}
       restartPolicy: Always
+{{- end }}
