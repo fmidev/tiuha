@@ -17,10 +17,10 @@ localstack:
     name: localstack
 
 postgres:
-  enabled: true
+  enabled: false
 
 postgresTest:
-  enabled: true
+  enabled: false
 
 localenv:
   enabled: true
