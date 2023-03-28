@@ -7,6 +7,13 @@ metadata:
 spec:
   lookupPolicy:
     local: false
+  tags:
+    - name: dev
+      from:
+        kind: DockerImage
+        name: 'quay.io/fmi/tiuha-measurements-api:dev'
+      referencePolicy:
+        type: Source
 ---
 apiVersion: build.openshift.io/v1
 kind: BuildConfig
@@ -40,6 +47,8 @@ spec:
       {{- end }}
   output:
     to:
-      kind: ImageStreamTag
-      name: {{ .Values.measurementapi.buildconfig.name }}:latest
+      kind: DockerImage
+      name: quay.io/fmi/tiuha-measurements-api:dev
+    pushSecret:
+      name: fmi-tiuha-pull-secret
 {{- end }}

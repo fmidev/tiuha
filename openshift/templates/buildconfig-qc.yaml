@@ -1,17 +1,25 @@
+{{- if and .Values.qc.enabled .Values.qc.buildConfig.enabled }}
 apiVersion: image.openshift.io/v1
 kind: ImageStream
 metadata:
-  name: qc
-  namespace: tiuha-dev
+  name: {{ .Values.qc.buildconfig.name }}
+  namespace: {{ .Values.namespace }}
 spec:
   lookupPolicy:
     local: false
+  tags:
+    - name: dev
+      from:
+        kind: DockerImage
+        name: 'quay.io/fmi/tiuha-qc:dev'
+      referencePolicy:
+        type: Source
 ---
 apiVersion: build.openshift.io/v1
 kind: BuildConfig
 metadata:
-  name: qc
-  namespace: tiuha-dev
+  name: {{ .Values.qc.buildconfig.name }}
+  namespace: {{ .Values.namespace }}
 spec:
   source:
     type: Git
@@ -29,5 +37,8 @@ spec:
         name: dockerhub-partios
   output:
     to:
-      kind: ImageStreamTag
-      name: qc:latest
+      kind: DockerImage
+      name: quay.io/fmi/tiuha-qc:dev
+    pushSecret:
+      name: fmi-tiuha-pull-secret
+{{- end }}
