@@ -29,6 +29,27 @@ template:
   enabled: true
   name: qctask-template
 
+roles:
+  batch:
+    enabled: true
+    name: role-batch
+  pod:
+    enabled: true
+    name: role-pod
+  template:
+    enabled: true
+    name: role-template
+
+roleBindings:
+  batch:
+    enabled: true
+    name: rolebinding-batch
+  pod:
+    enabled: true
+    name: rolebinding-pod
+  template:
+    enabled: true
+    name: rolebinding-template
 
 qc:
   enabled: true
@@ -44,6 +65,8 @@ measurementapi:
     preFix: tiuha-dev
     tls: true
   service:
+    enabled: true
+  deployment:
     enabled: true
   buildconfig:
     enabled: true
