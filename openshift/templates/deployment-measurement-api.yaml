@@ -23,7 +23,7 @@ spec:
         name: {{ .Values.measurementapi.name }}
         volumeMounts:
           - name: kubeconfig
-            mountPath: /etc/
+            mountPath: /etc/kube
             readOnly: true
       volumes:
       - name: kubeconfig
