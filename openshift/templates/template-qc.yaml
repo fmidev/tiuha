@@ -22,7 +22,7 @@ objects:
           - ${INPUTKEY}
           - --outputKey
           - ${OUTPUTKEY}
-          image: image-registry.openshift-image-registry.svc:5000/tiuha-dev/{{ .Values.qc.buildConfig.name }}:latest
+          image: image-registry.openshift-image-registry.svc:5000/tiuha-dev/{{ .Values.qc.buildConfig.name }}:dev
           imagePullPolicy: Always
           name: qc-${TASK_ID}
           envFrom:
