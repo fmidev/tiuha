@@ -4,7 +4,8 @@ import numpy
 # isolation check:
 
 isolation_check_radius = 15000
-isolation_check_num_min = 5
+# isolation_check_num_min = 5
+isolation_check_num_min = 1
 
 def getCoordinatesIndex(feature, idx):
     try:
