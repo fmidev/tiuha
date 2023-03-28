@@ -21,7 +21,7 @@ spec:
     git:
       uri: 'ssh://git@github.fmi.fi/hav/tiuha.git'
       ref: main
-    contextDir: local-env/netatmo/
+    contextDir: 'local-env/netatmo/'
     sourceSecret:
       name: tiuha-openshift-image-builder
   strategy:
