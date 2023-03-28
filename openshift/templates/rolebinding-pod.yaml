@@ -1,0 +1,14 @@
+{{- if .Values.roleBindings.pod.enabled }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ .Values.roleBindings.pod.name }}
+  namespace: {{ .Values.namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ .Values.roles.pod.name }}
+subjects:
+- kind: ServiceAccount
+  name: default
+{{- end }}

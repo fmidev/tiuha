@@ -1,0 +1,19 @@
+{{- if .Values.roles.batch.enabled }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ .Values.roles.batch.name }}
+  namespace: {{ .Values.namespace }}
+rules:
+- apiGroups:
+  - batch
+  resources:
+  - jobs
+  verbs:
+  - get
+  - list
+  - create
+  - delete
+  - update
+  - watch
+{{- end }}

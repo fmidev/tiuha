@@ -1,42 +1,24 @@
+{{- if .Values.measurementapi.deployment.enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: measurement-api
-  namespace: tiuha-dev
+  name: {{ .Values.measurementapi.name }}
+  namespace: {{ .Values.namespace }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: measurement-api
+      app: {{ .Values.measurementapi.name }}
   template:
     metadata:
       labels:
-        app: measurement-api
+        app: {{ .Values.measurementapi.name }}
     spec:
       containers:
-      - env:
-        - name: DATABASE_HOST
-          value: 172.30.51.118
-        - name: DATABASE_PORT
-          value: "5444"
-        - name: DATABASE_NAME
-          value: tiuha
-        - name: DATABASE_USERNAME
-          value: tiuha
-        - name: DATABASE_PASSWORD
-          value: tiuha
-        - name: GEOMESA_DB_PASSWORD
-          value: geomesa
-        - name: IMPORT_BUCKET
-          value: fmi-tiuha-import-local
-        - name: MEASUREMENTS_BUCKET
-          value: fmi-tiuha-measurements-local
-        - name: ENV
-          value: local
-        - name: AWS_ACCESS_KEY_ID
-          value: access_key
-        - name: AWS_SECRET_ACCESS_KEY
-          value: secret_key
-        image: image-registry.openshift-image-registry.svc:5000/tiuha-dev/measurement-api
+      - envFrom:
+        - secretRef:
+            name: measurement-api-envs
+        image: image-registry.openshift-image-registry.svc:5000/tiuha-dev/{{ .Values.measurementapi.name }}:dev
         imagePullPolicy: Always
-        name: measurement-api
+        name: {{ .Values.measurementapi.name }}
+{{- end }}
