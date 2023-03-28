@@ -9,7 +9,7 @@ RUN mvn package -DskipTests -Duser.home=/var/maven
 
 FROM eclipse-temurin:latest
 COPY --from=build /app/target/measurement-api-1.0-SNAPSHOT-shaded.jar /app/server.jar
-RUN wget -c https://mirror.openshift.com/pub/openshift-v4/clients/ocp/4.9.50/openshift-client-linux-4.9.50.tar.gz -O - | sudo tar -xzv -C /usr/bin oc &&\
+RUN wget -c https://mirror.openshift.com/pub/openshift-v4/clients/ocp/4.9.50/openshift-client-linux-4.9.50.tar.gz -O - | tar -xzv -C /usr/bin oc &&\
     chmod +x /usr/bin/oc
 RUN export KUBECONFIG=/etc/kubeconfig
 CMD ["java", "-XX:MaxRAMPercentage=90", "-jar", "/app/server.jar"]
