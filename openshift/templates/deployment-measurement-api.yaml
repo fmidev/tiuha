@@ -21,4 +21,12 @@ spec:
         image: image-registry.openshift-image-registry.svc:5000/tiuha-dev/{{ .Values.measurementapi.name }}:dev
         imagePullPolicy: Always
         name: {{ .Values.measurementapi.name }}
+        volumeMounts:
+          - name: kubeconfig
+            mountPath: /etc/
+            readOnly: true
+      volumes:
+      - name: kubeconfig
+        secret:
+          secretName: kubeconfig
 {{- end }}
