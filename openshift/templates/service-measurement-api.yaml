@@ -1,0 +1,15 @@
+{{- if .Values.measurementapi.service.enabled }}
+kind: Service
+apiVersion: v1
+metadata:
+  name: {{ .Values.measurementapi.name }}
+  namespace: {{ .Values.namespace }}
+spec:
+  ports:
+    - name: '8383'
+      protocol: TCP
+      port: 8383
+      targetPort: 8383
+  selector:
+    app: {{ .Values.measurementapi.name }}
+{{- end }}

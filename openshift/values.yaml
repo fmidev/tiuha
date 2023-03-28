@@ -7,13 +7,13 @@ netatmo:
     name: netatmo
 
 localstack:
-  enabled: true
+  enabled: false
   pvc:
-    enabled: true
+    enabled: false
     name: s3-localstack-claim0
     size: 10Gi
   buildconfig:
-    enabled: true
+    enabled: false
     name: localstack
 
 postgres:
@@ -23,13 +23,30 @@ postgresTest:
   enabled: false
 
 localenv:
+  enabled: false
+
+template:
   enabled: true
+  name: qctask-template
+
+
+qc:
+  enabled: true
+  buildConfig:
+    enabled: true
+    name: qc
 
 measurementapi:
   enabled: true
+  name: measurement-api
+  route:
+    enabled: true
+    preFix: tiuha-dev
+    tls: true
+  service:
+    enabled: true
   buildconfig:
     enabled: true
-    name: measurement-api
     envs:
       - DATABASE_HOST
       - DATABASE_PORT

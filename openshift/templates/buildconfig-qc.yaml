@@ -2,7 +2,7 @@
 apiVersion: image.openshift.io/v1
 kind: ImageStream
 metadata:
-  name: {{ .Values.qc.buildconfig.name }}
+  name: {{ .Values.qc.buildConfig.name }}
   namespace: {{ .Values.namespace }}
 spec:
   lookupPolicy:
@@ -18,7 +18,7 @@ spec:
 apiVersion: build.openshift.io/v1
 kind: BuildConfig
 metadata:
-  name: {{ .Values.qc.buildconfig.name }}
+  name: {{ .Values.qc.buildConfig.name }}
   namespace: {{ .Values.namespace }}
 spec:
   source:
