@@ -14,7 +14,6 @@ fun main(args: Array<String>) {
     Log.info("Server starting")
     logHeapMemorySize()
     runMigrations()
-
     val measurementDataStore = S3DataStore(Config.measurementsBucket)
     val scheduledJobs = startScheduledJobs(measurementDataStore)
 
@@ -42,6 +41,7 @@ fun startScheduledJobs(measurementDataStore: S3DataStore): MutableList<Scheduled
     } else {
         Log.info("Using real QC")
     }
+
     val insertToMeasurementStoreJob = ImportToMeasurementStoreJob(measurementDataStore, s3, Config.importBucket)
     val compactMeasurementStoreJob = CompactMeasurementStoreJob(measurementDataStore.dataStore)
 

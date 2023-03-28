@@ -12,6 +12,10 @@ import software.amazon.awssdk.services.ecs.model.LaunchType
 import software.amazon.awssdk.services.ecs.model.PropagateTags
 import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
+import java.util.concurrent.TimeUnit;
+import java.lang.ProcessBuilder.Redirect
+import java.io.InputStreamReader
+import java.io.BufferedReader
 
 fun generateOutputKey(inputKey: String): String {
     val inputSegments = inputKey.split('/')
@@ -53,7 +57,7 @@ class QCTask(
         if (noopQualityControl) {
             db.markQCTaskAsStarted(tx, id, "arn:fake", outputKey)
         } else {
-            val taskArn = startFargateTask(task, outputKey)
+            val taskArn = startOpenshiftTask(task, outputKey)
             db.markQCTaskAsStarted(tx, id, taskArn, outputKey)
         }
     }
@@ -86,6 +90,23 @@ class QCTask(
         }
 
         return runTaskResponse.tasks().first().taskArn()
+    }
+
+    fun startOpenshiftTask(task: QCTaskRow, outputKey: String): String {
+        Log.info("Starting QC task on Openshift for qc_task ${task.id}")
+        val command = "oc process qc-template -p BUCKET=${Config.importBucket} -p INPUTKEY=${task.inputKey} -p OUTPUTKEY=${outputKey} -p TASK_ID=${task.id} -n tiuha-dev | oc create -f -"
+        val process = ProcessBuilder("/bin/sh", "-c", "oc process qctask-template -p BUCKET=${Config.importBucket} -p INPUTKEY=${task.inputKey} -p OUTPUTKEY=${outputKey} -p TASK_ID=${task.id} -n tiuha-dev | oc create -f -").redirectOutput(Redirect.INHERIT).start()
+        Thread.sleep(1_000)
+        val process2 = ProcessBuilder("/bin/sh", "-c", "oc get job qc-${task.id} -n tiuha-dev -o jsonpath='{.metadata.uid}'").start()
+        Thread.sleep(1_000)
+        var jobUid: String = ""
+        BufferedReader(InputStreamReader(process2.inputStream)).use { reader ->
+            var line: String?
+            while (reader.readLine().also { line = it } != null) {
+              jobUid = line.toString()
+            }
+        }
+        return jobUid
     }
 
     fun processAllSync() {

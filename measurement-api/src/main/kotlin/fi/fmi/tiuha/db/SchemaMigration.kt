@@ -17,7 +17,6 @@ fun createFlywayForSchema(schemaName: String, ds: DataSource): Flyway {
 
     return Flyway.configure()
         .locations("classpath:$changesClassPath")
-        .failOnMissingLocations(true)
         .schemas(schemaName)
         .table(versionTableName)
         .dataSource(ds.hikariDataSource)
