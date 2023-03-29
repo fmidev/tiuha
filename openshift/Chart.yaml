@@ -4,7 +4,7 @@ description: Tiuha projekti (STU-20482)
 
 # A chart can be either an 'application' or a 'library' chart.
 #
-# Application charts are a collection of templates that can be packaged into version: 0.1.8
+# Application charts are a collection of templates that can be packaged into version: 0.1.9
 # to be deployed.
 #
 # Library charts provide useful utilities or functions for the chart developer. They're included as
@@ -12,13 +12,13 @@ description: Tiuha projekti (STU-20482)
 # pipeline. Library charts do not define any templates and therefore cannot be deployed.
 type: application
 
-# This is the chart version: 0.1.8
-# to the chart and its templates, including the app version: 0.1.8
+# This is the chart version: 0.1.9
+# to the chart and its templates, including the app version: 0.1.9
 # Versions are expected to follow Semantic Versioning (https://semver.org/)
-version: 0.1.8
+version: 0.1.9
 
-# This is the version: 0.1.8
+# This is the version: 0.1.9
 # incremented each time you make changes to the application. Versions are not expected to
-# follow Semantic Versioning. They should reflect the version: 0.1.8
+# follow Semantic Versioning. They should reflect the version: 0.1.9
 # It is recommended to use it with quotes.
 appVersion: "1.16.0"
