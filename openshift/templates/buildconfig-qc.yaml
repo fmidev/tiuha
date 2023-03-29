@@ -12,6 +12,8 @@ spec:
       from:
         kind: DockerImage
         name: 'quay.io/fmi/tiuha-qc:dev'
+      importPolicy:
+        scheduled: true
       referencePolicy:
         type: Source
 ---

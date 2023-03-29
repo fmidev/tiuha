@@ -12,6 +12,8 @@ spec:
       from:
         kind: DockerImage
         name: 'quay.io/fmi/tiuha-measurements-api:dev'
+      importPolicy:
+        scheduled: true
       referencePolicy:
         type: Source
 ---
@@ -21,8 +23,6 @@ metadata:
   name: {{ .Values.measurementapi.name }}
   namespace: {{ .Values.namespace }}
 spec:
-  triggers:
-    - type: ConfigChange
   source:
     type: Git
     git:
