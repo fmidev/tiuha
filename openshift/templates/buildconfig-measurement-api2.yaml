@@ -25,8 +25,6 @@ spec:
   strategy:
     type: Docker
     dockerStrategy:
-      pullSecret: 
-        name: dockerhub-partios
       dockerfilePath: Dockerfile
       env:
         - name: DATABASE_HOST

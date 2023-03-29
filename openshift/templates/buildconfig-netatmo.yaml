@@ -14,8 +14,6 @@ metadata:
   name: {{ .Values.netatmo.buildconfig.name }}
   namespace: {{ .Values.namespace }}
 spec:
-  triggers:
-    - type: ConfigChange
   source:
     type: Git
     git:
@@ -28,8 +26,6 @@ spec:
     type: Docker
     dockerStrategy:
       dockerfilePath: Dockerfile
-      pullSecret: 
-        name: dockerhub-partios
   output:
     to:
       kind: ImageStreamTag

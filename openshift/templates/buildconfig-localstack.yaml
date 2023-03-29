@@ -28,8 +28,6 @@ spec:
     type: Docker
     dockerStrategy:
      dockerfilePath: Dockerfile
-     pullSecret: 
-        name: dockerhub-partios
   output:
     to:
       kind: ImageStreamTag
