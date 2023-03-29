@@ -14,6 +14,11 @@ spec:
       labels:
         app: {{ .Values.measurementapi.name }}
     spec:
+      initContainers:
+      - name: wait-for-webserver
+        image: curlimages/curl:latest
+        command: ["/bin/sh","-c"]
+        args: ["while [ $(curl -sw '%{http_code}' http://netatmo-mock:1234/getcountryweatherdata -o /dev/null) -ne 200 ]; do sleep 5; echo 'Waiting for the webserver...'; done"]
       containers:
       - envFrom:
         - secretRef:
@@ -29,4 +34,7 @@ spec:
       - name: kubeconfig
         secret:
           secretName: kubeconfig
+      imagePullSecrets:
+      - name: dockerhub-pull-secret
+
 {{- end }}
