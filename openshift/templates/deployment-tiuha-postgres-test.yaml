@@ -27,7 +27,7 @@ spec:
               value: tiuha-test
             - name: POSTGRES_USER
               value: tiuha-test
-          image: image-registry.openshift-image-registry.svc:5000/tiuha-dev/postgres:latest
+          image: image-registry.openshift-image-registry.svc:5000/{{ .Values.namespace }}/postgres:latest
           livenessProbe:
             exec:
               command:

@@ -18,7 +18,7 @@ spec:
         app: s3-localstack
     spec:
       containers:
-        - image: image-registry.openshift-image-registry.svc:5000/tiuha-dev/localstack:latest
+        - image: image-registry.openshift-image-registry.svc:5000/{{ .Values.namespace }}/localstack:latest
           name: tiuha-s3
           ports:
             - containerPort: 4566

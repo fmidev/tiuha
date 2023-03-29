@@ -18,7 +18,7 @@ spec:
       - envFrom:
         - secretRef:
             name: measurement-api-envs
-        image: image-registry.openshift-image-registry.svc:5000/tiuha-dev/{{ .Values.measurementapi.name }}:dev
+        image: image-registry.openshift-image-registry.svc:5000/{{ .Values.namespace }}/{{ .Values.measurementapi.name }}:dev
         imagePullPolicy: Always
         name: {{ .Values.measurementapi.name }}
         volumeMounts:
