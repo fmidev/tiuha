@@ -30,6 +30,8 @@ spec:
   strategy:
     type: Docker
     dockerStrategy:
+      pullSecret: 
+        name: dockerhub-pull-secret
   output:
     to:
       kind: ImageStreamTag

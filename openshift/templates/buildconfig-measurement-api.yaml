@@ -34,14 +34,16 @@ spec:
   strategy:
     type: Docker
     dockerStrategy:
-     dockerfilePath: Dockerfile
-     env:
-     {{- range .Values.measurementapi.buildconfig.envs }}
-        - name: {{ . }}
-          valueFrom:
-            secretKeyRef:
-              name: measurement-api-envs
-              key: {{ . }}
+      dockerfilePath: Dockerfile
+      pullSecret: 
+        name: dockerhub-pull-secret
+      env:
+      {{- range .Values.measurementapi.buildconfig.envs }}
+         - name: {{ . }}
+           valueFrom:
+             secretKeyRef:
+               name: measurement-api-envs
+               key: {{ . }}
       {{- end }}
   output:
     to:

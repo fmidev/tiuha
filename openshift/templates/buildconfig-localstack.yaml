@@ -27,7 +27,9 @@ spec:
   strategy:
     type: Docker
     dockerStrategy:
-     dockerfilePath: Dockerfile
+      dockerfilePath: Dockerfile
+      pullSecret: 
+        name: dockerhub-pull-secret
   output:
     to:
       kind: ImageStreamTag
