@@ -1,0 +1,89 @@
+name: Release Helm Charts Self Hosted
+
+# Do not change this
+concurrency: release-helm
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'openshift/templates/**'
+      - 'openshift/Chart.yaml'
+      - 'openshift/values.yaml'
+
+jobs:
+  validation:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          path: 'src'
+          fetch-depth: 0
+
+      - uses: azure/setup-helm@v3
+      
+      - name: lint
+        working-directory: src/openshift
+        run: | 
+          helm lint .
+        
+  release:
+    runs-on: self-hosted
+    needs: validation
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          path: 'src'
+          fetch-depth: 0
+
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          path: 'dest'
+          ref: 'gh-pages'
+          fetch-depth: 0
+      
+      - uses: azure/setup-helm@v3
+
+      - name: bump Chart version
+        shell: bash
+        working-directory: src/openshift
+        run: |
+          GIT_MSG=$(git log --no-merges -P --author='^(?!Helm Updater)' --pretty=format:%B -1)
+          if [[ $GIT_MSG == *"MAJOR"* ]]; then
+            VERSION=$(grep version Chart.yaml | awk '{print $2}' | awk -F. '/[0-9]+\./{$1++;$2=0;$3=0;print}' OFS=.)
+          elif [[ $GIT_MSG == *"MINOR"* ]]; then
+            VERSION=$(grep version Chart.yaml | awk '{print $2}' | awk -F. '/[0-9]+\./{$2++;$3=0;print}' OFS=.)
+          else
+            VERSION=$(grep version Chart.yaml | awk '{print $2}' | awk -F. '/[0-9]+\./{$NF++;print}' OFS=.) 
+          fi
+          sed -i -E "s/version.*/version: $VERSION/g" ./Chart.yaml
+      - name: Package Helm Charts
+        shell: bash
+        run: |
+          helm package ./src/openshift -u -d dest
+          
+      - name: Push Chart
+        shell: bash
+        working-directory: src/openshift
+        run: |
+          git config user.name "Helm Updater"
+          git config user.email "actions@users.noreply.github.com"
+          git add Chart.yaml
+          git commit -m "Updated from ref: $GITHUB_SHA"
+          git push
+      - name: Push New Files
+        shell: bash
+        working-directory: dest
+        run: |
+          helm repo index . --url https://raw.github.fmi.fi/partios/tiuha/gh-pages
+          git config user.name "Helm Updater"
+          git config user.email "actions@users.noreply.github.com"
+          git add $(git ls-files -o --exclude-standard)
+          git add index.yaml
+          git commit -m "Updated from ref: $GITHUB_SHA"
+          git push
