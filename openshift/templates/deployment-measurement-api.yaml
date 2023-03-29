@@ -4,6 +4,9 @@ kind: Deployment
 metadata:
   name: {{ .Values.measurementapi.name }}
   namespace: {{ .Values.namespace }}
+  annotations:
+    image.openshift.io/triggers: >-
+      [{"from":{"kind":"ImageStreamTag","name":"{{ .Values.measurementapi.name }}:dev"},"fieldPath":"spec.template.spec.containers[?(@.name==\"{{ .Values.measurementapi.name }}\")].image"}]
 spec:
   replicas: 1
   selector:
