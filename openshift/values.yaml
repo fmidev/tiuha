@@ -1,10 +1,10 @@
 namespace: tiuha-dev
 
 netatmo:
-  enabled: true
+  enabled: false
   name: netatmo-mock
   buildconfig: 
-    enabled: true
+    enabled: false
     name: netatmo-mock
 
 localstack:

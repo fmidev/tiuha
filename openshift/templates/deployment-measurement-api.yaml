@@ -14,11 +14,13 @@ spec:
       labels:
         app: {{ .Values.measurementapi.name }}
     spec:
+    {{- if .Values.netatmo.enabled }}
       initContainers:
       - name: wait-for-webserver
         image: 'registry.access.redhat.com/ubi8/ubi:latest'
         command: ["/bin/sh","-c"]
         args: ["while [ $(curl -sw '%{http_code}' http://netatmo-mock:1234/getcountryweatherdata -o /dev/null) -ne 200 ]; do sleep 5; echo 'Waiting for the webserver...'; done"]
+    {{- end }}  
       containers:
       - envFrom:
         - secretRef:
