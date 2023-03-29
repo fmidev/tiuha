@@ -15,8 +15,8 @@ private object NetatmoLocalConfig : NetatmoConfigType {
 }
 
 private object NetatmoOpenshiftConfig : NetatmoConfigType {
-    override val apiKey = "this-would-be-a-netatmo-api-key"
-    override val importUrl = "http://netatmo-mock:1234/getcountryweatherdata"
+    override val apiKey = requireEnv("NETATMO_API_KEY")
+    override val importUrl = "https://api.netatmo.com/apiexport/getcountryweatherdata?key=${apiKey}&country=FI"
 }
 
 interface NetatmoConfigType {
