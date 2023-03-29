@@ -50,6 +50,8 @@ roleBindings:
   template:
     enabled: true
     name: rolebinding-template
+  view:
+    enabled: false
 
 qc:
   enabled: true

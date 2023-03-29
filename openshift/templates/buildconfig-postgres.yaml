@@ -1,8 +1,9 @@
+{{- if .Values.postgres.enabled }}
 apiVersion: image.openshift.io/v1
 kind: ImageStream
 metadata:
   name: postgres
-  namespace: tiuha-dev
+  namespace: {{ .Values.namespace }}
 spec:
   lookupPolicy:
     local: false
@@ -11,7 +12,7 @@ apiVersion: build.openshift.io/v1
 kind: BuildConfig
 metadata:
   name: postgres
-  namespace: tiuha-dev
+  namespace: {{ .Values.namespace }}
 spec:
   source:
     dockerfile: |
@@ -37,3 +38,4 @@ spec:
       name: postgres:latest
   triggers:
   - type: ConfigChange
+{{- end }}
