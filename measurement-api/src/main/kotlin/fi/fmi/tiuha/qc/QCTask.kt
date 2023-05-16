@@ -94,13 +94,14 @@ class QCTask(
 
     fun startOpenshiftTask(task: QCTaskRow, outputKey: String): String {
         Log.info("Starting QC task on Openshift for qc_task ${task.id}")
-        val command = "oc process qc-template -p BUCKET=${Config.importBucket} -p INPUTKEY=${task.inputKey} -p OUTPUTKEY=${outputKey} -p TASK_ID=${task.id} -n tiuha-dev | oc create -f -"
         val process = ProcessBuilder("/bin/sh", "-c", "oc process qctask-template -p BUCKET=${Config.importBucket} -p INPUTKEY=${task.inputKey} -p OUTPUTKEY=${outputKey} -p TASK_ID=${task.id} -n tiuha-dev | oc create -f -").redirectOutput(Redirect.INHERIT).start()
         Thread.sleep(1_000)
-        val process2 = ProcessBuilder("/bin/sh", "-c", "oc get job qc-${task.id} -n tiuha-dev -o jsonpath='{.metadata.uid}'").start()
+        
+        val get_uid = ProcessBuilder("/bin/sh", "-c", "oc get job qc-${task.id} -n tiuha-dev -o jsonpath='{.metadata.uid}'").start()
         Thread.sleep(1_000)
+        
         var jobUid: String = ""
-        BufferedReader(InputStreamReader(process2.inputStream)).use { reader ->
+        BufferedReader(InputStreamReader(get_uid.inputStream)).use { reader ->
             var line: String?
             while (reader.readLine().also { line = it } != null) {
               jobUid = line.toString()
