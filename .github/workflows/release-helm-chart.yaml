@@ -15,7 +15,7 @@ on:
 
 jobs:
   validation:
-    runs-on: self-hosted
+    runs-on: ubuntu
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -80,7 +80,7 @@ jobs:
         shell: bash
         working-directory: dest
         run: |
-          helm repo index . --url https://raw.github.fmi.fi/hav/tiuha/gh-pages
+          helm repo index . --url https://raw.github.com/fmidev/tiuha/gh-pages
           git config user.name "Helm Updater"
           git config user.email "actions@users.noreply.github.com"
           git add $(git ls-files -o --exclude-standard)
