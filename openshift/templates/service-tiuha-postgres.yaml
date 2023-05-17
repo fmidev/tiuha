@@ -1,0 +1,14 @@
+{{- if .Values.postgres.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: tiuha-postgres
+  namespace: {{ .Values.namespace }}
+spec:
+  ports:
+    - name: "5444"
+      port: 5444
+      targetPort: 5432
+  selector:
+    app: postgres
+{{- end }}

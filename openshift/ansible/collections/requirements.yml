@@ -1,0 +1,3 @@
+collections:
+- keepersecurity.keeper_secrets_manager
+- kubernetes.core

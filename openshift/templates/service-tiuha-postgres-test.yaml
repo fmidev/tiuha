@@ -1,0 +1,14 @@
+{{- if .Values.postgresTest.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: tiuha-postgres-test
+  namespace: {{ .Values.namespace }}
+spec:
+  ports:
+    - name: "5445"
+      port: 5445
+      targetPort: 5432
+  selector:
+    app: postgres-test
+{{- end }}

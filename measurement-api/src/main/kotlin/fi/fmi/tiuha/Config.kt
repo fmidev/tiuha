@@ -3,9 +3,8 @@ package fi.fmi.tiuha
 import fi.fmi.tiuha.db.DataSource
 import software.amazon.awssdk.regions.Region
 
-
 enum class Environment {
-    PROD, DEV, LOCAL
+    PROD, DEV, LOCAL, OPENSHIFT
 }
 
 
@@ -29,6 +28,8 @@ object Config {
 
     val importBucket = requireEnv("IMPORT_BUCKET")
     val measurementsBucket = requireEnv("MEASUREMENTS_BUCKET")
+    val lakeaccesskey = requireEnv("AWS_ACCESS_KEY_ID")
+    val lakesecretkey = requireEnv("AWS_SECRET_ACCESS_KEY")
     val noopQualityControl = environment == Environment.LOCAL
 
     val httpPort = 8383

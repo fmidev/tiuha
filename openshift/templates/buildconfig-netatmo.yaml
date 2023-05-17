@@ -1,0 +1,37 @@
+{{- if and .Values.netatmo.enabled .Values.netatmo.buildconfig.enabled }}
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: {{ .Values.netatmo.buildconfig.name }}
+  namespace: {{ .Values.namespace }}
+spec:
+  lookupPolicy:
+    local: false
+---
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: {{ .Values.netatmo.buildconfig.name }}
+  namespace: {{ .Values.namespace }}
+spec:
+  triggers:
+    - type: ConfigChange
+  source:
+    type: Git
+    git:
+      uri: 'ssh://git@github.fmi.fi/hav/tiuha.git'
+      ref: main
+    contextDir: 'local-env/netatmo/'
+    sourceSecret:
+      name: tiuha-openshift-image-builder
+  strategy:
+    type: Docker
+    dockerStrategy:
+      dockerfilePath: Dockerfile
+      pullSecret: 
+        name: dockerhub-pull-secret
+  output:
+    to:
+      kind: ImageStreamTag
+      name: {{ .Values.netatmo.buildconfig.name }}:latest
+{{- end }}

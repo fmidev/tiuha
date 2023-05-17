@@ -1,0 +1,41 @@
+{{- if .Values.postgres.enabled }}
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: postgres
+  namespace: {{ .Values.namespace }}
+spec:
+  lookupPolicy:
+    local: false
+---
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: postgres
+  namespace: {{ .Values.namespace }}
+spec:
+  source:
+    dockerfile: |
+      FROM postgres:15.2
+      
+      RUN mkdir temp
+      
+      RUN groupadd non-root-postgres-group
+      RUN useradd non-root-postgres-user --group non-root-postgres-group
+      
+      RUN chown -R non-root-postgres-user:non-root-postgres-group /temp
+      RUN chmod 777 /temp
+      
+      USER non-root-postgres
+  strategy:
+    type: Docker
+    dockerStrategy:
+      pullSecret: 
+        name: dockerhub-pull-secret
+  output:
+    to:
+      kind: ImageStreamTag
+      name: postgres:latest
+  triggers:
+  - type: ConfigChange
+{{- end }}

@@ -1,0 +1,54 @@
+{{- if and .Values.measurementapi.enabled .Values.measurementapi.buildconfig.enabled }}
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: {{ .Values.measurementapi.name }}
+  namespace: {{ .Values.namespace }}
+spec:
+  lookupPolicy:
+    local: false
+  tags:
+    - name: dev
+      from:
+        kind: DockerImage
+        name: 'quay.io/fmi/tiuha-measurements-api:dev'
+      importPolicy:
+        scheduled: true
+      referencePolicy:
+        type: Source
+---
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: {{ .Values.measurementapi.name }}
+  namespace: {{ .Values.namespace }}
+spec:
+  source:
+    type: Git
+    git:
+      uri: 'ssh://git@github.fmi.fi/hav/tiuha.git'
+      ref: main
+    contextDir: 'measurement-api/'
+    sourceSecret:
+      name: tiuha-openshift-image-builder
+  strategy:
+    type: Docker
+    dockerStrategy:
+      dockerfilePath: Dockerfile
+      pullSecret: 
+        name: dockerhub-pull-secret
+      env:
+      {{- range .Values.measurementapi.buildconfig.envs }}
+         - name: {{ . }}
+           valueFrom:
+             secretKeyRef:
+               name: measurement-api-envs
+               key: {{ . }}
+      {{- end }}
+  output:
+    to:
+      kind: DockerImage
+      name: quay.io/fmi/tiuha-measurements-api:dev
+    pushSecret:
+      name: fmi-tiuha-pull-secret
+{{- end }}

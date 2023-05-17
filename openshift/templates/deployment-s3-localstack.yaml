@@ -1,0 +1,37 @@
+{{- if .Values.localstack.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: s3-localstack
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: 0
+  selector:
+    matchLabels:
+      app: s3-localstack
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        io.kompose.network/local-env-default: "true"
+        app: s3-localstack
+    spec:
+      containers:
+        - image: image-registry.openshift-image-registry.svc:5000/{{ .Values.namespace }}/localstack:latest
+          name: tiuha-s3
+          ports:
+            - containerPort: 4566
+              protocol: TCP
+            - containerPort: 4571
+              protocol: TCP
+          resources: {}
+          volumeMounts:
+            - mountPath: /var/run/docker.sock
+              name: {{ .Values.localstack.pvc.name }}
+      restartPolicy: Always
+      volumes:
+        - name: {{ .Values.localstack.pvc.name }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.localstack.pvc.name }}
+{{- end }}

@@ -1,0 +1,28 @@
+{{- if .Values.netatmo.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.netatmo.name }}
+  namespace: {{ .Values.namespace }}
+  annotations:
+    image.openshift.io/triggers: >-
+      [{"from":{"kind":"ImageStreamTag","name":"{{ .Values.netatmo.name }}:latest"},"fieldPath":"spec.template.spec.containers[?(@.name==\"{{ .Values.netatmo.name }}\")].image"}]
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.netatmo.name }}
+  template:
+    metadata:
+      labels:
+        io.kompose.network/local-env-default: "true"
+        app: {{ .Values.netatmo.name }}
+    spec:
+      containers:
+        - image: image-registry.openshift-image-registry.svc:5000/{{ .Values.namespace }}/{{ .Values.netatmo.buildconfig.name }}:latest
+          name: {{ .Values.netatmo.name }}
+          ports:
+            - containerPort: 80
+          resources: {}
+      restartPolicy: Always
+{{- end }}

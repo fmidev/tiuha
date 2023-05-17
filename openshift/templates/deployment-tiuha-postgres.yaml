@@ -1,0 +1,44 @@
+{{- if .Values.postgres.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tiuha-postgres
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        io.kompose.network/local-env-default: "true"
+        app: postgres
+    spec:
+      containers:
+        - args:
+            - postgres
+            - -c
+            - log_statement=all
+          env:
+            - name: PGDATA
+              value: /temp/data
+            - name: POSTGRES_PASSWORD
+              value: tiuha
+            - name: POSTGRES_USER
+              value: tiuha
+          image: image-registry.openshift-image-registry.svc:5000/{{ .Values.namespace }}/postgres:latest
+          livenessProbe:
+            exec:
+              command:
+                - pg_isready -U tiuha
+            failureThreshold: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+          name: tiuha-postgres
+          ports:
+            - containerPort: 5432
+          resources: {}
+      restartPolicy: Always
+{{- end }}

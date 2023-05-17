@@ -1,0 +1,48 @@
+{{- if .Values.template.enabled }}
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: {{ .Values.template.name }}
+  namespace: {{ .Values.namespace }}
+objects:
+- apiVersion: batch/v1
+  kind: Job
+  metadata:
+    name: qc-${TASK_ID}
+  spec:
+    completions: 1
+    backoffLimit: 0
+    template:
+      spec:
+        containers:
+        - args:
+          - --bucket
+          - ${BUCKET}
+          - --inputKey
+          - ${INPUTKEY}
+          - --outputKey
+          - ${OUTPUTKEY}
+          image: image-registry.openshift-image-registry.svc:5000/tiuha-dev/{{ .Values.qc.buildConfig.name }}:dev
+          imagePullPolicy: Always
+          name: qc-${TASK_ID}
+          envFrom:
+            - secretRef:
+                name: qc-creds
+          resources:
+            limits:
+              cpu: "2"
+              memory: 2Gi
+            requests:
+              cpu: "1"
+              memory: 1Gi
+        restartPolicy: Never
+parameters:
+- name: BUCKET
+  required: true
+- name: INPUTKEY
+  required: true
+- name: OUTPUTKEY
+  required: true
+- name: TASK_ID
+  required: true
+{{- end }}

@@ -1,0 +1,18 @@
+{{- if .Values.roles.pod.enabled }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ .Values.roles.pod.name }}
+  namespace: {{ .Values.namespace }}
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
+  - create
+  - delete
+  - list
+  - patch
+  - watch
+{{- end }}

@@ -1,0 +1,39 @@
+{{- if .Values.measurementapi.deployment.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.measurementapi.name }}
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.measurementapi.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.measurementapi.name }}
+    spec:
+    {{- if .Values.netatmo.enabled }}
+      initContainers:
+      - name: wait-for-webserver
+        image: 'registry.access.redhat.com/ubi8/ubi:latest'
+        command: ["/bin/sh","-c"]
+        args: ["while [ $(curl -sw '%{http_code}' http://netatmo-mock:1234/getcountryweatherdata -o /dev/null) -ne 200 ]; do sleep 5; echo 'Waiting for the webserver...'; done"]
+    {{- end }}  
+      containers:
+      - envFrom:
+        - secretRef:
+            name: measurement-api-envs
+        image: image-registry.openshift-image-registry.svc:5000/{{ .Values.namespace }}/{{ .Values.measurementapi.name }}:dev
+        imagePullPolicy: Always
+        name: {{ .Values.measurementapi.name }}
+        volumeMounts:
+          - name: kubeconfig
+            mountPath: /etc/kube
+            readOnly: true
+      volumes:
+      - name: kubeconfig
+        secret:
+          secretName: kubeconfig
+{{- end }}

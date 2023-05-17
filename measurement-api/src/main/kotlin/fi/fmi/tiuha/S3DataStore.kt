@@ -45,6 +45,30 @@ val HADOOP_CONFIG = when(Config.environment) {
             </property>
         </configuration>
     """
+    Environment.OPENSHIFT -> """
+        <configuration>
+            <property>
+                <name>fs.s3a.endpoint</name>
+                <value>https://lake.fmi.fi</value>
+            </property>
+            <property>
+                <name>fs.s3a.connection.ssl.enabled</name>
+                <value>true</value>
+            </property>
+            <property>
+                <name>fs.s3a.access.key</name>
+                <value>${Config.lakeaccesskey}</value>
+            </property>
+            <property>
+                <name>fs.s3a.secret.key</name>
+                <value>${Config.lakesecretkey}</value>
+            </property>
+            <property>
+                <name>fs.s3a.path.style.access</name>
+                <value>true</value>
+            </property>
+        </configuration>
+    """
 }
 
 class S3DataStore(bucket: String) {

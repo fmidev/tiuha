@@ -9,6 +9,8 @@ import sys
 import netatmo_qc
 
 VERSION = os.environ.get("VERSION", None)
+AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID", None)
+AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY", None)
 
 
 class FeatureCollection:
@@ -69,7 +71,10 @@ def assign_qc_results(method, featureCollection, indexes, check_results):
         }
 
 def read_input_from_s3(bucket, input_key):
-    s3 = boto3.resource('s3')
+    s3 = boto3.resource('s3',
+                        endpoint_url='https://lake.fmi.fi',
+                        aws_access_key_id=AWS_ACCESS_KEY_ID,
+                        aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
     input_obj = s3.Object(bucket, input_key)
     content = input_obj.get()['Body'].read()
     if input_key.endswith('.gz'):
@@ -80,7 +85,10 @@ def read_input_from_stdin():
     return sys.stdin.buffer.read()
 
 def write_output_to_s3(output_str, bucket, output_key):
-    s3 = boto3.resource('s3')
+    s3 = boto3.resource('s3',
+                        endpoint_url='https://lake.fmi.fi',
+                        aws_access_key_id=AWS_ACCESS_KEY_ID,
+                        aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
     output_obj = s3.Object(bucket, output_key)
     output_body = output_str.encode()
     if output_key.endswith('.gz'):
@@ -126,5 +134,6 @@ def main():
         write_output_to_s3(output_str, args.bucket, args.outputKey)
     else:
         write_output_to_stdout(output_str)
+        
 if __name__ == "__main__":
     main()

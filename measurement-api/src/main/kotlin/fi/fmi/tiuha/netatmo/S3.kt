@@ -28,18 +28,29 @@ val localStackCredentialsProvider =
                 }
         )
 
-private fun buildLocalstackS3Client(httpClient: SdkHttpClient): S3Client = S3Client.builder()
+private fun buildLocalstackS3Client(httpClient: SdkHttpClient): S3Client {
+    return S3Client.builder()
         .httpClient(httpClient)
-        .endpointOverride(java.net.URI("http://localhost:4566"))
+        .endpointOverride(java.net.URI("http://localstack:4566"))
         .serviceConfiguration { it.pathStyleAccessEnabled(true) }
         .credentialsProvider(localStackCredentialsProvider)
         .region(Config.awsRegion)
         .build()
+}
 
 private fun buildRealS3Client(httpClient: SdkHttpClient): S3Client = S3Client.builder()
         .httpClient(httpClient)
         .region(Config.awsRegion)
         .build()
+
+private fun openshiftS3Client(httpClient: SdkHttpClient): S3Client {
+    val opbuilder = S3Client.builder()
+        .httpClient(httpClient)
+        .endpointOverride(java.net.URI("https://lake.fmi.fi"))
+        .region(Config.awsRegion)
+        .build()
+    return opbuilder
+}
 
 class LocalStackS3 : RealS3() {
     override val client = buildLocalstackS3Client(httpClient)
@@ -49,6 +60,7 @@ class TiuhaS3 : RealS3() {
     override val client = when(Config.environment) {
         Environment.PROD, Environment.DEV -> buildRealS3Client(httpClient)
         Environment.LOCAL -> buildLocalstackS3Client(httpClient)
+        Environment.OPENSHIFT -> openshiftS3Client(httpClient)
     }
 }
 

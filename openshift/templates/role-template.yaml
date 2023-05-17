@@ -1,0 +1,22 @@
+{{- if .Values.roles.template.enabled }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ .Values.roles.template.name }}
+  namespace: {{ .Values.namespace }}
+rules:
+- apiGroups:
+  - template.openshift.io
+  resources:
+  - processedtemplates
+  - templates
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+{{- end }}
+

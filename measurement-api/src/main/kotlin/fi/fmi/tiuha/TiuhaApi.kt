@@ -78,13 +78,13 @@ class TiuhaApi(port: Int, ds: S3DataStore) {
 
     fun checkApiKey(creds: UserPasswordCredential): Principal? {
         val clientId = creds.name
-        val apiKey = creds.password
+        val apiKey = creds.password.trim()
         Log.info("Validating API key for client '${clientId}'")
         return fetchApiClient(clientId)?.let {
             if (BCrypt.checkpw(apiKey, it.apiKeyHash)) {
                 UserIdPrincipal(it.clientId)
             } else {
-                Log.info("Invalid API key provided for client '${clientId}")
+                Log.info("Invalid API key provided for client '${clientId}'")
                 null
             }
         }

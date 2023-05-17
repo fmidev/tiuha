@@ -14,6 +14,11 @@ private object NetatmoLocalConfig : NetatmoConfigType {
     override val importUrl = "http://localhost:1234/getcountryweatherdata"
 }
 
+private object NetatmoOpenshiftConfig : NetatmoConfigType {
+    override val apiKey = requireEnv("NETATMO_API_KEY")
+    override val importUrl = "https://api.netatmo.com/apiexport/getcountryweatherdata?key=${apiKey}&country=FI"
+}
+
 interface NetatmoConfigType {
     val apiKey: String
     val importUrl: String
@@ -22,5 +27,6 @@ interface NetatmoConfigType {
 val NetatmoConfig: NetatmoConfigType = when(Config.environment) {
     Environment.DEV, Environment.PROD -> NetatmoProdConfig
     Environment.LOCAL -> NetatmoLocalConfig
+    Environment.OPENSHIFT -> NetatmoOpenshiftConfig
 }
 

@@ -1,0 +1,87 @@
+namespace: tiuha-dev
+
+netatmo:
+  enabled: false
+  name: netatmo-mock
+  buildconfig: 
+    enabled: false
+    name: netatmo-mock
+
+localstack:
+  enabled: false
+  pvc:
+    enabled: false
+    name: s3-localstack-claim0
+    size: 10Gi
+  buildconfig:
+    enabled: false
+    name: localstack
+
+postgres:
+  enabled: false
+
+postgresTest:
+  enabled: false
+
+localenv:
+  enabled: false
+
+template:
+  enabled: true
+  name: qctask-template
+
+roles:
+  batch:
+    enabled: true
+    name: role-batch
+  pod:
+    enabled: true
+    name: role-pod
+  template:
+    enabled: true
+    name: role-template
+
+roleBindings:
+  batch:
+    enabled: true
+    name: rolebinding-batch
+  pod:
+    enabled: true
+    name: rolebinding-pod
+  template:
+    enabled: true
+    name: rolebinding-template
+  view:
+    enabled: false
+
+qc:
+  enabled: true
+  buildConfig:
+    enabled: true
+    name: qc
+
+measurementapi:
+  enabled: true
+  name: measurement-api
+  route:
+    enabled: true
+    preFix: tiuha-dev
+    tls: true
+  service:
+    enabled: true
+  deployment:
+    enabled: true
+  buildconfig:
+    enabled: true
+    envs:
+      - DATABASE_HOST
+      - DATABASE_PORT
+      - DATABASE_NAME
+      - DATABASE_USERNAME
+      - DATABASE_PASSWORD
+      - GEOMESA_DB_PASSWORD
+      - IMPORT_BUCKET
+      - MEASUREMENTS_BUCKET
+      - ENV
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
