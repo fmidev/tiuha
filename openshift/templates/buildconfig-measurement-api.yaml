@@ -28,7 +28,7 @@ spec:
     git:
       uri: 'ssh://git@github.fmi.fi/hav/tiuha.git'
       ref: main
-    contextDir: 'measurement-api/'
+    contextDir: 'measurement-api'
     sourceSecret:
       name: tiuha-openshift-image-builder
   strategy:
