@@ -17,6 +17,10 @@ localstack:
     enabled: false
     name: localstack
 
+externalPostgres:
+  enabled: true
+  name: ""
+
 postgres:
   enabled: false
 

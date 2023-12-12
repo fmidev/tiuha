@@ -1,4 +1,4 @@
----
+{{- if .Values.externalPostgres.enabled }}
 kind: Service
 apiVersion: v1
 metadata:
@@ -6,4 +6,5 @@ metadata:
   namespace: {{ .Values.namespace }}
 spec:
   type: ExternalName
-  externalName: dbdev2.fmi.fi
+  externalName: {{ .Values.externalPostgres.name }}
+{{- end }}
