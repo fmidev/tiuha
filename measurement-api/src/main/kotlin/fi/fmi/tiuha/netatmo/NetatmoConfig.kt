@@ -3,6 +3,7 @@ package fi.fmi.tiuha.netatmo
 import fi.fmi.tiuha.Config
 import fi.fmi.tiuha.Environment
 import fi.fmi.tiuha.SecretsManager
+import fi.fmi.tiuha.requireEnv
 
 private object NetatmoProdConfig : NetatmoConfigType {
     override val apiKey: String by lazy { SecretsManager.getSecretValue("netatmo-api-key") }
